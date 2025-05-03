@@ -8,20 +8,8 @@ export default [
         useDefaults: true,
         directives: {
           'connect-src': ["'self'", 'https:'],
-          'img-src': [
-            "'self'",
-            'data:',
-            'blob:',
-            'dl.airtable.com',
-            'artsharing.s3.ap-southeast-1.amazonaws.com',
-          ],
-          'media-src': [
-            "'self'",
-            'data:',
-            'blob:',
-            'dl.airtable.com',
-            'artsharing.s3.ap-southeast-1.amazonaws.com',
-          ],
+          'img-src': ["'self'", 'data:', 'blob:', 'res.cloudinary.com'],
+          'media-src': ["'self'", 'data:', 'blob:', 'res.cloudinary.com'],
           upgradeInsecureRequests: null,
         },
       },

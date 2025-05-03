@@ -384,10 +384,7 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     description: Schema.Attribute.Text;
-    example_images: Schema.Attribute.Media<
-      'images' | 'files' | 'videos' | 'audios',
-      true
-    >;
+    example_images: Schema.Attribute.Media<'images', true>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',

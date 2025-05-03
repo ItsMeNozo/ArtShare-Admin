@@ -17,8 +17,9 @@
   "dependencies": {
     "@strapi/plugin-cloud": "5.12.6",
     "@strapi/plugin-users-permissions": "5.12.6",
-    "@strapi/provider-upload-aws-s3": "^5.12.6",
+    "@strapi/provider-upload-cloudinary": "^5.12.7",
     "@strapi/strapi": "5.12.6",
+    "artshare-admin": "file:",
     "pg": "8.8.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
