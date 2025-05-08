@@ -1,4 +1,5 @@
 {
+<<<<<<< Updated upstream
   "compilerOptions": {
     "module": "CommonJS",
     "moduleResolution": "Node",
@@ -39,5 +40,11 @@
     "**/*.test.*",
     // Do not include plugins in the server compilation
     "src/plugins/**"
+=======
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+>>>>>>> Stashed changes
   ]
 }

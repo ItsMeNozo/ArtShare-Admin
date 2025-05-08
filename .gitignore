@@ -2,6 +2,18 @@
 # OS X
 ############################
 
+<<<<<<< Updated upstream
+=======
+**/node_modules/
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+>>>>>>> Stashed changes
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -11,6 +23,7 @@ Icon
 ._*
 
 
+<<<<<<< Updated upstream
 ############################
 # Linux
 ############################
@@ -130,4 +143,6 @@ build
 .strapi-updater.json
 .strapi-cloud.json
 
+=======
+>>>>>>> Stashed changes
 yarn.lock
