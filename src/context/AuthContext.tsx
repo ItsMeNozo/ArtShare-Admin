@@ -16,7 +16,7 @@ import { getUserProfile } from "../api/get-user-profile";
 interface AuthCtx {
   isAuthenticated: boolean;
   user: User | null;
-  isLoading: boolean;
+  isLoading: boolean; // This is the primary loading state for auth status
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -27,112 +27,116 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // Initialize to true
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Initial auth check is loading
 
   const attemptLoadUserFromToken = useCallback(
     async (isInitialLoad = false) => {
+      // console.log('Attempting to load user from token. Initial load:', isInitialLoad);
+      if (!isInitialLoad && !isLoading) {
+        // Only set loading if it's not an initial load and not already loading
+        setIsLoading(true);
+      }
+
       const token = localStorage.getItem("accessToken");
 
       if (!token) {
+        // console.log('No token found.');
         setUser(null);
-        if (isInitialLoad || isLoading) setIsLoading(false); // Only set loading false if it was true
+        setIsLoading(false);
         return;
       }
-
-      if (!isLoading) setIsLoading(true); // Set loading if not already loading
 
       try {
         const userProfile = await getUserProfile();
         setUser(userProfile);
       } catch (error) {
-        console.error("Failed to fetch user profile with stored token:", error);
+        console.error(
+          "AuthContext: Failed to fetch user profile with stored token:",
+          error,
+        );
         setUser(null);
         localStorage.removeItem("accessToken"); // Token is likely invalid or expired
       } finally {
+        // console.log('Finished attemptLoadUserFromToken, setting isLoading to false.');
         setIsLoading(false);
       }
     },
     [isLoading],
-  ); // Dependency on isLoading to avoid redundant setIsLoading calls
+  ); // Removed isLoading from deps here, let's see. Or keep it.
+  // The main goal is to ensure setIsLoading(true) is called appropriately at the start
+  // of an async auth operation and setIsLoading(false) at the end.
 
-  // Effect for initial load: check for an existing token and try to load user
   useEffect(() => {
+    // console.log('AuthProvider mounted. Starting initial token load.');
+    setIsLoading(true); // Explicitly set loading true for the initial check
     attemptLoadUserFromToken(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run only once on mount
+  }, []); // Run only once on mount for initial auth check
 
   const login = async (email: string, password: string) => {
-    setIsLoading(true);
+    // console.log('Login called.');
+    setIsLoading(true); // Indicate an auth operation is in progress
     try {
       const { access_token } = await apiSignIn(email, password);
       localStorage.setItem("accessToken", access_token);
 
-      // After successful signIn and getting the token, fetch the user profile
-      const userProfile = await getUserProfile();
+      // console.log('Signed in, fetching profile with new token.');
+      const userProfile = await getUserProfile(); // This also needs to complete
+      // console.log('Profile fetched after login:', userProfile);
       setUser(userProfile);
-      // isAuthenticated will be true because user is now set
+      // setIsLoading(false); // Set loading false AFTER user is set
     } catch (error) {
-      console.error("Login process failed:", error);
-      localStorage.removeItem("accessToken"); // Clean up token on any part of login failure
-      setUser(null); // Ensure user state is reset
-      setIsLoading(false); // Explicitly set loading to false before re-throwing
-      throw error; // Re-throw to allow UI to handle login error (e.g., display message)
+      console.error("AuthContext: Login process failed:", error);
+      localStorage.removeItem("accessToken");
+      setUser(null);
+      // setIsLoading(false); // Set loading false in catch too
+      throw error; // Re-throw so LoginPage can handle it
+    } finally {
+      // console.log('Login finished, setting isLoading to false.');
+      setIsLoading(false); // Ensure isLoading is false after login attempt
     }
-    // 'finally' is not strictly needed here if catch re-throws,
-    // but if catch didn't re-throw, finally would be essential for setIsLoading(false)
-    // For now, with throw in catch, this might be redundant, but safe.
-    if (isLoading) setIsLoading(false);
   };
 
   const logout = async () => {
-    // setIsLoading(true); // Optional: if logout process is slow or has visual loading state
+    // console.log('Logout called.');
+    // setIsLoading(true); // Optional: if apiSignOut is slow
     try {
-      // Call backend signOut if it's an actual operation (e.g., invalidating token server-side)
       if (apiSignOut) {
-        // Check if apiSignOut is a real function
         await apiSignOut();
       }
     } catch (error) {
-      console.error(
-        "API sign out failed (proceeding with local logout):",
-        error,
-      );
-      // Usually, local logout should proceed even if server call fails
+      console.error("AuthContext: API sign out failed:", error);
     } finally {
       localStorage.removeItem("accessToken");
       setUser(null);
-      // If you set setIsLoading(true) at the start of logout, set it to false here.
-      // Otherwise, ensure it's false if user becomes null and it wasn't already processing something.
-      if (isLoading) setIsLoading(false);
+      // console.log('Logout finished, user set to null.');
+      setIsLoading(false); // Ensure loading is false if it was set true
     }
   };
 
-  // Effect to handle token changes from other tabs/windows
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "accessToken") {
-        console.log(
-          "accessToken changed in another tab/window. Reloading user.",
-        );
+        // console.log('AuthContext: accessToken changed in another tab/window. Reloading user.');
+        // No need to set loading true here if attemptLoadUserFromToken handles it
         attemptLoadUserFromToken();
       }
     };
-
     window.addEventListener("storage", handleStorageChange);
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [attemptLoadUserFromToken]);
 
+  // console.log('AuthProvider rendering. isLoading:', isLoading, 'User:', user);
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated: user !== null, user, isLoading, login, logout }}
+      value={{ isAuthenticated: !!user, user, isLoading, login, logout }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
 
+// useAuth hook remains the same
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
