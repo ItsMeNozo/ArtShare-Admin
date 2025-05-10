@@ -1,28 +1,51 @@
-
-import firebase from 'firebase/app';
-import 'firebase/auth';
-import axios from 'axios';
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+} from "firebase/auth";
+import axios from "axios";
+import api from "../../../api/baseApi";
 
 export interface AuthTokens {
   access_token: string;
   refresh_token: string;
 }
 
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
 /**
  * Sign in with Firebase email/password, then exchange the Firebase ID token
- * at your NestJS backend (/auth/login) to receive your app’s access & refresh tokens.
+ * at your NestJS backend (/auth/admin-login) to receive your app’s access & refresh tokens.
  */
-export async function signIn(email: string, password: string): Promise<AuthTokens> {
+export async function signIn(
+  email: string,
+  password: string,
+): Promise<AuthTokens> {
   // 1. Sign in via Firebase
-  const userCred = await firebase
-    .auth()
-    .signInWithEmailAndPassword(email, password);
+  const userCredential = await signInWithEmailAndPassword(
+    auth,
+    email,
+    password,
+  );
 
   // 2. Get a fresh Firebase ID token (includes custom claims)
-  const firebaseToken = await userCred.user!.getIdToken(true);
+  const firebaseToken = await userCredential.user.getIdToken(true);
 
   // 3. Send it to your backend for verification & token exchange
-  const { data } = await axios.post<AuthTokens>('/auth/login', {
+  const { data } = await api.post<AuthTokens>("/auth/admin-login", {
     token: firebaseToken,
   });
 
@@ -34,12 +57,12 @@ export async function signIn(email: string, password: string): Promise<AuthToken
  * the server-side refresh token.
  */
 export async function signOut(): Promise<void> {
-  const user = firebase.auth().currentUser;
+  const user = auth.currentUser;
   if (user) {
     // 1. Sign out locally
-    await firebase.auth().signOut();
+    await firebaseSignOut(auth);
     // 2. Tell your backend to revoke this user’s refresh token
-    await axios.post('/auth/signout', { uid: user.uid });
+    await axios.post("/auth/signout", { uid: user.uid });
   }
 }
 
@@ -48,14 +71,14 @@ export async function signOut(): Promise<void> {
  * Useful for checking session validity.
  */
 export async function verifyToken(): Promise<boolean> {
-  const user = firebase.auth().currentUser;
+  const user = auth.currentUser;
   if (!user) return false;
 
   // 1. Get current token
   const firebaseToken = await user.getIdToken();
 
   // 2. Send to backend verify-token endpoint
-  const { data } = await axios.post<{ valid: boolean }>('/auth/verify-token', {
+  const { data } = await axios.post<{ valid: boolean }>("/auth/verify-token", {
     token: firebaseToken,
   });
 
