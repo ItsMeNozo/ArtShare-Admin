@@ -3,6 +3,7 @@ import ProtectedRoute from "./lib/ProtectedRoute";
 import LoginPage from "./features/auth/components/login";
 import Dashboard from "./pages/Dashboard";
 import AdminLayout from "./components/layout/AdminLayout";
+import CategoryManagementPage from "./features/categories/CategoryManagementPage";
 // TODO: Import other pages when ready
 // import Users from './pages/Users';
 // import Posts from './pages/Posts';
@@ -30,7 +31,7 @@ export const router = createBrowserRouter([
       // { path: "posts", element: <PostManagementPage /> },
       // { path: "comments", element: <CommentManagementPage /> },
       // { path: "reports", element: <ReportManagementPage /> },
-      // { path: "categories", element: <CategoryManagementPage /> },
+      { path: "categories", element: <CategoryManagementPage /> },
       // { path: "statistics", element: <StatisticsPage /> },
       // { path: "settings", element: <SettingsPage />}, // For top-bar settings icon
     ],

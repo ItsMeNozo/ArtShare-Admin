@@ -20,7 +20,7 @@ import {
   Drawer as MuiDrawer,
   Chip,
 } from "@mui/material";
-import app_logo from "/logo_admin.png"; // Using your brown/yellow "Art Share" logo
+import app_logo from "/logo_admin.png";
 
 import { styled } from "@mui/material/styles";
 import type { CSSObject, Theme } from "@mui/material/styles";
@@ -113,7 +113,7 @@ const AdminLayout: React.FC = () => {
   const location = useLocation();
 
   const [open, setOpen] = React.useState(true);
-  const [selectedItem, setSelectedItem] = React.useState("/admin");
+  const [selectedItem, setSelectedItem] = React.useState("/");
 
   const handleDrawerOpen = () => setOpen(true);
   const handleDrawerClose = () => setOpen(false);
@@ -129,51 +129,51 @@ const AdminLayout: React.FC = () => {
     {
       text: "Dashboard",
       icon: <DashboardIcon />,
-      path: "/admin",
+      path: "/",
       section: "MAIN",
       badge: undefined,
-    }, // Assuming '/admin' is your dashboard path
+    }, // Assuming '/' is your dashboard path
 
     // MANAGEMENT section
     {
       text: "User Management",
       icon: <GroupIcon />,
-      path: "/admin/users",
+      path: "/users",
       section: "MANAGEMENT",
       badge: undefined,
     },
     {
       text: "Post Management",
       icon: <ArticleIcon />,
-      path: "/admin/posts",
+      path: "/posts",
       section: "MANAGEMENT",
       badge: undefined,
     },
     {
       text: "Comment Management",
       icon: <CommentIcon />,
-      path: "/admin/comments",
+      path: "/comments",
       section: "MANAGEMENT",
       badge: undefined,
     },
     {
       text: "Report Management",
       icon: <ReportIcon />,
-      path: "/admin/reports",
+      path: "/reports",
       section: "MANAGEMENT",
       badge: undefined,
     },
     {
       text: "Category Management",
       icon: <CategoryIcon />,
-      path: "/admin/categories",
+      path: "/categories",
       section: "MANAGEMENT",
       badge: undefined,
     },
     {
       text: "Statistics",
       icon: <BarChartIcon />,
-      path: "/admin/statistics",
+      path: "/statistics",
       section: "MANAGEMENT",
       badge: undefined,
     },
@@ -202,9 +202,9 @@ const AdminLayout: React.FC = () => {
     }
     if (bestMatch) {
       setSelectedItem(bestMatch.path);
-    } else if (currentPath === "/admin" || currentPath === "/admin/") {
+    } else if (currentPath === "/") {
       // Handle exact match for dashboard
-      setSelectedItem("/admin");
+      setSelectedItem("/");
     }
   }, [location.pathname]);
 
@@ -303,7 +303,7 @@ const AdminLayout: React.FC = () => {
 
           {!open && ( // Logo in AppBar when drawer is closed
             <Link
-              to="/admin"
+              to="/"
               style={{
                 textDecoration: "none",
                 display: "flex",
@@ -356,7 +356,7 @@ const AdminLayout: React.FC = () => {
             <Tooltip title="Account Settings">
               <IconButton
                 color="inherit"
-                onClick={() => navigate("/admin/settings")}
+                onClick={() => navigate("//settings")}
               >
                 <SettingsIcon />
               </IconButton>
@@ -401,7 +401,7 @@ const AdminLayout: React.FC = () => {
         <DrawerHeaderStyled sx={{ justifyContent: "space-between", px: 2.5 }}>
           {open && (
             <Link
-              to="/admin"
+              to="/"
               style={{
                 textDecoration: "none",
                 display: "flex",
