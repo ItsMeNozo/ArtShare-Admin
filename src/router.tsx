@@ -1,8 +1,8 @@
-// src/router.tsx
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import ProtectedRoute from "./lib/ProtectedRoute";
 import LoginPage from "./features/auth/components/login";
 import Dashboard from "./pages/Dashboard";
+import AdminLayout from "./components/layout/AdminLayout";
 // TODO: Import other pages when ready
 // import Users from './pages/Users';
 // import Posts from './pages/Posts';
@@ -13,68 +13,33 @@ import Dashboard from "./pages/Dashboard";
 
 export const router = createBrowserRouter([
   {
-    path: "/",
-    element: <Navigate to="/dashboard" replace />, // Always redirect from / to /dashboard
-  },
-  {
-    path: "/dashboard", // This is your main protected dashboard route
-    element: (
-      <ProtectedRoute>
-        <Dashboard />
-      </ProtectedRoute>
-    ),
-  },
-  {
     path: "/login",
     element: <LoginPage />,
   },
-  // TODO: Add protected routes for the following paths when components are ready
-  // {
-  //   path: '/users',
-  //   element: (
-  //     <ProtectedRoute>
-  //       <Users />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: '/posts',
-  //   element: (
-  //     <ProtectedRoute>
-  //       <Posts />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: '/comments',
-  //   element: (
-  //     <ProtectedRoute>
-  //       <Comments />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: '/reports',
-  //   element: (
-  //     <ProtectedRoute>
-  //       <Reports />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: '/categories',
-  //   element: (
-  //     <ProtectedRoute>
-  //       <Categories />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: '/statistics',
-  //   element: (
-  //     <ProtectedRoute>
-  //       <Statistics />
-  //     </ProtectedRoute>
-  //   ),
-  // },
+  {
+    // This path will now be the parent for all admin routes
+    path: "/", // Or you could use a more specific base like "/admin" if you prefer
+    element: (
+      <ProtectedRoute>
+        <AdminLayout /> {/* AdminLayout is now protected */}
+      </ProtectedRoute>
+    ),
+    children: [
+      { index: true, element: <Dashboard /> }, // For path: '/admin'
+      // { path: "users", element: <UserManagementPage /> },
+      // { path: "posts", element: <PostManagementPage /> },
+      // { path: "comments", element: <CommentManagementPage /> },
+      // { path: "reports", element: <ReportManagementPage /> },
+      // { path: "categories", element: <CategoryManagementPage /> },
+      // { path: "statistics", element: <StatisticsPage /> },
+      // { path: "settings", element: <SettingsPage />}, // For top-bar settings icon
+    ],
+  },
+  {
+    // Catch-all or redirect for paths not matching login or admin layout
+    // This can be a 404 page or redirect to dashboard if authenticated, login if not.
+    // For simplicity, if you want to always go to /dashboard if not /login:
+    path: "*",
+    element: <Navigate to="/" replace />,
+  },
 ]);

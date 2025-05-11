@@ -1,101 +1,182 @@
 import React from "react";
-import { Box, Card, CardActionArea, Grid, Typography } from "@mui/material";
-import GroupIcon from "@mui/icons-material/Group";
-import ArticleIcon from "@mui/icons-material/Article";
-import CommentIcon from "@mui/icons-material/Comment";
-import ReportIcon from "@mui/icons-material/Report";
-import CategoryIcon from "@mui/icons-material/Category";
-import BarChartIcon from "@mui/icons-material/BarChart";
-import { useNavigate } from "react-router-dom";
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  Button,
+  LinearProgress,
+  useTheme as useMuiTheme, // Use alias to avoid conflict
+} from "@mui/material";
+// Removed: AppBar, Drawer, styled components for layout, logo import, layout state (open, setOpen)
+// Removed: useCustomTheme import here if layout-specific theme toggling is handled by AdminLayout
 
-interface Tile {
-  title: string;
-  description: string;
-  icon: React.ReactElement;
-  path: string;
-}
+// Mock data for dashboard content (can come from props or context if needed)
+const adminName = "Admin"; // Or get from AuthContext if AdminLayout doesn't pass it
+const pendingPosts = 5;
+const openReports = 3;
 
-const tiles: Tile[] = [
-  {
-    title: "User Management",
-    description: "Add / Remove / Lock accounts",
-    icon: <GroupIcon fontSize="large" color="primary" />,
-    path: "/users",
-  },
-  {
-    title: "Post Management",
-    description: "Review & delete posts",
-    icon: <ArticleIcon fontSize="large" color="primary" />,
-    path: "/posts",
-  },
-  {
-    title: "Comment Management",
-    description: "View / delete comments",
-    icon: <CommentIcon fontSize="large" color="primary" />,
-    path: "/comments",
-  },
-  {
-    title: "Report Management",
-    description: "Review violation reports",
-    icon: <ReportIcon fontSize="large" color="primary" />,
-    path: "/reports",
-  },
-  {
-    title: "Category Management",
-    description: "Add / Edit categories",
-    icon: <CategoryIcon fontSize="large" color="primary" />,
-    path: "/categories",
-  },
-  {
-    title: "Statistics",
-    description: "View system metrics",
-    icon: <BarChartIcon fontSize="large" color="primary" />,
-    path: "/statistics",
-  },
-];
+const DashboardPageContent: React.FC = () => {
+  const muiTheme = useMuiTheme(); // Gets the theme from the CustomThemeProvider higher up
 
-const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
+  // This function would ideally be passed down or handled differently if needed on this page
+  // For now, let's assume navigation is handled by links or buttons that AdminLayout might provide context for
+  const handleNavigateToManagement = () => {
+    console.log(
+      "Navigate to management - use useNavigate() if needed here or pass handler from AdminLayout",
+    );
+    // Example: navigate('/posts'); // if useNavigate is used directly here
+  };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" mb={3} color="primary.main" fontWeight={600}>
-        Admin Dashboard
+    <Box>
+      {" "}
+      {/* No need for display:flex, minHeight:100vh - AdminLayout handles this */}
+      <Typography
+        variant="h4"
+        gutterBottom
+        fontWeight={600}
+        color="text.primary"
+      >
+        Welcome back, {adminName}!{" "}
+        {/* Consider how adminName is passed or accessed */}
       </Typography>
-
-      {/* Grid container */}
+      <Typography variant="subtitle1" color="text.secondary" mb={4}>
+        Here's an overview of your system activities.
+      </Typography>
       <Grid container spacing={3}>
-        {tiles.map(({ title, description, icon, path }) => (
-          /* each Grid is an item by default; use `size` for breakpoints */
-          <Grid key={title} size={{ xs: 12, sm: 6, md: 4 }}>
-            <Card elevation={3}>
-              <CardActionArea
-                sx={{ p: 2, height: "100%" }}
-                onClick={() => navigate(path)}
+        {/* Action Center Card (Example from your code) */}
+        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+          {" "}
+          {/* Changed Grid 'size' prop to 'item xs/md/lg' */}
+          <Card
+            sx={{
+              // Using palette.success from your theme for the Action Center as previously discussed
+              background: `linear-gradient(135deg, ${muiTheme.palette.success.main} 0%, ${muiTheme.palette.success.dark} 100%)`,
+              color: muiTheme.palette.success.contrastText, // Ensures text is readable
+              height: "100%",
+            }}
+          >
+            <CardContent
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                height: "100%",
+              }}
+            >
+              <Box>
+                <Typography variant="h5" component="div" gutterBottom>
+                  Action Center
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  You have{" "}
+                  <Typography component="span" fontWeight="bold">
+                    {pendingPosts + openReports}
+                  </Typography>{" "}
+                  items requiring your attention.
+                </Typography>
+              </Box>
+              <Box>
+                {pendingPosts > 0 && (
+                  <>
+                    <Typography variant="subtitle2">
+                      {pendingPosts} Posts Awaiting Review
+                    </Typography>
+                    <LinearProgress
+                      color="success" // This will use the success.contrastText for the bar if defined, or a light color
+                      variant="determinate"
+                      value={(pendingPosts / (pendingPosts + 5)) * 100} // Example value
+                      sx={{
+                        mb: 1,
+                        height: 8,
+                        borderRadius: 4,
+                        // Ensure track is visible on the dark green
+                        backgroundColor: "rgba(255,255,255,0.2)", // Semi-transparent white track
+                        "& .MuiLinearProgress-bar": {
+                          backgroundColor:
+                            muiTheme.palette.success.contrastText, // White bar
+                        },
+                      }}
+                    />
+                  </>
+                )}
+                {openReports > 0 && (
+                  <>
+                    <Typography variant="subtitle2">
+                      {openReports} Open Reports
+                    </Typography>
+                    <LinearProgress
+                      color="success"
+                      variant="determinate"
+                      value={(openReports / (openReports + 2)) * 100} // Example value
+                      sx={{
+                        mb: 1,
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: "rgba(255,255,255,0.2)",
+                        "& .MuiLinearProgress-bar": {
+                          backgroundColor:
+                            muiTheme.palette.success.contrastText,
+                        },
+                      }}
+                    />
+                  </>
+                )}
+              </Box>
+              <Button
+                variant="contained"
+                onClick={handleNavigateToManagement}
+                sx={{
+                  mt: 2,
+                  // Button on dark green card, make it stand out
+                  backgroundColor: "rgba(255,255,255,0.15)", // Lighter, semi-transparent
+                  color: muiTheme.palette.success.contrastText, // White text
+                  "&:hover": { backgroundColor: "rgba(255,255,255,0.25)" },
+                }}
               >
-                <Box
-                  display="flex"
-                  flexDirection="column"
-                  alignItems="center"
-                  justifyContent="center"
-                  height="100%"
-                  textAlign="center"
-                >
-                  {icon}
-                  <Typography variant="h6" mt={1} mb={0.5}>
-                    {title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {description}
-                  </Typography>
-                </Box>
-              </CardActionArea>
-            </Card>
-          </Grid>
-        ))}
+                Review Items
+              </Button>
+            </CardContent>
+          </Card>
+        </Grid>
+        {/* Add other Grid items for your dashboard cards here */}
+        {/* Example: Total Customers card (simplified) */}
+        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+          <Card sx={{ height: "100%" }}>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Total Customers
+              </Typography>
+              <Typography variant="h4" component="div" fontWeight="bold">
+                1,02,890
+              </Typography>
+              {/* ... more content, chart placeholder ... */}
+            </CardContent>
+          </Card>
+        </Grid>
+        {/* Example: Total Revenue card (simplified) */}
+        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+          <Card sx={{ height: "100%" }}>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Total Revenue
+              </Typography>
+              <Typography variant="h4" component="div" fontWeight="bold">
+                $56,562
+              </Typography>
+              {/* ... more content, chart placeholder ... */}
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
     </Box>
   );
 };
 
+// Your Dashboard page component that router.tsx imports
+const Dashboard: React.FC = () => {
+  return <DashboardPageContent />;
+};
 export default Dashboard;
