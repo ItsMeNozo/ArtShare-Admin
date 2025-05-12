@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
+  Stack,
+  Menu,
   Box,
   Typography,
   Button,
@@ -28,13 +30,22 @@ import {
   Grid,
   Avatar,
   useTheme,
+  Checkbox,
 } from "@mui/material";
+// csv
+import { CSVLink } from "react-csv";
+// pdf
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 import {
   AddCircleOutline as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Image as ImageIcon,
   Close as CloseIcon,
+  UndoOutlined,
+  MoreVertOutlined,
 } from "@mui/icons-material";
 import { format } from "date-fns"; // For date formatting
 import type { Category, CategoryType } from "../../types/category";
@@ -52,6 +63,15 @@ const CategoryManagementPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [search, setSearch] = useState("");
+  const filteredCategories = useMemo(
+    () =>
+      categories.filter((c) =>
+        c.name.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [categories, search],
+  );
 
   const [openFormDialog, setOpenFormDialog] = useState<boolean>(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -67,7 +87,7 @@ const CategoryManagementPage: React.FC = () => {
   const [deletingCategoryId, setDeletingCategoryId] = useState<number | null>(
     null,
   );
-
+  const [moreAnchor, setMoreAnchor] = useState<null | HTMLElement>(null);
   const MAX_IMAGES = 4;
   const DESCRIPTION_MAX_LENGTH = 255;
 
@@ -217,6 +237,42 @@ const CategoryManagementPage: React.FC = () => {
     }
   };
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF("landscape");
+    autoTable(doc, {
+      head: [["Name", "Type", "Posts", "Blogs"]],
+      body: selectedIds.map((id) => {
+        const cat = categories.find((c) => c.id === id)!;
+        return [
+          cat.name ?? "",
+          cat.type ?? "",
+          cat.posts_count ?? 0,
+          cat.blogs_count ?? 0,
+        ];
+      }),
+    });
+    doc.save("categories.pdf");
+  };
+
+  const handleExportCSV = () => {
+    /* just close the menu; CSVLink handles it */
+  };
+
+  const handleBulkDelete = async () => {
+    setFormSubmitting(true);
+    setError(null);
+    try {
+      await Promise.all(selectedIds.map((id) => deleteCategoryAPI(id)));
+      await fetchCategories();
+      setSelectedIds([]);
+    } catch (err) {
+      setError("Failed to delete selected categories.");
+      console.error(err);
+    } finally {
+      setFormSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box
@@ -240,7 +296,7 @@ const CategoryManagementPage: React.FC = () => {
         backgroundColor:
           theme.palette.mode === "dark"
             ? theme.palette.background.paper
-            : theme.palette.background.default,
+            : "#ffffff",
       }}
     >
       <Box
@@ -248,20 +304,46 @@ const CategoryManagementPage: React.FC = () => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          mb: 3,
+          flexWrap: "wrap",
+          gap: 2,
+          mb: 2,
         }}
       >
         <Typography variant="h5" component="h1" fontWeight="bold">
           Category Management
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleOpenAddDialog}
-          color="primary"
-        >
-          Add Category
-        </Button>
+
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center", ml: "auto" }}>
+          <TextField
+            size="small"
+            variant="outlined"
+            placeholder="Search…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            sx={{
+              width: 180,
+              backgroundColor:
+                theme.palette.mode === "dark" ? "#1f2937" : "#f9fafb",
+              borderRadius: 2,
+              "& input": {
+                px: 1.5,
+                py: 1,
+              },
+            }}
+            InputProps={{
+              sx: { fontSize: 14 },
+            }}
+          />
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleOpenAddDialog}
+            color="primary"
+            sx={{ textTransform: "none" }}
+          >
+            Add Category
+          </Button>
+        </Box>
       </Box>
 
       {error && (
@@ -270,16 +352,78 @@ const CategoryManagementPage: React.FC = () => {
         </Alert>
       )}
 
-      <TableContainer
-        component={Paper}
-        elevation={3}
-        sx={{
-          backgroundColor:
-            theme.palette.mode === "dark"
-              ? "#272727"
-              : theme.palette.background.paper,
-        }}
-      >
+      {selectedIds.length > 0 && (
+        <Box
+          sx={{
+            mb: 2,
+            px: 2,
+            py: 1,
+            borderRadius: 2,
+            backgroundColor:
+              theme.palette.mode === "dark" ? "#d1d5db" : "#e5e7eb", // gray‑300
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Typography
+            sx={{
+              color: theme.palette.mode === "dark" ? "#000" : "#333",
+            }}
+          >
+            {selectedIds.length} selected from {categories.length}
+          </Typography>
+
+          <Stack direction="row" spacing={1}>
+            <Button
+              startIcon={<DeleteIcon />}
+              color="error"
+              variant="contained"
+              onClick={handleBulkDelete}
+              sx={{ textTransform: "none" }}
+            >
+              Delete
+            </Button>
+
+            <Button
+              onClick={() => setSelectedIds([])}
+              startIcon={<UndoOutlined />}
+              sx={{ textTransform: "none" }}
+            >
+              Deselect all
+            </Button>
+
+            {/* More menu */}
+            <Button
+              variant="outlined"
+              startIcon={<MoreVertOutlined />}
+              onClick={(e) => setMoreAnchor(e.currentTarget)}
+              sx={{ textTransform: "none" }}
+            >
+              More
+            </Button>
+
+            <Menu
+              anchorEl={moreAnchor}
+              open={Boolean(moreAnchor)}
+              onClose={() => setMoreAnchor(null)}
+            >
+              <MenuItem>
+                <CSVLink
+                  data={categories}
+                  filename="categories.csv"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
+                  Export CSV
+                </CSVLink>
+              </MenuItem>
+              <MenuItem onClick={handleExportPDF}>Export PDF</MenuItem>
+            </Menu>
+          </Stack>
+        </Box>
+      )}
+
+      <TableContainer sx={{ boxShadow: "none" }}>
         <Table sx={{ minWidth: 650 }} aria-label="categories table">
           <TableHead
             sx={{
@@ -288,6 +432,23 @@ const CategoryManagementPage: React.FC = () => {
             }}
           >
             <TableRow>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  checked={
+                    selectedIds.length === categories.length &&
+                    categories.length > 0
+                  }
+                  indeterminate={
+                    selectedIds.length > 0 &&
+                    selectedIds.length < categories.length
+                  }
+                  onChange={(e) =>
+                    setSelectedIds(
+                      e.target.checked ? categories.map((c) => c.id) : [],
+                    )
+                  }
+                />
+              </TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Type</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>
@@ -313,6 +474,19 @@ const CategoryManagementPage: React.FC = () => {
                 hover
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
               >
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={selectedIds.includes(category.id)}
+                    onChange={(e) => {
+                      setSelectedIds((prev) =>
+                        e.target.checked
+                          ? [...prev, category.id]
+                          : prev.filter((id) => id !== category.id),
+                      );
+                    }}
+                  />
+                </TableCell>
+
                 <TableCell component="th" scope="row">
                   <Typography variant="subtitle2" fontWeight="medium">
                     {category.name}
@@ -320,12 +494,15 @@ const CategoryManagementPage: React.FC = () => {
                 </TableCell>
                 <TableCell>
                   <Chip
-                    label={category.type}
+                    label={
+                      category.type.charAt(0) +
+                      category.type.slice(1).toLowerCase()
+                    }
                     size="small"
                     color={
                       category.type === CategoryTypeValues.MEDIUM
-                        ? "secondary"
-                        : "info"
+                        ? "primary"
+                        : "secondary"
                     }
                     sx={{ textTransform: "capitalize", fontWeight: "medium" }}
                   />
@@ -435,7 +612,6 @@ const CategoryManagementPage: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
-
       {/* Add/Edit Category Dialog */}
       <Dialog
         open={openFormDialog}

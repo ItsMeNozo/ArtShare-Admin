@@ -1,5 +1,5 @@
-// src/components/layouts/AdminLayout.tsx
 import React from "react";
+
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
@@ -22,7 +22,7 @@ import {
 } from "@mui/material";
 import app_logo from "/logo_admin.png";
 
-import { styled } from "@mui/material/styles";
+import { alpha, styled } from "@mui/material/styles";
 import type { CSSObject, Theme } from "@mui/material/styles";
 import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -211,74 +211,120 @@ const AdminLayout: React.FC = () => {
   const renderSidebarSection = (
     items: typeof sidebarItemsConfig,
     sectionTitle?: string,
-  ) => (
-    <List
-      subheader={
-        open && sectionTitle ? (
-          <ListSubheader
-            component="div"
-            sx={{
-              bgcolor: "transparent",
-              color: "text.secondary",
-              lineHeight: "30px",
-              ml: 1.5,
-              fontWeight: "medium",
-              fontSize: "0.75rem",
-              textTransform: "uppercase",
-            }}
-          >
-            {sectionTitle}
-          </ListSubheader>
-        ) : null
-      }
-    >
-      {items.map((item) => (
-        <ListItemButton
-          key={item.text}
-          selected={selectedItem === item.path}
-          onClick={() => handleListItemClick(item.path)}
-          sx={{
-            minHeight: 48,
-            justifyContent: open ? "initial" : "center",
-            px: 2.5,
-            mx: open ? 1.5 : 0.5,
-            mb: 0.5,
-            borderRadius: 1.5,
-            "&.Mui-selected .MuiListItemText-primary": {
-              fontWeight: 600, // Ensure selected text is bold if theme doesn't catch it
-            },
-            "& .MuiListItemText-primary": {
-              // Default font weight for non-selected
-              fontWeight: selectedItem === item.path ? 600 : 500,
-            },
-          }}
-        >
-          <ListItemIcon
-            sx={{
-              minWidth: 0,
-              mr: open ? 2 : "auto",
-              justifyContent: "center",
-            }}
-          >
-            {item.icon}
-          </ListItemIcon>
-          <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
-          {/* Badge logic can be kept if any of these items might have badges in the future */}
-          {item.badge && open && (
-            <Chip
-              label={item.badge}
-              size="small"
-              sx={
-                {
-                  /* ... your badge styles ... */
-                }
-              }
-            />
-          )}
-        </ListItemButton>
-      ))}
-    </List>
-  );
+  ) => {
+    const theme = useMuiTheme();
+
+    return (
+      <List
+        subheader={
+          open && sectionTitle ? (
+            <ListSubheader
+              component="div"
+              sx={{
+                bgcolor: "transparent",
+                color: "text.secondary",
+                lineHeight: "30px",
+                ml: 1.5,
+                fontWeight: "medium",
+                fontSize: "0.75rem",
+                textTransform: "uppercase",
+              }}
+            >
+              {sectionTitle}
+            </ListSubheader>
+          ) : null
+        }
+      >
+        {items.map((item) => {
+          const isSelected = selectedItem === item.path;
+          return (
+            <ListItemButton
+              key={item.text}
+              selected={isSelected}
+              onClick={() => handleListItemClick(item.path)}
+              sx={{
+                minHeight: 48,
+                px: 2.5,
+                mx: open ? 1.5 : 0.5,
+                mb: 0.5,
+                borderRadius: 1.5,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+
+                // DEFAULT text/icon color
+
+                // HOVER state
+                "&:hover": {
+                  backgroundColor:
+                    theme.palette.mode === "dark"
+                      ? alpha(theme.palette.common.white, 0.08)
+                      : alpha(theme.palette.common.black, 0.04),
+                },
+
+                // SELECTED state
+                "&.Mui-selected": {
+                  backgroundColor: alpha(
+                    theme.palette.primary.main,
+                    theme.palette.mode === "dark" ? 0.25 : 0.15,
+                  ),
+                  color: theme.palette.primary.main,
+                },
+
+                // SELECTED + HOVER
+                "&.Mui-selected:hover": {
+                  backgroundColor: alpha(
+                    theme.palette.primary.main,
+                    theme.palette.mode === "dark" ? 0.35 : 0.25,
+                  ),
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  mr: open ? 2 : "auto",
+                  justifyContent: "center",
+                  color: isSelected
+                    ? theme.palette.primary.main
+                    : theme.palette.action.disabled,
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+
+              <ListItemText
+                primary={item.text}
+                primaryTypographyProps={{ variant: "body2" }}
+                sx={{
+                  opacity: open ? 1 : 0,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              />
+
+              {item.badge && open && (
+                <Chip
+                  label={item.badge}
+                  size="small"
+                  sx={{
+                    ml: 1,
+                    bgcolor:
+                      theme.palette.mode === "dark"
+                        ? alpha(theme.palette.common.white, 0.12)
+                        : theme.palette.grey[200],
+                    color: theme.palette.text.primary,
+                    textTransform: "none",
+                  }}
+                />
+              )}
+            </ListItemButton>
+          );
+        })}
+      </List>
+    );
+  };
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
@@ -321,9 +367,12 @@ const AdminLayout: React.FC = () => {
                 variant="h6"
                 noWrap
                 component="div"
-                sx={{ fontWeight: "bold" }}
+                sx={{
+                  fontWeight: "bold",
+                  color: "#9575CD", // Light purple text color
+                }}
               >
-                Art Share
+                ArtShare
               </Typography>
             </Link>
           )}
@@ -415,18 +464,36 @@ const AdminLayout: React.FC = () => {
                 sx={{ height: 32, width: "auto", mr: 1.5 }}
               />
               <Typography
-                variant="h5"
+                variant="h6"
                 component="div"
                 sx={{
-                  color: muiTheme.palette.primary.main,
                   fontWeight: "bold",
+                  color: "#9575CD", // Light purple text color
                 }}
               >
-                Art Share
+                ArtShare
               </Typography>
             </Link>
           )}
-          <IconButton onClick={open ? handleDrawerClose : handleDrawerOpen}>
+          <IconButton
+            onClick={open ? handleDrawerClose : handleDrawerOpen}
+            sx={{
+              // color: alpha("#FFFFFF", 0.7), // Base color for the button (icon inherits this)
+              // "&:hover": {
+              //   color: "#FFFFFF",        // Color on hover
+              //   backgroundColor: alpha("#FFFFFF", 0.08) // Optional: subtle background on hover
+              // },
+              // More direct approach using theme context for consistency
+              color:
+                muiTheme.palette.mode === "dark"
+                  ? alpha(muiTheme.palette.common.white, 0.7)
+                  : alpha(muiTheme.palette.common.white, 0.8), // Slightly more opaque for light mode if sidebar is still dark
+              "&:hover": {
+                color: muiTheme.palette.common.white,
+                backgroundColor: alpha(muiTheme.palette.common.white, 0.08),
+              },
+            }}
+          >
             {open ? <ChevronLeftIcon /> : <ChevronRightIcon />}
           </IconButton>
         </DrawerHeaderStyled>
