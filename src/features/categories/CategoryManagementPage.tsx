@@ -254,10 +254,6 @@ const CategoryManagementPage: React.FC = () => {
     doc.save("categories.pdf");
   };
 
-  const handleExportCSV = () => {
-    /* just close the menu; CSVLink handles it */
-  };
-
   const handleBulkDelete = async () => {
     setFormSubmitting(true);
     setError(null);
@@ -435,18 +431,33 @@ const CategoryManagementPage: React.FC = () => {
               <TableCell padding="checkbox">
                 <Checkbox
                   checked={
-                    selectedIds.length === categories.length &&
-                    categories.length > 0
+                    filteredCategories.length > 0 &&
+                    selectedIds.length >= filteredCategories.length && // Ensure we check against filtered length
+                    filteredCategories.every((c) => selectedIds.includes(c.id))
                   }
+                  // Check if some but not all filtered items are selected
                   indeterminate={
-                    selectedIds.length > 0 &&
-                    selectedIds.length < categories.length
+                    filteredCategories.some((c) =>
+                      selectedIds.includes(c.id),
+                    ) && // At least one filtered is selected
+                    !filteredCategories.every((c) => selectedIds.includes(c.id)) // But not all filtered are selected
                   }
-                  onChange={(e) =>
-                    setSelectedIds(
-                      e.target.checked ? categories.map((c) => c.id) : [],
-                    )
-                  }
+                  onChange={(e) => {
+                    const filteredIds = filteredCategories.map((c) => c.id);
+                    if (e.target.checked) {
+                      // Add only filtered IDs to the current selection (prevent duplicates)
+                      setSelectedIds((prev) => [
+                        ...new Set([...prev, ...filteredIds]),
+                      ]);
+                    } else {
+                      // Remove filtered IDs from the current selection
+                      setSelectedIds((prev) =>
+                        prev.filter((id) => !filteredIds.includes(id)),
+                      );
+                    }
+                  }}
+                  // Disable if there are no categories to select in the filtered view
+                  disabled={filteredCategories.length === 0}
                 />
               </TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
@@ -468,7 +479,7 @@ const CategoryManagementPage: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {categories.map((category) => (
+            {filteredCategories.map((category) => (
               <TableRow
                 key={category.id}
                 hover
@@ -600,7 +611,7 @@ const CategoryManagementPage: React.FC = () => {
                 </TableCell>
               </TableRow>
             ))}
-            {categories.length === 0 && (
+            {filteredCategories.length === 0 && (
               <TableRow>
                 <TableCell colSpan={8} align="center">
                   <Typography color="textSecondary">

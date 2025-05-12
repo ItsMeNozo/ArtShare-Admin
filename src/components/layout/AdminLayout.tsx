@@ -36,7 +36,6 @@ import CategoryIcon from "@mui/icons-material/Category"; // For Category Managem
 import BarChartIcon from "@mui/icons-material/BarChart"; // For Statistics
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import SettingsIcon from "@mui/icons-material/Settings";
-import ExitToAppIcon from "@mui/icons-material/ExitToApp"; // Kept for potential logout/auth section
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 

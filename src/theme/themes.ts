@@ -144,7 +144,7 @@ export const lightTheme = createTheme({
     MuiDivider: {
       // Sidebar divider
       styleOverrides: {
-        root: ({ theme }) => ({
+        root: () => ({
           borderColor: alpha("#FFFFFF", 0.12), // Subtle white divider
         }),
       },
@@ -328,7 +328,7 @@ export const darkTheme = createTheme({
     },
     MuiDivider: {
       styleOverrides: {
-        root: ({ theme }) => ({
+        root: () => ({
           borderColor: alpha("#FFFFFF", 0.12),
         }),
       },
