@@ -52,11 +52,10 @@ jobs:
       - name: Install dependencies
         run: npm install
         
-      - name: Install Qlty CLI
-        run: curl https://qlty.sh | sh
-
-      - name: Upload coverage
-        run: qlty coverage publish coverage/lcov.info
+      - name: Upload coverage to Qlty
+        uses: qltysh/qlty-action@v1
+        with:
+          coverage-file: coverage/lcov.info
         env:
           QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
 
