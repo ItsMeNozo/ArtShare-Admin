@@ -72,7 +72,12 @@ const CategoryManagementPage: React.FC = () => {
       ),
     [categories, search],
   );
-
+  const categoryTypeTooltips = {
+    [CategoryTypeValues.ATTRIBUTE]:
+      "Attribute: Describes characteristics or properties. Used for filtering or defining features (e.g., 'Color', 'Size', 'Style').",
+    [CategoryTypeValues.MEDIUM]:
+      "Medium: Refers to the art medium or material used. Helps classify artworks by their physical composition (e.g., 'Oil Painting', 'Sculpture', 'Digital Art').",
+  };
   const [openFormDialog, setOpenFormDialog] = useState<boolean>(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryFormData, setCategoryFormData] = useState<Partial<Category>>({
@@ -175,15 +180,21 @@ const CategoryManagementPage: React.FC = () => {
   };
 
   const handleFormSubmit = async () => {
-    if (!categoryFormData.name) {
+    if (!categoryFormData.name?.trim()) {
+      // Also trim to avoid just spaces
       alert("Category name is required.");
+      return;
+    }
+    if (!categoryFormData.description?.trim()) {
+      // Also trim
+      alert("Category description is required.");
       return;
     }
     // Ensure example_images are strings if your DTO expects that.
     // If you did actual file uploads, this is where you'd ensure you have the URLs.
     const payload = {
       name: categoryFormData.name,
-      description: categoryFormData.description || null, // Ensure null if empty and DTO expects it
+      description: categoryFormData.description,
       type: categoryFormData.type,
       example_images: categoryFormData.example_images || [], // Ensure it's an array
     };
@@ -504,19 +515,27 @@ const CategoryManagementPage: React.FC = () => {
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Chip
-                    label={
-                      category.type.charAt(0) +
-                      category.type.slice(1).toLowerCase()
+                  <Tooltip
+                    title={
+                      categoryTypeTooltips[category.type] || "Category Type"
                     }
-                    size="small"
-                    color={
-                      category.type === CategoryTypeValues.MEDIUM
-                        ? "primary"
-                        : "secondary"
-                    }
-                    sx={{ textTransform: "capitalize", fontWeight: "medium" }}
-                  />
+                    arrow
+                    placement="top"
+                  >
+                    <Chip
+                      label={
+                        category.type.charAt(0) +
+                        category.type.slice(1).toLowerCase()
+                      }
+                      size="small"
+                      color={
+                        category.type === CategoryTypeValues.MEDIUM
+                          ? "primary"
+                          : "secondary"
+                      }
+                      sx={{ textTransform: "capitalize", fontWeight: "medium" }}
+                    />
+                  </Tooltip>
                 </TableCell>
                 <TableCell
                   sx={{
@@ -611,11 +630,15 @@ const CategoryManagementPage: React.FC = () => {
                 </TableCell>
               </TableRow>
             ))}
+
             {filteredCategories.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} align="center">
+                {/* Adjust colSpan based on the number of columns (including checkbox) */}
+                <TableCell colSpan={9} align="center">
                   <Typography color="textSecondary">
-                    No categories found.
+                    {search
+                      ? "No categories match your search."
+                      : "No categories found."}
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -655,6 +678,7 @@ const CategoryManagementPage: React.FC = () => {
             fullWidth
             multiline
             rows={3}
+            required
             variant="outlined"
             value={categoryFormData.description || ""}
             onChange={handleInputChange}
@@ -671,10 +695,26 @@ const CategoryManagementPage: React.FC = () => {
               label="Type"
               onChange={handleInputChange}
             >
-              <MenuItem value={CategoryTypeValues.ATTRIBUTE}>
-                Attribute
-              </MenuItem>
-              <MenuItem value={CategoryTypeValues.MEDIUM}>Medium</MenuItem>
+                <MenuItem value={CategoryTypeValues.ATTRIBUTE} selected>
+                  <Tooltip
+                    title={categoryTypeTooltips[CategoryTypeValues.ATTRIBUTE]}
+                    arrow
+                    placement="right"
+                  >
+                    <Box width={'100%'}>Attribute</Box>
+                  </Tooltip>
+                </MenuItem>
+
+              
+                <MenuItem value={CategoryTypeValues.MEDIUM}>
+                  <Tooltip
+                    title={categoryTypeTooltips[CategoryTypeValues.MEDIUM]}
+                    arrow
+                    placement="right"
+                  >
+                      <Box width={'100%'}>Medium</Box>
+                  </Tooltip>
+                </MenuItem>
             </Select>
           </FormControl>
 
