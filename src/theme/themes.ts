@@ -355,7 +355,7 @@ export const darkTheme = createTheme({
         // when you do <Chip color="secondary" />, this runs
         filledSecondary: ({ theme }) => ({
           backgroundColor: theme.palette.secondary.main,
-          color: theme.palette.secondary.contrastText,
+          color: "#fff",
           "&:hover": {
             backgroundColor: theme.palette.secondary.dark,
           },
