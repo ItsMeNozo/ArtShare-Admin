@@ -18,6 +18,7 @@ export const router = createBrowserRouter([
     path: "/login",
     element: <LoginPage />,
   },
+  { path: "categories", element: <CategoryManagementPage /> },
   { path: "users", element: <UserManagementPage /> },
   {
     // This path will now be the parent for all admin routes
@@ -33,7 +34,6 @@ export const router = createBrowserRouter([
       // { path: "posts", element: <PostManagementPage /> },
       // { path: "comments", element: <CommentManagementPage /> },
       // { path: "reports", element: <ReportManagementPage /> },
-      { path: "categories", element: <CategoryManagementPage /> },
       // { path: "statistics", element: <StatisticsPage /> },
       // { path: "settings", element: <SettingsPage />}, // For top-bar settings icon
     ],

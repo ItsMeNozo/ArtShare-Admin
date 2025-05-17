@@ -3,6 +3,7 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
+  createUserWithEmailAndPassword,
 } from "firebase/auth";
 import axios from "axios";
 import api from "../../../api/baseApi";
@@ -25,6 +26,29 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
+export const signUp = async (
+  email: string | "",
+  password: string,
+  username: string,
+) => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password,
+    );
+    const response = await api.post(`/auth/register`, {
+      userId: userCredential.user.uid,
+      email,
+      username,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error signing up:", error);
+    throw error;
+  }
+};
 
 /**
  * Sign in with Firebase email/password, then exchange the Firebase ID token

@@ -1,0 +1,61 @@
+import { HeadCell } from "../types";
+
+export const headCells: readonly HeadCell[] = [
+  {
+    id: "avatar",
+    numeric: false,
+    sortable: false,
+    label: "Avatar",
+    minWidth: 60,
+    align: "center",
+  },
+  {
+    id: "username",
+    numeric: false,
+    sortable: true,
+    label: "Username",
+    minWidth: 150,
+    align: "left",
+  },
+  {
+    id: "full_name",
+    numeric: false,
+    sortable: true,
+    label: "Full Name",
+    minWidth: 170,
+    align: "left",
+  },
+  {
+    id: "email",
+    numeric: false,
+    sortable: true,
+    label: "Email",
+    minWidth: 170,
+    align: "left",
+    className: "hidden md:table-cell",
+  },
+  {
+    id: "roles",
+    numeric: false,
+    sortable: false,
+    label: "Roles",
+    minWidth: 120,
+    align: "center",
+  },
+  {
+    id: "currentPlan",
+    numeric: false,
+    sortable: false,
+    label: "Current Plan",
+    minWidth: 150,
+    align: "center",
+  },
+  {
+    id: "actions",
+    numeric: false,
+    sortable: false,
+    label: "Actions",
+    minWidth: 50,
+    align: "center",
+  },
+];

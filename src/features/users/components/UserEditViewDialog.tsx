@@ -13,7 +13,6 @@ import {
   Divider,
   CircularProgress,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   Checkbox,
@@ -21,7 +20,6 @@ import {
   OutlinedInput,
   SelectChangeEvent,
   ChipProps,
-  Chip,
 } from "@mui/material";
 import {
   Close as CloseIcon,
@@ -36,26 +34,30 @@ import {
   Description as DescriptionIcon,
   SupervisedUserCircle as SupervisedUserCircleIcon,
   Cancel as CancelIcon,
-  AdminPanelSettings as AdminPanelSettingsIcon,
-  CreditCard as CreditCardIcon,
 } from "@mui/icons-material";
-import { SemanticSubscriptionStatus, SubscriptionStatusInfo } from "..";
-import { User, UserFormData, Role as AppRole } from "../../../types/user";
-import { MOCK_AVAILABLE_ROLES } from "../mocks/user.api";
+import { User, UserFormData } from "../../../types/user";
 import { PaidAccessLevel } from "../../../constants/plan";
+import { SemanticSubscriptionStatus, SubscriptionStatusInfo } from "../types";
+import { USER_ROLES, UserRoleType } from "../../../constants/roles";
+import { useUserOperations } from "../hooks/useUserOperations";
+import { signUp } from "../../auth/api/auth-api";
 
 interface UserEditViewDialogProps {
   open: boolean;
   onClose: () => void;
   user: User | null;
   isCreatingNewUser: boolean;
-  onSave: (userData: UserFormData, userId?: String) => Promise<void>;
-
+  onSave: (
+    dataForBackend: UserFormData & { id?: string },
+    userIdToUpdate?: string,
+  ) => Promise<User>;
   getSubscriptionStatusInfo: (user: User | null) => SubscriptionStatusInfo;
   getChipColorFromSemanticStatus: (
     status: SemanticSubscriptionStatus,
   ) => ChipProps["color"];
 }
+
+const AVAILABLE_ROLES_FOR_SELECT: UserRoleType[] = Object.values(USER_ROLES);
 
 const getInitialDialogFormData = (
   user: User | null,
@@ -65,8 +67,8 @@ const getInitialDialogFormData = (
     return {
       username: "",
       email: "",
-      full_name: "",
-      profile_picture_url: "",
+      fullName: "",
+      profilePictureUrl: "",
       bio: "",
       birthday: undefined,
       roles: ["USER"],
@@ -74,16 +76,16 @@ const getInitialDialogFormData = (
     };
   }
   return {
-    id: user.id,
     username: user.username,
     email: user.email,
-    full_name: user.full_name || "",
-    profile_picture_url: user.profile_picture_url || "",
+    fullName: user.fullName || "",
+    profilePictureUrl: user.profilePictureUrl || "",
     bio: user.bio || "",
     birthday: user.birthday
       ? (new Date(user.birthday).toISOString().split("T")[0] as any)
       : undefined,
-    roles: user.roles.map((ur) => ur.role.role_name),
+    roles: user.roles.map((ur) => ur),
+    password: "",
   };
 };
 
@@ -95,6 +97,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
   onSave,
   getSubscriptionStatusInfo: getStatusInfoProp,
 }) => {
+  const { loadUsers } = useUserOperations();
   const [isEditing, setIsEditing] = useState(isCreatingNewUser);
   const [formData, setFormData] = useState<UserFormData>(
     getInitialDialogFormData(initialUser, isCreatingNewUser),
@@ -152,27 +155,39 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
     }
 
     setSaving(true);
+
     try {
-      await onSave(formData, userForDisplay?.id);
+      let userId = userForDisplay?.id;
+
+      if (isCreatingNewUser) {
+        if (!formData.email || !formData.password) {
+          setSaving(false);
+          throw new Error("Email and password for Firebase are missing");
+        }
+        const response = await signUp(
+          formData.email,
+          formData.password,
+          formData.username,
+        );
+
+        userId = response.newUser.id;
+      }
+
+      const updatedUser = await onSave(formData, userId);
+
       alert(`User ${isCreatingNewUser ? "created" : "updated"} successfully.`);
-      if (!isCreatingNewUser) {
-        const updatedUserForDisplay = {
-          ...(userForDisplay || {}),
-          ...initialUser,
-          ...formData,
-          id: userForDisplay?.id || formData.id,
-          roles: formData.roles.map((roleName) => ({
-            role: MOCK_AVAILABLE_ROLES.find(
-              (r) => r.role_name === roleName,
-            ) || { role_id: roleName, role_name: roleName, description: "" },
-          })),
-        } as User;
-        setUserForDisplay(updatedUserForDisplay);
+      onClose();
+      await loadUsers();
+
+      if (!isCreatingNewUser && userForDisplay) {
+        setUserForDisplay(updatedUser);
         setIsEditing(false);
+      } else if (isCreatingNewUser) {
       }
     } catch (error) {
       console.error("Error saving user:", error);
-      alert("Failed to save user.");
+
+      alert(`Failed to save user: ${(error as Error).message}`);
     } finally {
       setSaving(false);
     }
@@ -185,7 +200,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
       reader.onloadend = () => {
         setFormData((prev) => ({
           ...prev,
-          profile_picture_url: reader.result as string,
+          profilePictureUrl: reader.result as string,
         }));
       };
       reader.readAsDataURL(file);
@@ -195,7 +210,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
   const triggerAvatarUpload = () => fileInputRef.current?.click();
 
   const removeAvatar = () => {
-    setFormData((prev) => ({ ...prev, profile_picture_url: "" }));
+    setFormData((prev) => ({ ...prev, profilePictureUrl: "" }));
   };
 
   const currentData = isEditing
@@ -216,13 +231,15 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
 
     if (!isEditing || readOnlyOverride) {
       return (
-        // Reverted to size prop
         <Grid size={{ xs: 12 }} key={id + "_view"}>
           <Typography
             variant="caption"
-            color="textSecondary"
             component="div"
-            className="uppercase"
+            sx={{
+              display: "block",
+              color: "text.secondary",
+              fontWeight: 500,
+            }}
           >
             {label}
           </Typography>
@@ -239,7 +256,6 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
       );
     }
     return (
-      // Reverted to size prop on the container Grid
       <Grid
         container
         direction="column"
@@ -276,7 +292,15 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
             rows={multiline ? 3 : 1}
             InputProps={{
               startAdornment: icon ? (
-                <Box sx={{ mr: 1, color: "action.active" }}>{icon}</Box>
+                <Box
+                  sx={{
+                    mr: 1,
+                    color: "action.active",
+                    alignSelf: multiline ? "flex-start" : "",
+                  }}
+                >
+                  {icon}
+                </Box>
               ) : null,
             }}
             required={
@@ -302,13 +326,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
           pb: 1.5,
         }}
       >
-        <Typography variant="h6">
-          {isCreatingNewUser
-            ? "Create New User"
-            : isEditing
-              ? `Editing: ${userForDisplay?.username || formData.username}`
-              : `User Details: ${userForDisplay?.username}`}
-        </Typography>
+        {isCreatingNewUser ? "Create new user" : "User details"}
         <Box>
           {!isCreatingNewUser && (
             <Button
@@ -358,7 +376,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
             {/* This is the main layout container */}
             {/* Avatar and Basic Info Column (Left) - Reverted to size prop */}
             <Grid
-              size={{ xs: 12, md: 4 }} // Reverted
+              size={{ xs: 12, md: 4 }}
               sx={{
                 p: 3,
                 bgcolor: "grey.100",
@@ -375,9 +393,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
               >
                 <Box position="relative" mb={2}>
                   <Avatar
-                    src={
-                      (currentData.profile_picture_url as string) || undefined
-                    }
+                    src={(currentData.profilePictureUrl as string) || undefined}
                     alt={currentData.username as string}
                     sx={{
                       width: 150,
@@ -414,7 +430,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                   onChange={handleAvatarFileChange}
                   style={{ display: "none" }}
                 />
-                {isEditing && currentData.profile_picture_url && (
+                {isEditing && currentData.profilePictureUrl && (
                   <Button
                     size="small"
                     onClick={removeAvatar}
@@ -425,39 +441,13 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                   </Button>
                 )}
 
-                <Typography variant="h5" gutterBottom>
-                  {currentData.full_name || currentData.username}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
+                <Typography variant="body1" fontStyle={"italic"}>
                   {currentData.email}
                 </Typography>
-                {displayUser.roles && (
-                  <Box className="flex flex-wrap gap-1 justify-center my-1">
-                    {displayUser.roles.map((userRole) => (
-                      <Chip
-                        key={userRole.role.role_id}
-                        icon={
-                          userRole.role.role_name === "ADMIN" ? (
-                            <AdminPanelSettingsIcon />
-                          ) : (
-                            <PersonIcon />
-                          )
-                        }
-                        label={userRole.role.role_name}
-                        size="small"
-                        color={
-                          userRole.role.role_name === "ADMIN"
-                            ? "secondary"
-                            : "default"
-                        }
-                      />
-                    ))}
-                  </Box>
-                )}
               </Box>
-              <>
-                <Divider sx={{ my: 2 }} />
-                {/* This Grid is a standard MUI container for the Account/Subscription sections */}
+              <Divider sx={{ my: 2 }} />
+              {/* This Grid is a standard MUI container for the Account/Subscription sections */}
+              {!isCreatingNewUser && (
                 <Grid container spacing={2}>
                   {/* Account Info Section - Adjusted for row on xs, stack on md */}
                   <Grid size={{ xs: 6, md: 12 }}>
@@ -469,115 +459,115 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                     >
                       ACCOUNT INFO
                     </Typography>
-                    <Typography variant="body2">
-                      <strong>User ID:</strong> {displayUser.id}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Joined:</strong>
-                      {new Date(
-                        displayUser.created_at || Date.now(),
-                      ).toLocaleDateString()}
-                    </Typography>
-                    {displayUser.updated_at && (
+                    <div className="flex flex-col gap-1">
                       <Typography variant="body2">
-                        <strong>Last Updated:</strong>
-                        {new Date(displayUser.updated_at).toLocaleDateString()}
+                        <strong>User ID: </strong> {displayUser.id}
                       </Typography>
-                    )}
-                    <Typography variant="body2">
-                      <strong>Followers:</strong>
-                      {displayUser.followers_count ?? "N/A"}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Following:</strong>
-                      {displayUser.followings_count ?? "N/A"}
-                    </Typography>
+                      <Typography variant="body2">
+                        <strong>Joined: </strong>
+                        {new Date(
+                          displayUser.createdAt || Date.now(),
+                        ).toLocaleDateString()}
+                      </Typography>
+                      {displayUser.updatedAt && (
+                        <Typography variant="body2">
+                          <strong>Last Updated: </strong>
+                          {new Date(displayUser.updatedAt).toLocaleDateString()}
+                        </Typography>
+                      )}
+                      <Typography variant="body2">
+                        <strong>Followers: </strong>
+                        {displayUser.followersCount ?? "0"}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Following: </strong>
+                        {displayUser.followingsCount ?? "0"}
+                      </Typography>
+                    </div>
                   </Grid>
 
                   {displayUser.roles &&
-                    !displayUser.roles.some(
-                      (r) => r.role.role_name === "ADMIN",
-                    ) && (
-                      // Subscription Info Section - Adjusted for row on xs, stack on md
+                    !displayUser.roles.some((r) => r === "ADMIN") && (
                       <Grid size={{ xs: 6, md: 12 }}>
                         {/* CHANGED HERE */}
                         <Typography
                           variant="subtitle2"
                           gutterBottom
-                          sx={{ color: "text.secondary", mt: { xs: 0, md: 1 } }} // Adjusted margin top for xs
+                          sx={{ color: "text.secondary", mt: { xs: 0, md: 1 } }}
                         >
                           SUBSCRIPTION
                         </Typography>
-                        <Typography variant="body2">
-                          <strong>Plan:</strong> {statusInfo.text}
-                        </Typography>
-                        {displayUser.userAccess && (
-                          <>
-                            <Typography variant="body2" sx={{ mt: 0.5 }}>
-                              <strong>Expires:</strong>
-                              {displayUser.userAccess.planId ===
-                              PaidAccessLevel.FREE
-                                ? "N/A"
-                                : new Date(
-                                    displayUser.userAccess.expiresAt,
-                                  ).toLocaleDateString()}
-                            </Typography>
-                            <Typography variant="body2" sx={{ mt: 0.5 }}>
-                              <strong>Will Cancel at Period End:</strong>
-                              {displayUser.userAccess.cancelAtPeriodEnd
-                                ? "Yes"
-                                : "No"}
-                            </Typography>
-                            {initialUser?.roles.some(
-                              (r) => r.role.role_name === "ADMIN",
-                            ) && (
-                              <>
-                                <Typography
-                                  variant="body2"
-                                  sx={{
-                                    mt: 0.5,
-                                    fontSize: "0.8rem",
-                                    color: "text.secondary",
-                                  }}
-                                >
-                                  Stripe Customer ID:
-                                  {displayUser.stripe_customer_id ||
-                                    displayUser.userAccess?.stripeCustomerId ||
-                                    "N/A"}
-                                </Typography>
-                                <Typography
-                                  variant="body2"
-                                  sx={{
-                                    mt: 0.5,
-                                    fontSize: "0.8rem",
-                                    color: "text.secondary",
-                                  }}
-                                >
-                                  Stripe Subscription ID:
-                                  {displayUser.userAccess
-                                    ?.stripeSubscriptionId || "N/A"}
-                                </Typography>
-                              </>
-                            )}
-                          </>
-                        )}
+                        <div className="flex flex-col gap-1">
+                          <Typography variant="body2">
+                            <strong>Plan: </strong> {statusInfo.text}
+                          </Typography>
+                          {displayUser.userAccess && (
+                            <>
+                              <Typography variant="body2">
+                                <strong>Expires: </strong>
+                                {displayUser.userAccess.planId ===
+                                PaidAccessLevel.FREE
+                                  ? "N/A"
+                                  : displayUser.userAccess.expiresAt}
+                              </Typography>
+                              <Typography variant="body2">
+                                <strong>Will cancel at period end: </strong>
+                                {displayUser.userAccess.cancelAtPeriodEnd
+                                  ? "Yes"
+                                  : "No"}
+                              </Typography>
+                              {initialUser?.roles.some(
+                                (r) => r === "ADMIN",
+                              ) && (
+                                <>
+                                  <Typography
+                                    variant="body2"
+                                    sx={{
+                                      mt: 0.5,
+                                      fontSize: "0.8rem",
+                                      color: "text.secondary",
+                                    }}
+                                  >
+                                    Stripe Customer ID:
+                                    {displayUser.stripeCustomerId ||
+                                      displayUser.userAccess
+                                        ?.stripeCustomerId ||
+                                      "N/A"}
+                                  </Typography>
+                                  <Typography
+                                    variant="body2"
+                                    sx={{
+                                      mt: 0.5,
+                                      fontSize: "0.8rem",
+                                      color: "text.secondary",
+                                    }}
+                                  >
+                                    Stripe Subscription ID:
+                                    {displayUser.userAccess
+                                      ?.stripeSubscriptionId || "N/A"}
+                                  </Typography>
+                                </>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </Grid>
                     )}
                 </Grid>
-              </>
+              )}
             </Grid>
             {/* Details Form Column (Right) - Reverted to size prop */}
-            <Grid
-              size={{ xs: 12, md: 8 }} // Reverted
-              sx={{ p: 3, minHeight: "620px" }}
-            >
-              <Typography
-                variant="h6"
-                gutterBottom
-                sx={{ borderBottom: 1, borderColor: "divider", pb: 1, mb: 2 }}
-              >
-                {isEditing ? "Edit Information" : "User Profile"}
-              </Typography>
+            <Grid size={{ xs: 12, md: 8 }} sx={{ p: 3, minHeight: "620px" }}>
+              {!isCreatingNewUser && (
+                <Typography
+                  variant="h6"
+                  gutterBottom={isEditing ? true : false}
+                  sx={{ borderBottom: 1, borderColor: "divider", pb: 1, mb: 2 }}
+                >
+                  User Profile
+                </Typography>
+              )}
+
               {/* This Grid is a standard MUI container for the fields */}
               <Grid container spacing={isEditing ? 2 : 3}>
                 {/* renderField now returns a Grid that might have 'size' prop if it's a container,
@@ -594,14 +584,13 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                   )}
                 {renderField(
                   "Full Name",
-                  "full_name",
+                  "fullName",
                   "text",
                   <AssignmentIndIcon />,
                 )}
                 {renderField("Birthday", "birthday", "date", <CakeIcon />)}
                 {renderField("Bio", "bio", "text", <DescriptionIcon />, true)}
                 {isEditing && (
-                  // Reverted to size prop for the roles section wrapper
                   <Grid size={{ xs: 12 }}>
                     {/* Reverted */}
                     <Typography
@@ -623,25 +612,36 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                         name="roles"
                         value={formData.roles}
                         onChange={handleRolesChange}
-                        input={<OutlinedInput id={"roles-select-input"} />}
-                        renderValue={(selected) =>
-                          Array.isArray(selected) ? selected.join(", ") : ""
+                        input={
+                          <OutlinedInput
+                            id="roles-select-input"
+                            label="Roles"
+                          />
                         }
+                        renderValue={(selected: UserRoleType[]) =>
+                          selected.join(", ")
+                        }
+                        displayEmpty
                         startAdornment={
                           <SupervisedUserCircleIcon
                             color="action"
-                            sx={{ mr: 1, ml: 1.5, pointerEvents: "none" }}
+                            sx={{ ml: 1, mr: 1, pointerEvents: "none" }}
                           />
                         }
                       >
-                        {MOCK_AVAILABLE_ROLES.map((role) => (
-                          <MenuItem key={role.role_id} value={role.role_name}>
+                        {/* Optional: Placeholder if needed, though displayEmpty and InputLabel are better */}
+                        {/* <MenuItem disabled value="">
+        <em>Select roles...</em>
+    </MenuItem> */}
+
+                        {AVAILABLE_ROLES_FOR_SELECT.map((roleName) => (
+                          <MenuItem key={roleName} value={roleName}>
+                            {/* value is the roleName string */}
                             <Checkbox
-                              checked={
-                                formData.roles.indexOf(role.role_name) > -1
-                              }
+                              checked={formData.roles.indexOf(roleName) > -1}
                             />
-                            <ListItemText primary={role.role_name} />
+                            <ListItemText primary={roleName} />
+                            {/* Displays "ADMIN" or "USER" */}
                           </MenuItem>
                         ))}
                       </Select>
