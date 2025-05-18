@@ -122,7 +122,7 @@ export const useUserOperations = (): UserOperations => {
       setError(message);
       console.error("updateUser error:", err);
 
-      return undefined;
+      throw new Error(message);
     } finally {
       setLoading(false);
     }

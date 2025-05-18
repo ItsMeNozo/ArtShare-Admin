@@ -20,7 +20,10 @@ import {
   useTheme,
   TableRow,
   TableCell,
+  Snackbar,
 } from "@mui/material";
+
+import MuiAlert, { AlertProps, AlertColor } from "@mui/material/Alert";
 import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import autoTable from "jspdf-autotable";
 import jsPDF from "jspdf";
@@ -42,6 +45,12 @@ import { useUserOperations, UserOperations } from "./hooks/useUserOperations";
 interface DisplayUser extends User {
   currentPlan?: string;
 }
+
+const PageSnackbarAlert = React.forwardRef<HTMLDivElement, AlertProps>(
+  function PageSnackbarAlert(props, ref) {
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+  },
+);
 
 const UserManagementPage: React.FC = () => {
   const theme = useTheme();
@@ -69,7 +78,6 @@ const UserManagementPage: React.FC = () => {
   }: UserOperations = useUserOperations();
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
   const resetSelection = useCallback(() => setSelectedIds([]), []);
 
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<null | HTMLElement>(
@@ -88,6 +96,26 @@ const UserManagementPage: React.FC = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
   const [openBulkDeleteDialog, setOpenBulkDeleteDialog] =
     useState<boolean>(false);
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("info");
+
+  const showPageNotification = (message: string, severity: AlertColor) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
+  const handlePageSnackbarClose = (
+    _?: React.SyntheticEvent | Event,
+    reason?: string,
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbarOpen(false);
+  };
 
   const handleOpenUserMenu = (
     event: React.MouseEvent<HTMLElement>,
@@ -127,7 +155,9 @@ const UserManagementPage: React.FC = () => {
     clearError();
 
     if (!userIdToUpdate) {
-      setErrorManually("User ID is missing for update.");
+      setErrorManually(
+        "User ID is missing for update operation initiated from dialog.",
+      );
       throw new Error("User ID is required for update.");
     }
     if (!updateUser) {
@@ -137,14 +167,27 @@ const UserManagementPage: React.FC = () => {
 
     const { password, id, ...updatePayloadData } = dataForBackend;
 
-    const updatedUser = await updateUser(
-      userIdToUpdate,
-      updatePayloadData as Omit<UserFormData, "id" | "password">,
-    );
-    if (!updatedUser) {
-      throw new Error("Failed to update user (operation returned undefined).");
+    try {
+      const updatedUser = await updateUser(
+        userIdToUpdate,
+        updatePayloadData as Omit<UserFormData, "id" | "password">,
+      );
+      if (!updatedUser) {
+        throw new Error(
+          "Failed to update user (operation returned undefined).",
+        );
+      }
+
+      return updatedUser;
+    } catch (error) {
+      console.error("Error in handleSaveUserFromDialog on page:", error);
+      if (error instanceof Error) {
+        setErrorManually(error.message);
+      } else {
+        setErrorManually("An unknown error occurred while saving user.");
+      }
+      throw error;
     }
-    return updatedUser;
   };
 
   const handleOpenDeleteConfirmDialog = (userFromMenu?: User) => {
@@ -158,14 +201,22 @@ const UserManagementPage: React.FC = () => {
 
   const handleDeleteUser = async () => {
     if (!selectedUserForMenu || !selectedUserForMenu.id) {
-      setErrorManually("Cannot delete user: User data is missing.");
+      showPageNotification(
+        "Cannot delete user: User data is missing.",
+        "error",
+      );
       setOpenDeleteDialog(false);
       setSelectedUserForMenu(null);
       return;
     }
     clearError();
+    const userName = selectedUserForMenu.username;
     try {
       await deleteUser(selectedUserForMenu.id);
+      showPageNotification(
+        `User "${userName}" deleted successfully.`,
+        "success",
+      );
     } catch (err) {
       console.error("Delete user failed from page:", err);
     } finally {
@@ -177,14 +228,18 @@ const UserManagementPage: React.FC = () => {
   const handleInitiateBulkDelete = () => {
     if (selectedIds.length > 0) {
       setOpenBulkDeleteDialog(true);
+    } else {
+      showPageNotification("No users selected for bulk deletion.", "info");
     }
   };
 
   const executeBulkDelete = async () => {
     if (selectedIds.length === 0) return;
+    const count = selectedIds.length;
     clearError();
     try {
       await bulkDeleteUsers(selectedIds);
+      showPageNotification(`${count} user(s) deleted successfully.`, "success");
       resetSelection();
     } catch (err) {
       console.error("Bulk delete failed from page:", err);
@@ -288,7 +343,7 @@ const UserManagementPage: React.FC = () => {
     );
   };
 
-  if (crudLoading && users.length === 0 && !searchTerm) {
+  if (crudLoading && users.length === 0 && !searchTerm && !crudError) {
     return (
       <Box
         sx={{
@@ -305,226 +360,252 @@ const UserManagementPage: React.FC = () => {
   }
 
   return (
-    <Container
-      maxWidth="xl"
-      sx={{ px: { xs: 1, md: 4 }, py: { xs: 2, md: 4 } }}
-    >
-      <Paper
-        sx={{
-          p: { xs: 1.5, sm: 2, md: 3 },
-          m: { xs: 0.5, sm: 1, md: 2 },
-          backgroundColor: theme.palette.background.paper,
-        }}
+    <>
+      <Container
+        maxWidth="xl"
+        sx={{ px: { xs: 1, md: 4 }, py: { xs: 2, md: 4 } }}
       >
-        <UserTableToolbar
-          searchTerm={searchTerm}
-          onSearchChange={(event) => handleSearchChange(event.target.value)}
-          onAddUser={() => handleOpenUserDetailDialog(null, true)}
-          selectedIdsCount={selectedIds.length}
-          onBulkDelete={handleInitiateBulkDelete}
-          onDeselectAll={resetSelection}
-          onExportPDF={handleExportPDF}
-          csvFormattedData={csvFormattedData}
-          theme={theme}
-        />
+        <Paper
+          sx={{
+            p: { xs: 1.5, sm: 2, md: 3 },
+            m: { xs: 0.5, sm: 1, md: 2 },
+            backgroundColor: theme.palette.background.paper,
+          }}
+        >
+          <UserTableToolbar
+            searchTerm={searchTerm}
+            onSearchChange={(event) => handleSearchChange(event.target.value)}
+            onAddUser={() => handleOpenUserDetailDialog(null, true)}
+            selectedIdsCount={selectedIds.length}
+            onBulkDelete={handleInitiateBulkDelete}
+            onDeselectAll={resetSelection}
+            onExportPDF={handleExportPDF}
+            csvFormattedData={csvFormattedData}
+            theme={theme}
+          />
 
-        {crudError && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
-            {crudError}
-          </Alert>
-        )}
+          {/* General error display from useUserOperations hook */}
+          {crudError && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
+              {crudError}
+            </Alert>
+          )}
 
-        {crudLoading && (
-          <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
-            <CircularProgress size={24} />
-            <Typography variant="body2" sx={{ ml: 1 }}>
-              Loading...
-            </Typography>
-          </Box>
-        )}
+          {/* Inline loading indicator for table updates/searches */}
+          {crudLoading && (users.length > 0 || searchTerm) && (
+            <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
+              <CircularProgress size={24} />
+              <Typography variant="body2" sx={{ ml: 1 }}>
+                Loading...
+              </Typography>
+            </Box>
+          )}
 
-        <TableContainer sx={{ boxShadow: "none" }}>
-          <Table sx={{ minWidth: 750 }} aria-label="user management table">
-            <UserTableHeadComponent
-              headCells={defaultHeadCells}
-              order={order}
-              orderBy={orderBy}
-              onRequestSort={(_event, property) => handleSortRequest(property)}
-              onSelectAllClick={handleSelectAllClickOnPage}
-              numSelected={
-                selectedIds.filter((id) =>
-                  displayUsers.some((u) => u.id === id),
-                ).length
-              }
-              rowCount={displayUsers.length}
-            />
-            <TableBody>
-              {!crudLoading && displayUsers.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={defaultHeadCells.length + 2}
-                    align="center"
-                    sx={{ py: 5 }}
-                  >
-                    <Typography variant="subtitle1">
-                      {totalUsers > 0 && searchTerm
-                        ? "No users match your search criteria."
-                        : "No users found."}
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-              {!crudLoading &&
-                displayUsers.map((user) => (
-                  <UserTableRowComponent
-                    key={user.id}
-                    user={user}
-                    isSelected={selectedIds.includes(user.id)}
-                    onCheckboxClick={(event) =>
-                      handleRowCheckboxClick(event, user.id)
-                    }
-                    onMenuOpen={(event) => handleOpenUserMenu(event, user)}
-                    headCells={defaultHeadCells}
-                  />
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25, 50, 100]}
-          component="div"
-          count={totalUsers}
-          rowsPerPage={rowsPerPage}
-          page={currentPage}
-          onPageChange={(_event, newPage) => handleChangePage(newPage)}
-          onRowsPerPageChange={(event) =>
-            handleChangeRowsPerPage(parseInt(event.target.value, 10))
-          }
-          sx={{ mt: 2, borderTop: `1px solid ${theme.palette.divider}` }}
-        />
-      </Paper>
-
-      {isUserDetailDialogOpen && (
-        <UserEditViewDialog
-          open={isUserDetailDialogOpen}
-          onClose={handleCloseUserDetailDialog}
-          user={userToEditView}
-          isCreatingNewUser={isCreatingNewUserFlow}
-          onSave={handleSaveUserFromDialog}
-          getSubscriptionStatusInfo={getSubscriptionStatusInfo}
-          getChipColorFromSemanticStatus={() => "default"}
-        />
-      )}
-
-      <Menu
-        anchorEl={userMenuAnchorEl}
-        open={Boolean(userMenuAnchorEl)}
-        onClose={handleCloseUserMenu}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-      >
-        <MenuItem
-          onClick={() => {
-            if (selectedUserForMenu) {
-              handleOpenUserDetailDialog(selectedUserForMenu, false);
+          <TableContainer sx={{ boxShadow: "none" }}>
+            <Table sx={{ minWidth: 750 }} aria-label="user management table">
+              <UserTableHeadComponent
+                headCells={defaultHeadCells}
+                order={order}
+                orderBy={orderBy}
+                onRequestSort={(_event, property) =>
+                  handleSortRequest(property)
+                }
+                onSelectAllClick={handleSelectAllClickOnPage}
+                numSelected={
+                  selectedIds.filter((id) =>
+                    displayUsers.some((u) => u.id === id),
+                  ).length
+                }
+                rowCount={displayUsers.length}
+              />
+              <TableBody>
+                {!crudLoading && displayUsers.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={defaultHeadCells.length + 2}
+                      align="center"
+                      sx={{ py: 5 }}
+                    >
+                      <Typography variant="subtitle1">
+                        {totalUsers > 0 && searchTerm
+                          ? "No users match your search criteria."
+                          : "No users found."}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+                {!crudLoading &&
+                  displayUsers.map((user) => (
+                    <UserTableRowComponent
+                      key={user.id}
+                      user={user}
+                      isSelected={selectedIds.includes(user.id)}
+                      onCheckboxClick={(event) =>
+                        handleRowCheckboxClick(event, user.id)
+                      }
+                      onMenuOpen={(event) => handleOpenUserMenu(event, user)}
+                      headCells={defaultHeadCells}
+                    />
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25, 50, 100]}
+            component="div"
+            count={totalUsers}
+            rowsPerPage={rowsPerPage}
+            page={currentPage}
+            onPageChange={(_event, newPage) => handleChangePage(newPage)}
+            onRowsPerPageChange={(event) =>
+              handleChangeRowsPerPage(parseInt(event.target.value, 10))
             }
-          }}
-        >
-          <EditIcon fontSize="small" sx={{ mr: 1 }} /> View / Edit
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            handleOpenDeleteConfirmDialog();
-          }}
-          sx={{ color: "error.main" }}
-        >
-          <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Delete
-        </MenuItem>
-      </Menu>
+            sx={{ mt: 2, borderTop: `1px solid ${theme.palette.divider}` }}
+          />
+        </Paper>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={openDeleteDialog}
-        onClose={() => {
-          setOpenDeleteDialog(false);
-          setSelectedUserForMenu(null);
-        }}
-        maxWidth="xs"
-      >
-        <DialogTitle>
-          <Typography variant="h6">Confirm Deletion</Typography>
-        </DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to delete user "
-            {selectedUserForMenu?.username || "this user"}"? This action cannot
-            be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button
+        {isUserDetailDialogOpen && (
+          <UserEditViewDialog
+            open={isUserDetailDialogOpen}
+            onClose={handleCloseUserDetailDialog}
+            user={userToEditView}
+            isCreatingNewUser={isCreatingNewUserFlow}
+            onSave={handleSaveUserFromDialog}
+            getSubscriptionStatusInfo={getSubscriptionStatusInfo}
+            getChipColorFromSemanticStatus={() => "default"}
+          />
+        )}
+
+        <Menu
+          anchorEl={userMenuAnchorEl}
+          open={Boolean(userMenuAnchorEl)}
+          onClose={handleCloseUserMenu}
+          transformOrigin={{ horizontal: "right", vertical: "top" }}
+          anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+        >
+          <MenuItem
             onClick={() => {
-              setOpenDeleteDialog(false);
-              setSelectedUserForMenu(null);
+              if (selectedUserForMenu) {
+                handleOpenUserDetailDialog(selectedUserForMenu, false);
+              }
             }}
-            color="inherit"
-            disabled={crudLoading}
           >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleDeleteUser}
-            color="error"
-            variant="contained"
-            disabled={crudLoading}
+            <EditIcon fontSize="small" sx={{ mr: 1 }} /> View / Edit
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              handleOpenDeleteConfirmDialog();
+            }}
+            sx={{ color: "error.main" }}
           >
-            {crudLoading && selectedUserForMenu ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              "Delete"
-            )}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Delete
+          </MenuItem>
+        </Menu>
 
-      {/* Bulk Delete Confirmation Dialog */}
-      <Dialog
-        open={openBulkDeleteDialog}
-        onClose={() => setOpenBulkDeleteDialog(false)}
-        maxWidth="xs"
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={openDeleteDialog}
+          onClose={() => {
+            if (crudLoading) return;
+            setOpenDeleteDialog(false);
+            setSelectedUserForMenu(null);
+          }}
+          maxWidth="xs"
+        >
+          <DialogTitle>
+            <Typography variant="h6">Confirm Deletion</Typography>
+          </DialogTitle>
+          <DialogContent>
+            <Typography>
+              Are you sure you want to delete user "
+              {selectedUserForMenu?.username || "this user"}"? This action
+              cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 2 }}>
+            <Button
+              onClick={() => {
+                setOpenDeleteDialog(false);
+                setSelectedUserForMenu(null);
+              }}
+              color="inherit"
+              disabled={crudLoading && Boolean(selectedUserForMenu)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteUser}
+              color="error"
+              variant="contained"
+              disabled={crudLoading && Boolean(selectedUserForMenu)}
+            >
+              {crudLoading && Boolean(selectedUserForMenu) ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                "Delete"
+              )}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Bulk Delete Confirmation Dialog */}
+        <Dialog
+          open={openBulkDeleteDialog}
+          onClose={() => {
+            if (crudLoading) return;
+            setOpenBulkDeleteDialog(false);
+          }}
+          maxWidth="xs"
+        >
+          <DialogTitle>
+            <Typography variant="h6">Confirm Bulk Deletion</Typography>
+          </DialogTitle>
+          <DialogContent>
+            <Typography>
+              Are you sure you want to delete {selectedIds.length} selected
+              user(s)? This action cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 2 }}>
+            <Button
+              onClick={() => setOpenBulkDeleteDialog(false)}
+              color="inherit"
+              disabled={crudLoading && selectedIds.length > 0}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={executeBulkDelete}
+              color="error"
+              variant="contained"
+              disabled={crudLoading && selectedIds.length > 0}
+            >
+              {crudLoading && selectedIds.length > 0 ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                "Delete Selected"
+              )}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Container>
+
+      {/* Page-level Snackbar for notifications like delete success/failure */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handlePageSnackbarClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <DialogTitle>
-          <Typography variant="h6">Confirm Bulk Deletion</Typography>
-        </DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to delete {selectedIds.length} selected
-            user(s)? This action cannot be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button
-            onClick={() => setOpenBulkDeleteDialog(false)}
-            color="inherit"
-            disabled={crudLoading}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={executeBulkDelete}
-            color="error"
-            variant="contained"
-            disabled={crudLoading}
-          >
-            {crudLoading ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              "Delete Selected"
-            )}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
+        <PageSnackbarAlert
+          onClose={handlePageSnackbarClose}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </PageSnackbarAlert>
+      </Snackbar>
+    </>
   );
 };
 
