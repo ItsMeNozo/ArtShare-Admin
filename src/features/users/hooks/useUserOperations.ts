@@ -1,36 +1,28 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { User, UserFormData } from "../../../types/user";
 import {
   fetchUsers as apiFetchUsers,
+  FetchUsersParams,
+  PaginatedUsersApiResponse,
   createUser as apiCreateUser,
   updateUser as apiUpdateUser,
   deleteUser as apiSingleDeleteUser,
   deleteMultipleUsers as apiBulkDeleteUsers,
 } from "../api/user.api";
-
-const getApiErrorMessage = (error: any): string => {
-  if (error?.isAxiosError) {
-    const axiosError = error as import("axios").AxiosError<any>;
-    if (axiosError.response?.data?.message) {
-      return Array.isArray(axiosError.response.data.message)
-        ? axiosError.response.data.message.join(", ")
-        : axiosError.response.data.message;
-    }
-    if (axiosError.response?.data?.error) {
-      return axiosError.response.data.error;
-    }
-    return (
-      axiosError.message ||
-      `Request failed with status ${axiosError.response?.status}`
-    );
-  }
-  return error.message || "An unknown error occurred";
-};
+import { useDebounce } from "./useDebounce";
+import { UserSortableKeys } from "../types";
 
 export interface UserOperations {
   users: User[];
   loading: boolean;
   error: string | null;
+  totalUsers: number;
+  currentPage: number;
+  rowsPerPage: number;
+  searchTerm: string;
+  order: "asc" | "desc";
+  orderBy: UserSortableKeys;
+
   loadUsers: () => Promise<void>;
   createUser: (formData: UserFormData) => Promise<User | undefined>;
   updateUser: (
@@ -43,12 +35,26 @@ export interface UserOperations {
   ) => Promise<{ successCount: number; failCount: number }>;
   clearError: () => void;
   setErrorManually: (message: string | null) => void;
+
+  handleChangePage: (newPage: number) => void;
+  handleChangeRowsPerPage: (newRowsPerPage: number) => void;
+  handleSearchChange: (newSearchTerm: string) => void;
+  handleSortRequest: (property: UserSortableKeys) => void;
 }
 
 export const useUserOperations = (): UserOperations => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [totalUsers, setTotalUsers] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(0);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [order, setOrder] = useState<"asc" | "desc">("desc");
+  const [orderBy, setOrderBy] = useState<UserSortableKeys>("createdAt");
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const clearError = () => setError(null);
   const setErrorManually = (message: string | null) => setError(message);
@@ -57,16 +63,30 @@ export const useUserOperations = (): UserOperations => {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiFetchUsers();
-      setUsers(data);
-    } catch (err) {
-      const message = getApiErrorMessage(err);
-      setError(message || "Failed to fetch users.");
+      const params: FetchUsersParams = {
+        page: currentPage + 1,
+        limit: rowsPerPage,
+        sortBy: orderBy,
+        sortOrder: order,
+        search: debouncedSearchTerm || undefined,
+      };
+      const response: PaginatedUsersApiResponse = await apiFetchUsers(params);
+      setUsers(response.data);
+      setTotalUsers(response.total);
+    } catch (err: any) {
+      const message = err.message || "Failed to fetch users.";
+      setError(message);
       console.error("loadUsers error:", err);
+      setUsers([]);
+      setTotalUsers(0);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentPage, rowsPerPage, debouncedSearchTerm, order, orderBy]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const createUser = async (
     formData: UserFormData,
@@ -75,14 +95,12 @@ export const useUserOperations = (): UserOperations => {
     setError(null);
     try {
       const newUser = await apiCreateUser(formData);
-
       await loadUsers();
       return newUser;
-    } catch (err) {
-      const message = getApiErrorMessage(err);
-      setError(message || "Failed to create user.");
+    } catch (err: any) {
+      const message = err.message || "Failed to create user.";
+      setError(message);
       console.error("createUser error:", err);
-
       return undefined;
     } finally {
       setLoading(false);
@@ -97,14 +115,14 @@ export const useUserOperations = (): UserOperations => {
     setError(null);
     try {
       const updatedUser = await apiUpdateUser(userId, formData);
-
       await loadUsers();
       return updatedUser;
-    } catch (err) {
-      const message = getApiErrorMessage(err);
-      setError(message || "Failed to update user.");
+    } catch (err: any) {
+      const message = err.message || "Failed to update user.";
+      setError(message);
       console.error("updateUser error:", err);
-      throw new Error(message);
+
+      return undefined;
     } finally {
       setLoading(false);
     }
@@ -115,13 +133,13 @@ export const useUserOperations = (): UserOperations => {
     setError(null);
     try {
       await apiSingleDeleteUser(userId);
+
       await loadUsers();
       return true;
-    } catch (err) {
-      const message = getApiErrorMessage(err);
-      setError(message || "Failed to delete user. An error occurred.");
+    } catch (err: any) {
+      const message = err.message || "Failed to delete user.";
+      setError(message);
       console.error("deleteUser error:", err);
-
       return false;
     } finally {
       setLoading(false);
@@ -134,25 +152,24 @@ export const useUserOperations = (): UserOperations => {
     if (userIds.length === 0) return { successCount: 0, failCount: 0 };
     setLoading(true);
     setError(null);
-
     try {
       const result = await apiBulkDeleteUsers(userIds);
-      await loadUsers();
 
+      await loadUsers();
       const successCount = result.count;
       const failCount = userIds.length - result.count;
 
       if (failCount > 0) {
         setError(
-          `Successfully deleted ${successCount} user(s). Failed to delete ${failCount} user(s) (they may have already been deleted or an error occurred).`,
+          `Successfully deleted ${successCount} user(s). Failed to delete ${failCount} user(s).`,
         );
-      } else {
+      } else if (successCount > 0) {
         setError(null);
       }
       return { successCount, failCount };
-    } catch (err) {
-      const message = getApiErrorMessage(err);
-      setError(message || `Failed to delete some or all users.`);
+    } catch (err: any) {
+      const message = err.message || `Failed to delete some or all users.`;
+      setError(message);
       console.error("bulkDeleteUsers error:", err);
       await loadUsers();
       return { successCount: 0, failCount: userIds.length };
@@ -161,10 +178,40 @@ export const useUserOperations = (): UserOperations => {
     }
   };
 
+  const handleChangePage = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(0);
+  };
+
+  const handleSearchChange = (newSearchTerm: string) => {
+    setSearchTerm(newSearchTerm);
+    setCurrentPage(0);
+  };
+
+  const handleSortRequest = useCallback(
+    (property: UserSortableKeys) => {
+      const isAsc = orderBy === property && order === "asc";
+      setOrder(isAsc ? "desc" : "asc");
+      setOrderBy(property);
+      setCurrentPage(0);
+    },
+    [order, orderBy],
+  );
+
   return {
     users,
     loading,
     error,
+    totalUsers,
+    currentPage,
+    rowsPerPage,
+    searchTerm,
+    order,
+    orderBy,
     loadUsers,
     createUser,
     updateUser,
@@ -172,5 +219,9 @@ export const useUserOperations = (): UserOperations => {
     bulkDeleteUsers,
     clearError,
     setErrorManually,
+    handleChangePage,
+    handleChangeRowsPerPage,
+    handleSearchChange,
+    handleSortRequest,
   };
 };

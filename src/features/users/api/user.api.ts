@@ -2,6 +2,21 @@ import axios, { AxiosError } from "axios";
 import { User, UserFormData } from "../../../types/user";
 import api from "../../../api/baseApi";
 
+export interface FetchUsersParams {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  search?: string;
+}
+
+export interface PaginatedUsersApiResponse {
+  data: User[]; // Assuming your User type matches UserResponseDto structure
+  total: number;
+  page: number;
+  limit: number;
+}
+
 const getApiErrorMessage = (error: AxiosError | any): string => {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<any>;
@@ -24,12 +39,19 @@ const getApiErrorMessage = (error: AxiosError | any): string => {
   return error.message || "An unknown error occurred";
 };
 
-export const fetchUsers = async (): Promise<User[]> => {
+export const fetchUsers = async (
+  params?: FetchUsersParams,
+): Promise<PaginatedUsersApiResponse> => {
   try {
-    const response = await api.get<User[]>("/admin/users/all");
+    // Pass params to the GET request, Axios will serialize them as query string
+    const response = await api.get<PaginatedUsersApiResponse>(
+      "/admin/users/all",
+      { params },
+    );
     return response.data;
   } catch (error) {
-    throw new Error(getApiErrorMessage(error));
+    console.error("API fetchUsers error:", error);
+    throw new Error(getApiErrorMessage(error)); // Rethrow with formatted message
   }
 };
 

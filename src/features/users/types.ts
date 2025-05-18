@@ -1,4 +1,4 @@
-import { User } from "../../types/user"; // Adjusted path
+import { User } from "../../types/user";
 
 export type SemanticSubscriptionStatus =
   | "active"
@@ -20,27 +20,38 @@ export interface CustomChipStyling {
   borderStyle?: string;
 }
 
-export type Order = "asc" | "desc";
-
-export type SortableUser = User & {
+export interface DisplayUser extends User {
   currentPlan?: string;
-  created_at_sortable?: string;
-};
+}
+
+export type Order = "asc" | "desc";
 
 export type UserSortableKeys =
   | "username"
-  | "fullName"
   | "email"
-  | "currentPlan"
-  | "created_at_sortable";
+  | "fullName"
+  | "createdAt"
+  | "currentPlan";
 
-export interface HeadCell {
-  id: UserSortableKeys | "avatar" | "roles" | "actions";
+interface HeadCellBaseProps<T = any> {
   label: string;
-  numeric: boolean;
-  sortable: boolean;
+  numeric?: boolean;
   minWidth?: number | string;
   align?: "left" | "right" | "center";
   disablePadding?: boolean;
   className?: string;
+  render?: (item: T) => React.ReactNode;
+  isDate?: boolean;
 }
+
+export interface SortableHeadCell<T = any> extends HeadCellBaseProps<T> {
+  id: UserSortableKeys;
+  sortable: true;
+}
+
+export interface NonSortableHeadCell<T = any> extends HeadCellBaseProps<T> {
+  id: string;
+  sortable: false;
+}
+
+export type HeadCell<T = any> = SortableHeadCell<T> | NonSortableHeadCell<T>;

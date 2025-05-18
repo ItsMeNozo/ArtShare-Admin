@@ -11,23 +11,22 @@ import {
 import { visuallyHidden } from "@mui/utils";
 import { HeadCell, Order, UserSortableKeys } from "../types";
 
-interface UserTableHeadComponentProps {
-  headCells: readonly HeadCell[];
+interface UserTableHeadComponentProps<T = any> {
+  // Make it generic if DisplayUser isn't always the type
+  headCells: ReadonlyArray<HeadCell<T>>;
   order: Order;
   orderBy: UserSortableKeys;
   onRequestSort: (
     event: React.MouseEvent<unknown>,
     property: UserSortableKeys,
   ) => void;
-  onSelectAllClick: (
-    event: React.ChangeEvent<HTMLInputElement>,
-    checked: boolean,
-  ) => void;
+  onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
   numSelected: number;
   rowCount: number;
 }
 
 export const UserTableHeadComponent: React.FC<UserTableHeadComponentProps> = ({
+  // Default T to any if not specified
   headCells,
   order,
   orderBy,
@@ -37,6 +36,11 @@ export const UserTableHeadComponent: React.FC<UserTableHeadComponentProps> = ({
   rowCount,
 }) => {
   const theme = useTheme();
+
+  const createSortHandler =
+    (property: UserSortableKeys) => (event: React.MouseEvent<unknown>) => {
+      onRequestSort(event, property);
+    };
 
   return (
     <TableHead
@@ -53,16 +57,16 @@ export const UserTableHeadComponent: React.FC<UserTableHeadComponentProps> = ({
             color="primary"
             indeterminate={numSelected > 0 && numSelected < rowCount}
             checked={rowCount > 0 && numSelected === rowCount}
-            onChange={(event) => onSelectAllClick(event, event.target.checked)}
+            onChange={(event) => onSelectAllClick(event)}
             disabled={rowCount === 0}
           />
         </TableCell>
         {headCells.map((headCell) => (
           <TableCell
             key={headCell.id}
-            align={headCell.align || "left"}
+            align={headCell.align || (headCell.numeric ? "right" : "left")}
             sortDirection={
-              orderBy === headCell.id && headCell.sortable ? order : false
+              headCell.sortable && orderBy === headCell.id ? order : false
             }
             className={headCell.className}
             style={{ minWidth: headCell.minWidth, fontWeight: "bold" }}
@@ -76,12 +80,10 @@ export const UserTableHeadComponent: React.FC<UserTableHeadComponentProps> = ({
               <TableSortLabel
                 active={orderBy === headCell.id}
                 direction={orderBy === headCell.id ? order : "asc"}
-                onClick={(event) =>
-                  onRequestSort(event, headCell.id as UserSortableKeys)
-                }
+                onClick={(event) => onRequestSort(event, headCell.id)}
               >
                 {headCell.label}
-                {orderBy === headCell.id ? (
+                {orderBy === (headCell.id as UserSortableKeys) ? (
                   <Box component="span" sx={visuallyHidden}>
                     {order === "desc"
                       ? "sorted descending"

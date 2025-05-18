@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Container,
   Paper,
@@ -29,19 +29,19 @@ import { User, UserFormData } from "../../types/user";
 import {
   getSubscriptionStatusInfo,
   getCurrentEffectivePlanNameForTable,
-  stableSort,
-  getComparator,
 } from "./utils/userTable.utils";
-import { headCells as defaultHeadCells } from "./constants/userTable.constants";
-import { SortableUser } from "./types";
+import { defaultHeadCells } from "./constants/userTable.constants";
 
 import { UserEditViewDialog } from "./components/UserEditViewDialog";
 import { UserTableToolbar } from "./components/UserTableToolbar";
 import { UserTableHeadComponent } from "./components/UserTableHeadComponent";
 import { UserTableRowComponent } from "./components/UserTableRowComponent";
 
-import { useUserTableControls } from "./hooks/useUserTableControls";
-import { useUserOperations } from "./hooks/useUserOperations";
+import { useUserOperations, UserOperations } from "./hooks/useUserOperations";
+
+interface DisplayUser extends User {
+  currentPlan?: string;
+}
 
 const UserManagementPage: React.FC = () => {
   const theme = useTheme();
@@ -49,29 +49,29 @@ const UserManagementPage: React.FC = () => {
     users,
     loading: crudLoading,
     error: crudError,
-    loadUsers,
+
+    createUser,
+    updateUser,
     deleteUser,
     bulkDeleteUsers,
     clearError,
     setErrorManually,
-    updateUser,
-  } = useUserOperations();
 
-  const {
-    page,
+    totalUsers,
+    currentPage,
     rowsPerPage,
     searchTerm,
     order,
     orderBy,
-    selectedIds,
     handleChangePage,
     handleChangeRowsPerPage,
     handleSearchChange,
-    handleRequestSort,
-    handleSelectAllClick,
-    handleRowCheckboxClick,
-    resetSelection,
-  } = useUserTableControls("username");
+    handleSortRequest,
+  }: UserOperations = useUserOperations();
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  const resetSelection = useCallback(() => setSelectedIds([]), []);
 
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<null | HTMLElement>(
     null,
@@ -89,10 +89,6 @@ const UserManagementPage: React.FC = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
   const [openBulkDeleteDialog, setOpenBulkDeleteDialog] =
     useState<boolean>(false);
-
-  useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
 
   const handleOpenUserMenu = (
     event: React.MouseEvent<HTMLElement>,
@@ -118,7 +114,6 @@ const UserManagementPage: React.FC = () => {
 
   const handleCloseUserDetailDialog = () => {
     setIsUserDetailDialogOpen(false);
-
     setTimeout(() => {
       setUserToEditView(null);
       setIsCreatingNewUserFlow(false);
@@ -133,10 +128,11 @@ const UserManagementPage: React.FC = () => {
     clearError();
 
     if (!userIdToUpdate) {
+      setErrorManually("User ID is missing for update.");
       throw new Error("User ID is required for update.");
     }
-
     if (!updateUser) {
+      setErrorManually("Update function not available.");
       throw new Error("Update user function from hook is not available.");
     }
 
@@ -149,7 +145,6 @@ const UserManagementPage: React.FC = () => {
     if (!updatedUser) {
       throw new Error("Failed to update user (operation returned undefined).");
     }
-
     return updatedUser;
   };
 
@@ -171,7 +166,7 @@ const UserManagementPage: React.FC = () => {
     }
     clearError();
     try {
-      await deleteUser(selectedUserForMenu.id as string);
+      await deleteUser(selectedUserForMenu.id);
     } catch (err) {
       console.error("Delete user failed from page:", err);
     } finally {
@@ -191,7 +186,6 @@ const UserManagementPage: React.FC = () => {
     clearError();
     try {
       await bulkDeleteUsers(selectedIds);
-
       resetSelection();
     } catch (err) {
       console.error("Bulk delete failed from page:", err);
@@ -200,63 +194,51 @@ const UserManagementPage: React.FC = () => {
     }
   };
 
-  const processedUsers = useMemo(() => {
-    const filteredUsers = users.filter(
-      (user) =>
-        (user.username || "")
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        (user.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (user.fullName || "").toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-    const augmentedUsers: SortableUser[] = filteredUsers.map((user) => {
+  const displayUsers: DisplayUser[] = useMemo(() => {
+    return users.map((user) => {
       const statusInfo = getSubscriptionStatusInfo(user);
       return {
         ...user,
         currentPlan: getCurrentEffectivePlanNameForTable(user, statusInfo),
-        createdAt_sortable: new Date(user.createdAt).toISOString(),
       };
     });
-    return stableSort(augmentedUsers, getComparator(order, orderBy));
-  }, [users, searchTerm, order, orderBy]);
+  }, [users]);
 
-  const paginatedUsers = useMemo(
-    () =>
-      processedUsers.slice(
-        page * rowsPerPage,
-        page * rowsPerPage + rowsPerPage,
-      ),
-    [processedUsers, page, rowsPerPage],
-  );
+  const getDataForExport = useCallback(() => {
+    return selectedIds.length > 0
+      ? displayUsers.filter((u) => selectedIds.includes(u.id))
+      : displayUsers;
+  }, [displayUsers, selectedIds]);
 
   const csvFormattedData = useMemo(() => {
-    const dataToExport =
-      selectedIds.length > 0
-        ? processedUsers.filter((u) => selectedIds.includes(u.id))
-        : processedUsers;
+    const dataToExport = getDataForExport();
     return dataToExport.map((user) => ({
       Username: user.username,
       FullName: user.fullName || "",
       Email: user.email,
-      Roles: user.roles.map((r) => r).join(" | "),
-      "Current Plan": user.currentPlan,
-      "Joined Date": new Date(user.createdAt).toLocaleDateString(),
+      Roles:
+        user.roles
+          ?.map((r: any) => (typeof r === "string" ? r : r.name))
+          .join(" | ") || "",
+      "Current Plan": user.currentPlan || "N/A",
+      "Joined Date": user.createdAt
+        ? new Date(user.createdAt).toLocaleDateString()
+        : "N/A",
     }));
-  }, [processedUsers, selectedIds]);
+  }, [getDataForExport]);
 
   const handleExportPDF = () => {
     const doc = new jsPDF("landscape");
-    const pdfData = (
-      selectedIds.length > 0
-        ? processedUsers.filter((u) => selectedIds.includes(u.id))
-        : processedUsers
-    ).map((user) => [
+    const dataToExport = getDataForExport();
+    const pdfData = dataToExport.map((user) => [
       user.username ?? "",
       user.fullName ?? "",
       user.email ?? "",
-      user.roles.map((r) => r).join(", "),
+      user.roles
+        ?.map((r: any) => (typeof r === "string" ? r : r.name))
+        .join(", ") || "",
       user.currentPlan ?? "N/A",
-      new Date(user.createdAt).toLocaleDateString(),
+      user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A",
     ]);
     autoTable(doc, {
       head: [
@@ -271,20 +253,54 @@ const UserManagementPage: React.FC = () => {
       ],
       body: pdfData,
     });
-    doc.save("users.pdf");
+    doc.save("users-page.pdf");
   };
 
-  if (crudLoading && users.length === 0) {
+  const handleRowCheckboxClick = (
+    _: React.ChangeEvent<HTMLInputElement>,
+    id: string,
+  ) => {
+    const selectedIndex = selectedIds.indexOf(id);
+    let newSelected: string[] = [];
+
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selectedIds, id);
+    } else {
+      newSelected = selectedIds.filter((selectedId) => selectedId !== id);
+    }
+
+    setSelectedIds(newSelected);
+  };
+
+  const handleSelectAllClickOnPage = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const currentVisibleUserIds = displayUsers.map((u) => u.id);
+    if (event.target.checked) {
+      const idsToAdd = currentVisibleUserIds.filter(
+        (id) => !selectedIds.includes(id),
+      );
+      setSelectedIds([...selectedIds, ...idsToAdd]);
+      return;
+    }
+
+    setSelectedIds(
+      selectedIds.filter((id) => !currentVisibleUserIds.includes(id)),
+    );
+  };
+
+  if (crudLoading && users.length === 0 && !searchTerm) {
     return (
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          height: "100vh",
+          height: "calc(100vh - 120px)",
         }}
       >
         <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Loading users...</Typography>
       </Box>
     );
   }
@@ -303,7 +319,7 @@ const UserManagementPage: React.FC = () => {
       >
         <UserTableToolbar
           searchTerm={searchTerm}
-          onSearchChange={handleSearchChange}
+          onSearchChange={(event) => handleSearchChange(event.target.value)}
           onAddUser={() => handleOpenUserDetailDialog(null, true)}
           selectedIdsCount={selectedIds.length}
           onBulkDelete={handleInitiateBulkDelete}
@@ -319,9 +335,12 @@ const UserManagementPage: React.FC = () => {
           </Alert>
         )}
 
-        {crudLoading && users.length > 0 && (
-          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+        {crudLoading && (
+          <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
             <CircularProgress size={24} />
+            <Typography variant="body2" sx={{ ml: 1 }}>
+              Loading...
+            </Typography>
           </Box>
         )}
 
@@ -331,53 +350,57 @@ const UserManagementPage: React.FC = () => {
               headCells={defaultHeadCells}
               order={order}
               orderBy={orderBy}
-              onRequestSort={handleRequestSort}
-              onSelectAllClick={(_event) => {
-                const currentVisibleUserIds = paginatedUsers.map((u) => u.id);
-                handleSelectAllClick(_event as any, currentVisibleUserIds);
-              }}
+              onRequestSort={(_event, property) => handleSortRequest(property)}
+              onSelectAllClick={handleSelectAllClickOnPage}
               numSelected={
                 selectedIds.filter((id) =>
-                  paginatedUsers.some((u) => u.id === id),
+                  displayUsers.some((u) => u.id === id),
                 ).length
               }
-              rowCount={paginatedUsers.length}
+              rowCount={displayUsers.length}
             />
             <TableBody>
-              {paginatedUsers.length === 0 && !crudLoading && (
+              {!crudLoading && displayUsers.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={defaultHeadCells.length + 1}
+                    colSpan={defaultHeadCells.length + 2}
                     align="center"
                     sx={{ py: 5 }}
                   >
-                    <Typography variant="subtitle1">No users found.</Typography>
+                    <Typography variant="subtitle1">
+                      {totalUsers > 0 && searchTerm
+                        ? "No users match your search criteria."
+                        : "No users found."}
+                    </Typography>
                   </TableCell>
                 </TableRow>
               )}
-              {paginatedUsers.map((user) => (
-                <UserTableRowComponent
-                  key={user.id}
-                  user={user}
-                  isSelected={selectedIds.includes(user.id)}
-                  onCheckboxClick={(event) =>
-                    handleRowCheckboxClick(event, user.id)
-                  }
-                  onMenuOpen={handleOpenUserMenu}
-                  headCells={defaultHeadCells}
-                />
-              ))}
+              {!crudLoading &&
+                displayUsers.map((user) => (
+                  <UserTableRowComponent
+                    key={user.id}
+                    user={user}
+                    isSelected={selectedIds.includes(user.id)}
+                    onCheckboxClick={(event) =>
+                      handleRowCheckboxClick(event, user.id)
+                    }
+                    onMenuOpen={(event) => handleOpenUserMenu(event, user)}
+                    headCells={defaultHeadCells}
+                  />
+                ))}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25, 50]}
+          rowsPerPageOptions={[5, 10, 25, 50, 100]}
           component="div"
-          count={processedUsers.length}
+          count={totalUsers}
           rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
+          page={currentPage}
+          onPageChange={(_event, newPage) => handleChangePage(newPage)}
+          onRowsPerPageChange={(event) =>
+            handleChangeRowsPerPage(parseInt(event.target.value, 10))
+          }
           sx={{ mt: 2, borderTop: `1px solid ${theme.palette.divider}` }}
         />
       </Paper>
@@ -420,6 +443,7 @@ const UserManagementPage: React.FC = () => {
         </MenuItem>
       </Menu>
 
+      {/* Delete Confirmation Dialog */}
       <Dialog
         open={openDeleteDialog}
         onClose={() => {
@@ -445,6 +469,7 @@ const UserManagementPage: React.FC = () => {
               setSelectedUserForMenu(null);
             }}
             color="inherit"
+            disabled={crudLoading}
           >
             Cancel
           </Button>
@@ -454,7 +479,7 @@ const UserManagementPage: React.FC = () => {
             variant="contained"
             disabled={crudLoading}
           >
-            {crudLoading ? (
+            {crudLoading && selectedUserForMenu ? (
               <CircularProgress size={20} color="inherit" />
             ) : (
               "Delete"
@@ -463,6 +488,7 @@ const UserManagementPage: React.FC = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Bulk Delete Confirmation Dialog */}
       <Dialog
         open={openBulkDeleteDialog}
         onClose={() => setOpenBulkDeleteDialog(false)}
@@ -481,6 +507,7 @@ const UserManagementPage: React.FC = () => {
           <Button
             onClick={() => setOpenBulkDeleteDialog(false)}
             color="inherit"
+            disabled={crudLoading}
           >
             Cancel
           </Button>

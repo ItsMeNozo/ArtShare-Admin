@@ -9,18 +9,32 @@ import {
   IconButton,
   Box,
   useTheme,
+  Tooltip,
 } from "@mui/material";
 import { MoreVert as MoreVertIcon } from "@mui/icons-material";
 import { User } from "../../../types/user";
-import { SortableUser, HeadCell } from "../types";
+import { HeadCell } from "../types";
 import { getPlanTierStyling } from "../utils/userTable.utils";
 
+interface DisplayUser extends User {
+  currentPlan?: string;
+}
+
 interface UserTableRowComponentProps {
-  user: SortableUser;
+  user: DisplayUser;
   isSelected: boolean;
-  onCheckboxClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onMenuOpen: (event: React.MouseEvent<HTMLElement>, user: User) => void;
-  headCells: readonly HeadCell[];
+  onCheckboxClick: (
+    event: React.ChangeEvent<HTMLInputElement>,
+    id: string,
+  ) => void;
+  onMenuOpen: (event: React.MouseEvent<HTMLElement>, user: DisplayUser) => void;
+  headCells: ReadonlyArray<
+    HeadCell<DisplayUser> & {
+      truncate?: boolean;
+      wrap?: boolean;
+      cellMaxWidth?: string;
+    }
+  >;
 }
 
 export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
@@ -31,112 +45,241 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
   headCells,
 }) => {
   const theme = useTheme();
-  const { style: planChipStyle, variant: planChipVariant } = getPlanTierStyling(
-    user,
-    theme,
-  );
 
-  const showEmailColumn = headCells.some(
-    (hc) => hc.id === "email" && hc.className?.includes("md:table-cell"),
-  );
+  const getCellContent = (
+    headCell: HeadCell<DisplayUser> & {
+      truncate?: boolean;
+      wrap?: boolean;
+      cellMaxWidth?: string;
+    },
+    currentUser: DisplayUser,
+  ): React.ReactNode => {
+    if (headCell.render) {
+      return headCell.render(currentUser);
+    }
+
+    const value = currentUser[headCell.id as keyof DisplayUser] as any;
+    let contentString =
+      value !== undefined && value !== null ? String(value) : "";
+    const defaultMaxWidth = headCell.minWidth
+      ? `${Number(headCell.minWidth) + 50}px`
+      : "150px";
+
+    if (typeof contentString === "string" && contentString.length > 0) {
+      // Prioritize explicit headCell config for truncation/wrapping
+      if (headCell.truncate) {
+        return (
+          <Tooltip title={contentString} placement="bottom-start">
+            <Typography
+              variant="body2"
+              noWrap
+              sx={{ maxWidth: headCell.cellMaxWidth || defaultMaxWidth }}
+            >
+              {contentString}
+            </Typography>
+          </Tooltip>
+        );
+      }
+      if (headCell.wrap) {
+        return (
+          <Typography
+            variant="body2"
+            sx={{
+              maxWidth: headCell.cellMaxWidth || defaultMaxWidth,
+              whiteSpace: "normal",
+            }}
+          >
+            {contentString}
+          </Typography>
+        );
+      }
+    }
+
+    switch (headCell.id) {
+      case "avatar":
+        return (
+          <Box className="flex items-center justify-center">
+            <Avatar
+              src={currentUser.profilePictureUrl || undefined}
+              alt={currentUser.username}
+              sx={{ width: 36, height: 36 }}
+            >
+              {(currentUser.username || "U")[0]?.toUpperCase()}
+            </Avatar>
+          </Box>
+        );
+      case "username":
+        return (
+          <Box>
+            <Tooltip title={currentUser.username || ""}>
+              <Typography variant="body2" noWrap>
+                {currentUser.username}
+              </Typography>
+            </Tooltip>
+            {/* Show email below username on small screens IF email column is hidden */}
+            {!headCells.some(
+              (hc) =>
+                hc.id === "email" && hc.className?.includes("md:table-cell"),
+            ) && (
+              <Typography
+                variant="caption"
+                color="textSecondary"
+                sx={{ display: { xs: "block", md: "none" } }}
+                noWrap
+              >
+                {currentUser.email}
+              </Typography>
+            )}
+          </Box>
+        );
+      case "email":
+        return (
+          <Tooltip title={currentUser.email || ""}>
+            <Typography variant="body2" noWrap>
+              {currentUser.email}
+            </Typography>
+          </Tooltip>
+        );
+      case "fullName":
+        return currentUser.fullName ? (
+          <Typography variant="body2" noWrap>
+            {currentUser.fullName}
+          </Typography>
+        ) : (
+          <Typography variant="caption" color="textSecondary">
+            N/A
+          </Typography>
+        );
+      case "roles":
+        return (
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 0.5,
+              justifyContent:
+                headCell.align === "center" ? "center" : "flex-start",
+            }}
+          >
+            {currentUser.roles && currentUser.roles.length > 0 ? (
+              currentUser.roles.map((role) => (
+                <Chip
+                  key={`${currentUser.id}_${role}`}
+                  label={typeof role === "string" ? role : (role as any).name}
+                  size="small"
+                  color={
+                    (typeof role === "string" ? role : (role as any).name) ===
+                    "ADMIN"
+                      ? "secondary"
+                      : "default"
+                  }
+                  variant="outlined"
+                />
+              ))
+            ) : (
+              <Typography variant="caption" color="textSecondary">
+                N/A
+              </Typography>
+            )}
+          </Box>
+        );
+      case "currentPlan": {
+        const { style: planChipStyle, variant: planChipVariant } =
+          getPlanTierStyling(currentUser, theme);
+        return (
+          <Chip
+            label={currentUser.currentPlan || "N/A"}
+            size="small"
+            variant={planChipVariant}
+            sx={planChipStyle}
+          />
+        );
+      }
+      case "actions":
+        return (
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              onMenuOpen(e, currentUser);
+            }}
+            aria-label={`actions for ${currentUser.username}`}
+          >
+            <MoreVertIcon fontSize="small" />
+          </IconButton>
+        );
+      default:
+        if (contentString === "") {
+          return (
+            <Typography variant="caption" color="textSecondary">
+              N/A
+            </Typography>
+          );
+        }
+        // Default to simple string for other unhandled cases, possibly with a generic truncation
+        if (contentString.length > 30 && !headCell.wrap) {
+          // Generic truncation for long unconfigured strings
+          return (
+            <Tooltip title={contentString} placement="bottom-start">
+              <Typography variant="body2" noWrap sx={{ maxWidth: "200px" }}>
+                {contentString}
+              </Typography>
+            </Tooltip>
+          );
+        }
+        return contentString;
+    }
+  };
 
   return (
-    <TableRow hover selected={isSelected} className="group">
+    <TableRow
+      hover
+      selected={isSelected}
+      className="group"
+      role="checkbox"
+      aria-checked={isSelected}
+      tabIndex={-1}
+    >
       <TableCell padding="checkbox">
         <Checkbox
           color="primary"
           checked={isSelected}
-          onChange={onCheckboxClick}
+          onChange={(event) => onCheckboxClick(event, user.id)}
+          inputProps={{ "aria-labelledby": `user-table-checkbox-${user.id}` }}
         />
       </TableCell>
-      <TableCell align="center">
-        <Avatar
-          src={user.profilePictureUrl || undefined}
-          alt={user.username}
-          sx={{ width: 36, height: 36, margin: "0 auto" }}
-        >
-          {(user.username || "U")[0]?.toUpperCase()}
-        </Avatar>
-      </TableCell>
-      <TableCell align="left">
-        {/* Username cell */}
-        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-          {user.username}
-        </Typography>
-        <Typography
-          variant="caption"
-          color="textSecondary"
-          sx={{ display: { xs: "block", md: "none" } }}
-        >
-          {user.email}
-        </Typography>
-      </TableCell>
-      <TableCell align="left">
-        {/* Full Name cell */}
-        {user.fullName || (
-          <Typography variant="caption" color="textSecondary">
-            N/A
-          </Typography>
-        )}
-      </TableCell>
 
-      {/* Conditional Email Cell for medium screens and up */}
-      <TableCell
-        align="left"
-        sx={{
-          display: showEmailColumn ? { xs: "none", md: "table-cell" } : "none",
-        }}
-        className={showEmailColumn ? "hidden md:table-cell" : "hidden"}
-      >
-        {user.email}
-      </TableCell>
-
-      <TableCell align="center">
-        {/* Roles cell */}
-        <Box
+      {headCells.map((headCell) => (
+        <TableCell
+          key={headCell.id}
+          align={headCell.align || (headCell.numeric ? "right" : "left")}
           sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 0.5,
-            justifyContent: "center",
+            minWidth: headCell.minWidth,
+
+            display: headCell.className?.includes("md:table-cell")
+              ? { xs: "none", md: "table-cell" }
+              : headCell.className?.includes("xs:table-cell")
+                ? { xs: "table-cell", md: "none" }
+                : undefined,
+
+            ...((headCell.id === "avatar" ||
+              headCell.id === "actions" ||
+              headCell.id === "currentPlan" ||
+              headCell.id === "roles") &&
+            headCell.align === "center"
+              ? { textAlign: "center" }
+              : {}),
           }}
+          component={headCell.id === "username" ? "th" : "td"}
+          scope={headCell.id === "username" ? "row" : undefined}
+          id={
+            headCell.id === "username"
+              ? `user-table-checkbox-${user.id}`
+              : undefined
+          }
         >
-          {user.roles.map((userRole) => (
-            <Chip
-              key={user.id + "_" + userRole}
-              label={userRole}
-              size="small"
-              color={userRole === "ADMIN" ? "secondary" : "default"}
-              variant="outlined"
-            />
-          ))}
-          {user.roles.length === 0 && (
-            <Typography variant="caption" color="textSecondary">
-              N/A
-            </Typography>
-          )}
-        </Box>
-      </TableCell>
-      <TableCell align="center">
-        {/* Current Plan cell */}
-        <Chip
-          label={user.currentPlan || "N/A"}
-          size="small"
-          variant={planChipVariant}
-          sx={planChipStyle}
-        />
-      </TableCell>
-      <TableCell align="center">
-        {/* Actions cell */}
-        <IconButton
-          size="small"
-          onClick={(e) => {
-            onMenuOpen(e, user as User);
-          }}
-        >
-          <MoreVertIcon fontSize="small" />
-        </IconButton>
-      </TableCell>
+          {getCellContent(headCell, user)}
+        </TableCell>
+      ))}
     </TableRow>
   );
 };
