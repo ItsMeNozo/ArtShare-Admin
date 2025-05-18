@@ -41,6 +41,7 @@ import { SemanticSubscriptionStatus, SubscriptionStatusInfo } from "../types";
 import { USER_ROLES, UserRoleType } from "../../../constants/roles";
 import { useUserOperations } from "../hooks/useUserOperations";
 import { signUp } from "../../auth/api/auth-api";
+import api from "../../../api/baseApi";
 
 interface UserEditViewDialogProps {
   open: boolean;
@@ -155,39 +156,71 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
     }
 
     setSaving(true);
+    let createdBackendUser = null;
 
     try {
-      let userId = userForDisplay?.id;
-
       if (isCreatingNewUser) {
         if (!formData.email || !formData.password) {
           setSaving(false);
           throw new Error("Email and password for Firebase are missing");
         }
+
         const response = await signUp(
           formData.email,
           formData.password,
           formData.username,
         );
 
-        userId = response.newUser.id;
-      }
+        createdBackendUser = response.newUser;
 
-      const updatedUser = await onSave(formData, userId);
+        try {
+          await onSave(formData, createdBackendUser.id);
+        } catch (onSaveError) {
+          console.error(
+            `Subsequent operation 'onSave' failed for new user ${createdBackendUser.id}:`,
+            onSaveError,
+          );
+
+          if (createdBackendUser && createdBackendUser.id) {
+            console.warn(
+              `Attempting to rollback user creation (Firebase + Backend) due to onSave failure for ID: ${createdBackendUser.id}`,
+            );
+            try {
+              await api.delete(`/admin/users/${createdBackendUser.id}`);
+              console.log(
+                `Rollback successful for user ID: ${createdBackendUser.id}`,
+              );
+            } catch (rollbackError) {
+              console.error(
+                `CRITICAL: Failed to rollback user ${createdBackendUser.id} after onSave failure. Manual cleanup needed.`,
+                rollbackError,
+              );
+            }
+          }
+
+          throw new Error(
+            `Failed to complete user setup: ${(onSaveError as Error).message}`,
+          );
+        }
+      } else {
+        if (!userForDisplay?.id) {
+          setSaving(false);
+          throw new Error("User ID for update is missing.");
+        }
+        await onSave(formData, userForDisplay.id);
+      }
 
       alert(`User ${isCreatingNewUser ? "created" : "updated"} successfully.`);
       onClose();
       await loadUsers();
 
-      if (!isCreatingNewUser && userForDisplay) {
-        setUserForDisplay(updatedUser);
+      if (!isCreatingNewUser && userForDisplay && createdBackendUser) {
+        setUserForDisplay(createdBackendUser);
         setIsEditing(false);
-      } else if (isCreatingNewUser) {
       }
     } catch (error) {
-      console.error("Error saving user:", error);
-
-      alert(`Failed to save user: ${(error as Error).message}`);
+      console.error("Error in handleSave main try block:", error);
+      alert(`Operation failed: ${(error as Error).message}`);
     } finally {
       setSaving(false);
     }

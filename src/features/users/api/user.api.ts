@@ -26,7 +26,7 @@ const getApiErrorMessage = (error: AxiosError | any): string => {
 
 export const fetchUsers = async (): Promise<User[]> => {
   try {
-    const response = await api.get<User[]>("/users/admin/all");
+    const response = await api.get<User[]>("/admin/users/all");
     return response.data;
   } catch (error) {
     throw new Error(getApiErrorMessage(error));
@@ -35,7 +35,7 @@ export const fetchUsers = async (): Promise<User[]> => {
 
 export const createUser = async (userData: UserFormData): Promise<User> => {
   try {
-    const response = await api.post<User>("/users/admin/create", userData);
+    const response = await api.post<User>("/admin/users/create", userData);
     return response.data;
   } catch (error) {
     throw new Error(getApiErrorMessage(error));
@@ -56,7 +56,7 @@ export const updateUser = async (
     roles: userData.roles,
   };
   try {
-    const response = await api.patch<User>(`/users/admin/${userId}`, payload);
+    const response = await api.patch<User>(`/admin/users/${userId}`, payload);
     return response.data;
   } catch (error) {
     throw new Error(getApiErrorMessage(error));
@@ -66,7 +66,7 @@ export const updateUser = async (
 export const deleteUser = async (id: string): Promise<{ message: string }> => {
   try {
     const response = await api.delete<{ message: string }>(
-      `/users/admin/${id}`,
+      `/admin/users/${id}`,
     );
     return response.data;
   } catch (error) {
@@ -79,7 +79,7 @@ export const deleteMultipleUsers = async (
 ): Promise<{ count: number }> => {
   try {
     const response = await api.delete<{ count: number }>(
-      "/users/admin/multiple",
+      "/admin/users/multiple",
       {
         data: { userIds },
       },

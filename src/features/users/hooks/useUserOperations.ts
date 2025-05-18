@@ -104,8 +104,7 @@ export const useUserOperations = (): UserOperations => {
       const message = getApiErrorMessage(err);
       setError(message || "Failed to update user.");
       console.error("updateUser error:", err);
-
-      return undefined;
+      throw new Error(message);
     } finally {
       setLoading(false);
     }
