@@ -3,8 +3,8 @@ import { Theme } from "@mui/material";
 import {
   CustomChipStyling,
   Order,
-  SortableUser,
   SubscriptionStatusInfo,
+  UserSortableKeys,
 } from "../types";
 import {
   PaidAccessLevel,
@@ -167,10 +167,10 @@ export function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   return 0;
 }
 
-export function getComparator<Key extends keyof SortableUser>(
+export function getComparator<Key extends keyof UserSortableKeys>(
   order: Order,
   orderBy: Key,
-): (a: SortableUser, b: SortableUser) => number {
+): (a: UserSortableKeys, b: UserSortableKeys) => number {
   return order === "desc"
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);

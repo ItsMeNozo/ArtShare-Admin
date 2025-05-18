@@ -12,7 +12,6 @@ import { visuallyHidden } from "@mui/utils";
 import { HeadCell, Order, UserSortableKeys } from "../types";
 
 interface UserTableHeadComponentProps<T = any> {
-  // Make it generic if DisplayUser isn't always the type
   headCells: ReadonlyArray<HeadCell<T>>;
   order: Order;
   orderBy: UserSortableKeys;
@@ -26,7 +25,6 @@ interface UserTableHeadComponentProps<T = any> {
 }
 
 export const UserTableHeadComponent: React.FC<UserTableHeadComponentProps> = ({
-  // Default T to any if not specified
   headCells,
   order,
   orderBy,
@@ -36,11 +34,6 @@ export const UserTableHeadComponent: React.FC<UserTableHeadComponentProps> = ({
   rowCount,
 }) => {
   const theme = useTheme();
-
-  const createSortHandler =
-    (property: UserSortableKeys) => (event: React.MouseEvent<unknown>) => {
-      onRequestSort(event, property);
-    };
 
   return (
     <TableHead

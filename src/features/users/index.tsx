@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   Container,
   Paper,
@@ -50,7 +50,6 @@ const UserManagementPage: React.FC = () => {
     loading: crudLoading,
     error: crudError,
 
-    createUser,
     updateUser,
     deleteUser,
     bulkDeleteUsers,
