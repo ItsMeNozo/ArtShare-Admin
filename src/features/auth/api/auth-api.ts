@@ -3,6 +3,7 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
+  createUserWithEmailAndPassword,
 } from "firebase/auth";
 import axios from "axios";
 import api from "../../../api/baseApi";
@@ -12,7 +13,6 @@ export interface AuthTokens {
   refresh_token: string;
 }
 
-// Firebase configuration
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -22,9 +22,34 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
+export const signUp = async (
+  email: string | "",
+  password: string,
+  username: string,
+) => {
+  let userCredential;
+  try {
+    userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password,
+    );
+    const firebaseUid = userCredential.user.uid;
+
+    const response = await api.post(`/auth/register`, {
+      userId: firebaseUid,
+      email,
+      username,
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Error signing up:", error);
+    throw error;
+  }
+};
 
 /**
  * Sign in with Firebase email/password, then exchange the Firebase ID token
@@ -34,17 +59,14 @@ export async function signIn(
   email: string,
   password: string,
 ): Promise<AuthTokens> {
-  // 1. Sign in via Firebase
   const userCredential = await signInWithEmailAndPassword(
     auth,
     email,
     password,
   );
 
-  // 2. Get a fresh Firebase ID token (includes custom claims)
   const firebaseToken = await userCredential.user.getIdToken(true);
 
-  // 3. Send it to your backend for verification & token exchange
   const { data } = await api.post<AuthTokens>("/auth/admin-login", {
     token: firebaseToken,
   });
@@ -59,9 +81,8 @@ export async function signIn(
 export async function signOut(): Promise<void> {
   const user = auth.currentUser;
   if (user) {
-    // 1. Sign out locally
     await firebaseSignOut(auth);
-    // 2. Tell your backend to revoke this user’s refresh token
+
     await axios.post("/auth/signout", { uid: user.uid });
   }
 }
@@ -74,10 +95,8 @@ export async function verifyToken(): Promise<boolean> {
   const user = auth.currentUser;
   if (!user) return false;
 
-  // 1. Get current token
   const firebaseToken = await user.getIdToken();
 
-  // 2. Send to backend verify-token endpoint
   const { data } = await axios.post<{ valid: boolean }>("/auth/verify-token", {
     token: firebaseToken,
   });

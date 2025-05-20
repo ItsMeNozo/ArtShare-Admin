@@ -47,6 +47,18 @@ export const lightTheme = createTheme({
     },
     // ... other palette colors (success, warning, error, info, divider)
     divider: "#e5e7eb", // Lighter divider (like Tailwind's gray-200)
+    success: {
+      main: "#3eb991",
+    },
+    error: {
+      main: "#e01563",
+    },
+    warning: {
+      main: "#e9a820",
+    },
+    info: {
+      main: "#6ecadc",
+    },
   },
   components: {
     MuiAppBar: {

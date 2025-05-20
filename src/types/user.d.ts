@@ -1,24 +1,42 @@
+import type UserRoleType from "../constants/roles";
+
+export interface UserAccess {
+  userId: string;
+  planId: PaidAccessLevel;
+  expiresAt: string | null;
+  stripeSubscriptionId: string | null;
+  stripePriceId: string | null;
+  stripeCustomerId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  cancelAtPeriodEnd: boolean;
+}
+
 export interface User {
   id: string;
   username: string;
   email: string;
-  full_name?: string | null;
-  profile_picture_url?: string | null;
+  fullName: string | null;
+  profilePictureUrl: string | null;
+  bio: string | null;
+  createdAt: string;
+  updatedAt?: string | null;
+  birthday?: string | null;
+  followersCount: number;
+  followingsCount: number;
+  stripeCustomerId: string | null;
+  roles: UserRoleType[];
+  userAccess: UserAccess | null;
+}
+
+export interface UserFormData {
+  id?: string;
+  username: string;
+  email: string;
+  password?: string;
+  fullName?: string | null;
+  profilePictureUrl?: string | null;
   bio?: string | null;
-  created_at: Date;
-  updated_at?: Date | null;
-  refresh_token?: string | null;
-  followers_count: number;
-  followings_count: number;
-  collections?: Collection[];
-  blogs?: Blog[];
-  bookmarks?: Bookmark[];
-  comments?: Comment[];
-  followers?: Follow[];
-  followings?: Follow[];
-  likes?: Like[];
-  posts?: Post[];
-  ratings?: Rating[];
-  shares?: Share[];
-  roles: UserRole[];
+  birthday?: string | null;
+  roles: UserRoleType[];
 }

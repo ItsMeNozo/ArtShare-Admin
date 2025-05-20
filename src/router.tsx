@@ -4,6 +4,7 @@ import LoginPage from "./features/auth/components/login";
 import Dashboard from "./pages/Dashboard";
 import AdminLayout from "./components/layout/AdminLayout";
 import CategoryManagementPage from "./features/categories/CategoryManagementPage";
+import UserManagementPage from "./features/users";
 // TODO: Import other pages when ready
 // import Users from './pages/Users';
 // import Posts from './pages/Posts';
@@ -17,6 +18,8 @@ export const router = createBrowserRouter([
     path: "/login",
     element: <LoginPage />,
   },
+  { path: "categories", element: <CategoryManagementPage /> },
+  { path: "users", element: <UserManagementPage /> },
   {
     // This path will now be the parent for all admin routes
     path: "/", // Or you could use a more specific base like "/admin" if you prefer
@@ -31,7 +34,6 @@ export const router = createBrowserRouter([
       // { path: "posts", element: <PostManagementPage /> },
       // { path: "comments", element: <CommentManagementPage /> },
       // { path: "reports", element: <ReportManagementPage /> },
-      { path: "categories", element: <CategoryManagementPage /> },
       // { path: "statistics", element: <StatisticsPage /> },
       // { path: "settings", element: <SettingsPage />}, // For top-bar settings icon
     ],
