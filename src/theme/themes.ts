@@ -32,9 +32,8 @@ export const lightTheme = createTheme({
       paper: "#ffffff", // keep cards white
     },
     primary: {
-      main: "#6366F1", // indigo-500 (example, adjust to your primary)
-      light: "#818CF8", // indigo-400
-      dark: "#4F46E5", // indigo-600
+      main: "#611F69", // indigo-500 (example, adjust to your primary)
+      light: "#611F69", // indigo-400
       contrastText: "#FFFFFF",
     },
     secondary: {
@@ -48,16 +47,16 @@ export const lightTheme = createTheme({
     // ... other palette colors (success, warning, error, info, divider)
     divider: "#e5e7eb", // Lighter divider (like Tailwind's gray-200)
     success: {
-      main: "#3eb991",
+      main: "#2EB67D",
     },
     error: {
-      main: "#e01563",
+      main: "#E01E5A",
     },
     warning: {
-      main: "#e9a820",
+      main: "#ECB22E",
     },
     info: {
-      main: "#6ecadc",
+      main: "#36C5F0",
     },
   },
   components: {
