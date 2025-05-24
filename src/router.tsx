@@ -1,11 +1,12 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
-import ProtectedRoute from "./lib/ProtectedRoute";
-import LoginPage from "./features/auth/components/login";
-import Dashboard from "./pages/Dashboard";
-import AdminLayout from "./components/layout/AdminLayout";
-import CategoryManagementPage from "./features/categories/CategoryManagementPage";
-import UserManagementPage from "./features/users";
-import PostManagementPage from "./features/posts";
+import { createBrowserRouter, Navigate } from 'react-router-dom';
+import ProtectedRoute from './lib/ProtectedRoute';
+import LoginPage from './features/auth/components/login';
+import Dashboard from './pages/Dashboard';
+import AdminLayout from './components/layout/AdminLayout';
+import CategoryManagementPage from './features/categories/CategoryManagementPage';
+import UserManagementPage from './features/users';
+import ReportManagementPage from './features/reports/ReportManagementPage';
+import PostManagementPage from './features/posts';
 // TODO: Import other pages when ready
 // import Users from './pages/Users';
 // import Posts from './pages/Posts';
@@ -16,13 +17,14 @@ import PostManagementPage from "./features/posts";
 
 export const router = createBrowserRouter([
   {
-    path: "/login",
+    path: '/login',
     element: <LoginPage />,
   },
-
+  { path: 'categories', element: <CategoryManagementPage /> },
+  { path: 'users', element: <UserManagementPage /> },
   {
     // This path will now be the parent for all admin routes
-    path: "/", // Or you could use a more specific base like "/admin" if you prefer
+    path: '/', // Or you could use a more specific base like "/admin" if you prefer
     element: (
       <ProtectedRoute>
         <AdminLayout /> {/* AdminLayout is now protected */}
@@ -30,12 +32,12 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Dashboard /> }, // For path: '/admin'
-      { path: "categories", element: <CategoryManagementPage /> },
-      { path: "posts", element: <PostManagementPage /> },
-      { path: "users", element: <UserManagementPage /> },
+      { path: 'categories', element: <CategoryManagementPage /> },
+      { path: 'posts', element: <PostManagementPage /> },
+      { path: 'users', element: <UserManagementPage /> },
       // { path: "users", element: <UserManagementPage /> },
       // { path: "comments", element: <CommentManagementPage /> },
-      // { path: "reports", element: <ReportManagementPage /> },
+      { path: 'reports', element: <ReportManagementPage /> },
       // { path: "statistics", element: <StatisticsPage /> },
       // { path: "settings", element: <SettingsPage />}, // For top-bar settings icon
     ],
@@ -44,7 +46,7 @@ export const router = createBrowserRouter([
     // Catch-all or redirect for paths not matching login or admin layout
     // This can be a 404 page or redirect to dashboard if authenticated, login if not.
     // For simplicity, if you want to always go to /dashboard if not /login:
-    path: "*",
+    path: '*',
     element: <Navigate to="/" replace />,
   },
 ]);
