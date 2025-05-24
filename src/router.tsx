@@ -6,6 +6,7 @@ import AdminLayout from './components/layout/AdminLayout';
 import CategoryManagementPage from './features/categories/CategoryManagementPage';
 import UserManagementPage from './features/users';
 import ReportManagementPage from './features/reports/ReportManagementPage';
+import PostManagementPage from './features/posts';
 // TODO: Import other pages when ready
 // import Users from './pages/Users';
 // import Posts from './pages/Posts';
@@ -31,8 +32,10 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Dashboard /> }, // For path: '/admin'
+      { path: 'categories', element: <CategoryManagementPage /> },
+      { path: 'posts', element: <PostManagementPage /> },
+      { path: 'users', element: <UserManagementPage /> },
       // { path: "users", element: <UserManagementPage /> },
-      // { path: "posts", element: <PostManagementPage /> },
       // { path: "comments", element: <CommentManagementPage /> },
       { path: 'reports', element: <ReportManagementPage /> },
       // { path: "statistics", element: <StatisticsPage /> },
