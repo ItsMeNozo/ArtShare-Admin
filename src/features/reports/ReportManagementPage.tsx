@@ -63,7 +63,7 @@ const ReportManagementPage: React.FC = () => {
     [reports, search],
   );
 
-  if (isResolving) {
+  if (isResolving || isUpdateReportLoading) {
     return (
       <Box
         sx={{
