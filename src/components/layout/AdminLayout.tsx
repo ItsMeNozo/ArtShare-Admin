@@ -34,6 +34,7 @@ import CommentIcon from "@mui/icons-material/Comment"; // For Comment Management
 import ReportIcon from "@mui/icons-material/Report"; // For Report Management
 import CategoryIcon from "@mui/icons-material/Category"; // For Category Management
 import BarChartIcon from "@mui/icons-material/BarChart"; // For Statistics
+import ShowChartIcon from "@mui/icons-material/ShowChart";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import SettingsIcon from "@mui/icons-material/Settings";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
@@ -173,6 +174,13 @@ const AdminLayout: React.FC = () => {
       text: "Statistics",
       icon: <BarChartIcon />,
       path: "/statistics",
+      section: "MANAGEMENT",
+      badge: undefined,
+    },
+    {
+      text: "Analytics",
+      icon: <ShowChartIcon />,
+      path: "/analytics",
       section: "MANAGEMENT",
       badge: undefined,
     },
