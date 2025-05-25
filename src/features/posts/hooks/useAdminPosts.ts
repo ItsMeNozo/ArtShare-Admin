@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from 'react';
 import {
   fetchAdminPosts,
   AdminPostListItemDto,
   GetAllPostsAdminParams,
   AdminPostsResponse,
-} from "../api/post.api";
+} from '../api/post.api';
 
-type Order = "asc" | "desc";
-type SortableFields = "title" | "user" | "created_at";
+type Order = 'asc' | 'desc';
+type SortableFields = 'title' | 'user' | 'created_at';
 
 interface UseAdminPostsProps {
   initialPage?: number;
@@ -37,8 +37,8 @@ export interface UseAdminPostsReturn {
 export function useAdminPosts({
   initialPage = 0,
   initialRowsPerPage = 10,
-  initialOrderBy = "created_at",
-  initialOrder = "desc",
+  initialOrderBy = 'created_at',
+  initialOrder = 'desc',
 }: UseAdminPostsProps = {}): UseAdminPostsReturn {
   const [posts, setPosts] = useState<AdminPostListItemDto[]>([]);
   const [totalPosts, setTotalPosts] = useState(0);
@@ -47,8 +47,8 @@ export function useAdminPosts({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
   const [orderBy, setOrderBy] = useState<SortableFields>(initialOrderBy);
   const [order, setOrder] = useState<Order>(initialOrder);
@@ -78,8 +78,8 @@ export function useAdminPosts({
       setPosts(response.posts);
       setTotalPosts(response.total);
     } catch (err) {
-      console.error("Failed to fetch posts:", err);
-      setError("Failed to fetch posts. Please try again.");
+      console.error('Failed to fetch posts:', err);
+      setError('Failed to fetch posts. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -101,8 +101,8 @@ export function useAdminPosts({
   };
 
   const handleRequestSort = (property: SortableFields) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
     setPage(0);
   };
