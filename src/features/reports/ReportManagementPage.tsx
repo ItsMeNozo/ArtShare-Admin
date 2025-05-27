@@ -22,12 +22,14 @@ import {
   useUpdateReportStatus,
 } from './hooks/useReports';
 import ResolveReportDialog from './components/ResolveReportDialog ';
-import type { Report } from './reportAPI';
+import { type Report } from './reportAPI';
 import ReportDetailDialog from './components/ReportDetailDialog';
+import { useQueryClient } from '@tanstack/react-query';
 
 const ReportManagementPage: React.FC = () => {
   const theme = useTheme();
   const [search, setSearch] = useState('');
+  const queryClient = useQueryClient();
 
   const { data: reports, isLoading, isError, error } = useGetAllReports({});
   const {
@@ -63,14 +65,13 @@ const ReportManagementPage: React.FC = () => {
     [reports, search],
   );
 
-  if (isResolving || isUpdateReportLoading) {
+  if (isResolving || isUpdateReportLoading || isLoading) {
     return (
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '80vh',
+          zIndex: (theme) => theme.zIndex.modal + 1,
+          inset: 0,
+          backgroundColor: 'transparent',
         }}
       >
         <CircularProgress />
@@ -131,80 +132,73 @@ const ReportManagementPage: React.FC = () => {
         </Alert>
       )}
 
-      {isLoading ? (
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '50vh',
-          }}
-        >
-          <CircularProgress />
-        </Box>
-      ) : (
-        <TableContainer sx={{ boxShadow: 'none' }}>
-          <Table sx={{ minWidth: 650 }} aria-label="reports table">
-            <TableHead
-              sx={{
-                backgroundColor:
-                  theme.palette.mode === 'dark' ? '#333' : 'grey.200',
-              }}
-            >
-              <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>Reporter</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Reason</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
-                <TableCell align="left" sx={{ fontWeight: 'bold' }}>
-                  Actions
+      <TableContainer sx={{ boxShadow: 'none' }}>
+        <Table sx={{ minWidth: 650 }} aria-label="reports table">
+          <TableHead
+            sx={{
+              backgroundColor:
+                theme.palette.mode === 'dark' ? '#333' : 'grey.200',
+            }}
+          >
+            <TableRow>
+              <TableCell sx={{ fontWeight: 'bold' }}>Reporter</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Reason</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
+              <TableCell align="left" sx={{ fontWeight: 'bold' }}>
+                Actions
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filtered.map((r) => (
+              <TableRow key={r.id} hover>
+                <TableCell>{r.reporter.username}</TableCell>
+                <TableCell>{r.target_type}</TableCell>
+                <TableCell>{r.reason}</TableCell>
+                <TableCell>{r.status}</TableCell>
+                <TableCell>
+                  {new Date(r.created_at).toLocaleDateString()}
+                </TableCell>
+                <TableCell align="left" className="px-0">
+                  <Button
+                    size="small"
+                    color="primary"
+                    onClick={() => handleView(r)}
+                  >
+                    View
+                  </Button>
+                  <Button
+                    size="small"
+                    color="error"
+                    style={{
+                      visibility:
+                        r.status === 'DISMISSED' ? 'hidden' : undefined,
+                    }}
+                    onClick={() => {
+                      setActiveReportId(r.id);
+                      setDialogOpen(true);
+                    }}
+                  >
+                    Resolve
+                  </Button>
                 </TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {filtered.map((r) => (
-                <TableRow key={r.id} hover>
-                  <TableCell>{r.reporter.username}</TableCell>
-                  <TableCell>{r.target_type}</TableCell>
-                  <TableCell>{r.reason}</TableCell>
-                  <TableCell>{r.status}</TableCell>
-                  <TableCell>
-                    {new Date(r.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell align="left" className="px-0">
-                    <Button
-                      size="small"
-                      color="primary"
-                      onClick={() => handleView(r)}
-                    >
-                      View
-                    </Button>
-                    <Button
-                      size="small"
-                      color="error"
-                      onClick={() => {
-                        setActiveReportId(r.id);
-                        setDialogOpen(true);
-                      }}
-                    >
-                      Resolve
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filtered.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    No reports found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+            ))}
+            {filtered.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  No reports found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
       <ResolveReportDialog
+        report={activeReport}
         open={dialogOpen}
         initialDate={new Date()}
         isSubmitting={isResolving}
@@ -228,14 +222,19 @@ const ReportManagementPage: React.FC = () => {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         report={activeReport}
-        onResolve={() => {}}
+        onResolve={() => {
+          setActiveReportId(activeReport?.id || null);
+          setDialogOpen(true);
+        }}
         onDismiss={(id) =>
           updateReportStatus(
             { reportId: id, status: 'DISMISSED' },
             {
               onSuccess: () => {
                 setDrawerOpen(false);
-                alert('Report dismissed');
+                setDialogOpen(false);
+                queryClient.invalidateQueries({ queryKey: ['reports', 'all'] });
+                // showSnackBar('Report dismissed');
               },
               onError: (err) => {
                 alert(err.message);

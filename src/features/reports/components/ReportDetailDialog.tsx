@@ -1,5 +1,5 @@
 // src/components/ReportDetailDialog.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -9,14 +9,17 @@ import {
   Typography,
   Button,
   Divider,
+  Tooltip,
+  IconButton,
 } from '@mui/material';
 import { Report } from '../reportAPI';
+import { Link } from 'react-router-dom';
 
 interface ReportDetailDialogProps {
   open: boolean;
   onClose: () => void;
   report: Report | null;
-  onResolve: (reportId: number) => void;
+  onResolve: () => void;
   onDismiss: (reportId: number) => void;
   onViewContent: (report: Report) => void;
 }
@@ -31,8 +34,19 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
   report,
   onResolve,
   onDismiss,
-  onViewContent,
 }) => {
+  const [copied, setCopied] = useState(false);
+  if (!report) return null;
+
+  const handleCopyUrl = () => {
+    navigator.clipboard
+      .writeText(report?.target_url ? report.target_url : '')
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+  };
+
   if (!report) return null;
 
   return (
@@ -47,14 +61,18 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
           </Box>
 
           <Box>
-            <Typography variant="subtitle2">Target</Typography>
+            <Typography variant="subtitle2">Target URL</Typography>
             <Box display="flex" alignItems="center" gap={1}>
-              <Typography variant="body1">
-                {report.target_type} #{report.target_id}
-              </Typography>
-              <Button size="small" onClick={() => onViewContent(report)}>
-                View
-              </Button>
+              <Link
+                to={report.target_url ?? '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {report.target_url}
+              </Link>
+              <Tooltip title={copied ? 'Copied!' : 'Copy URL'}>
+                <IconButton onClick={handleCopyUrl} size="small"></IconButton>
+              </Tooltip>
             </Box>
           </Box>
 
@@ -99,15 +117,14 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
         <Button
           variant="outlined"
           color="error"
+          style={{
+            visibility: report.status === 'DISMISSED' ? 'hidden' : 'visible',
+          }}
           onClick={() => onDismiss(report.id)}
         >
           Dismiss
         </Button>
-        <Button
-          variant="contained"
-          color="success"
-          onClick={() => onResolve(report.id)}
-        >
+        <Button variant="contained" color="success" onClick={onResolve}>
           Resolve
         </Button>
         <Button onClick={onClose}>Close</Button>

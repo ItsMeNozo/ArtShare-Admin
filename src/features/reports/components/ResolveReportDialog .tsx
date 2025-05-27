@@ -10,8 +10,10 @@ import {
   Box,
   Typography,
 } from '@mui/material';
+import { Report } from '../reportAPI';
 
 interface ResolveReportDialogProps {
+  report: Report | null;
   open: boolean;
   initialDate?: Date;
   isSubmitting?: boolean;
@@ -24,6 +26,7 @@ interface ResolveReportDialogProps {
 }
 
 const ResolveReportDialog: React.FC<ResolveReportDialogProps> = ({
+  report,
   open,
   initialDate,
   isSubmitting = false,
@@ -31,7 +34,6 @@ const ResolveReportDialog: React.FC<ResolveReportDialogProps> = ({
   onCancel,
   onConfirm,
 }) => {
-  // hold the ISO string for datetime-local (YYYY-MM-DDThh:mm)
   const [dateTime, setDateTime] = useState<string>('');
   const [comment, setComment] = useState<string>('');
 
@@ -91,6 +93,9 @@ const ResolveReportDialog: React.FC<ResolveReportDialogProps> = ({
           color="primary"
           onClick={handleConfirm}
           disabled={isSubmitting || !dateTime}
+          style={{
+            visibility: report?.status === 'DISMISSED' ? 'hidden' : undefined,
+          }}
         >
           {isSubmitting ? 'Saving…' : 'Confirm'}
         </Button>
