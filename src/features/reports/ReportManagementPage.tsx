@@ -207,6 +207,10 @@ const ReportManagementPage: React.FC = () => {
         error={resolveError?.message}
         onCancel={() => setDialogOpen(false)}
         onConfirm={({ resolve_date, comment }) => {
+          if (activeReportId == null) {
+            alert('Do not have reportId');
+            return;
+          }
           if (activeReportId != null) {
             resolveReport(
               {
@@ -214,7 +218,10 @@ const ReportManagementPage: React.FC = () => {
                 resolveReportDTO: { resolve_date, resolution_comment: comment },
               },
               {
-                onSuccess: () => setDialogOpen(false),
+                onSuccess: () => {
+                  setDialogOpen(false);
+                  setDrawerOpen(false);
+                },
               },
             );
           }
