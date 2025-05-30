@@ -32,8 +32,8 @@ export const lightTheme = createTheme({
       paper: '#ffffff', // keep cards white
     },
     primary: {
-      main: '#611F69', // indigo-500 (example, adjust to your primary)
-      light: '#611F69', // indigo-400
+      main: '#6366F1', // indigo-500 (example, adjust to your primary)
+      light: '#818CF8', // indigo-400
       contrastText: '#FFFFFF',
     },
     secondary: {
