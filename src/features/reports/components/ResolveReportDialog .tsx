@@ -12,6 +12,20 @@ import {
 } from '@mui/material';
 import { Report } from '../reportAPI';
 
+const toDatetimeLocal = (dt: Date) => {
+  return (
+    dt.getFullYear() +
+    '-' +
+    String(dt.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(dt.getDate()).padStart(2, '0') +
+    'T' +
+    String(dt.getHours()).padStart(2, '0') +
+    ':' +
+    String(dt.getMinutes()).padStart(2, '0')
+  );
+};
+
 interface ResolveReportDialogProps {
   report: Report | null;
   open: boolean;
@@ -41,9 +55,7 @@ const ResolveReportDialog: React.FC<ResolveReportDialogProps> = ({
   useEffect(() => {
     if (open) {
       const now = initialDate ?? new Date();
-      // slice off seconds and milliseconds
-      const isoLocal = now.toISOString().slice(0, 16);
-      setDateTime(isoLocal);
+      setDateTime(toDatetimeLocal(now));
       setComment('');
     }
   }, [open, initialDate]);
