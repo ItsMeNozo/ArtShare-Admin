@@ -31,8 +31,6 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
   onDismiss,
   onViewContent,
 }) => {
-  const theme = useTheme(); // Optional: if you need theme for specific colors
-
   if (!report) {
     return null;
   }
@@ -51,7 +49,7 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
           alignItems: "center",
         }}
       >
-        Report Details
+        Report details
         <IconButton
           aria-label="close"
           onClick={onClose}
@@ -99,13 +97,11 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
           >
             Target URL:
           </Typography>
-          {/* THIS IS THE MODIFIED PART */}
           <Typography variant="body2">
             <Link
               href={report.target_url}
               target="_blank"
               rel="noopener noreferrer"
-              // sx={{ color: theme.palette.primary.main }} // Default link color, or specify another
             >
               {report.target_url}
             </Link>
@@ -161,9 +157,6 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
         )}
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>
-        <Button onClick={() => onViewContent(report)} color="info">
-          View Content
-        </Button>
         {isActionable && (
           <>
             <Button onClick={() => onDismiss(report.id)} color="warning">
