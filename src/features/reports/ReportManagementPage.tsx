@@ -174,7 +174,9 @@ const ReportManagementPage: React.FC = () => {
                     color="error"
                     style={{
                       visibility:
-                        r.status === 'DISMISSED' ? 'hidden' : undefined,
+                        r.status === 'DISMISSED' || r.status === 'RESOLVED'
+                          ? 'hidden'
+                          : undefined,
                     }}
                     onClick={() => {
                       setActiveReportId(r.id);

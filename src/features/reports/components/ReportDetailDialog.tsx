@@ -51,7 +51,7 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Report Details</DialogTitle>
+      <DialogTitle>Report Details 1</DialogTitle>
       <Divider />
       <DialogContent dividers>
         <Box display="flex" flexDirection="column" gap={2}>
@@ -118,13 +118,26 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
           variant="outlined"
           color="error"
           style={{
-            visibility: report.status === 'DISMISSED' ? 'hidden' : 'visible',
+            visibility:
+              report?.status === 'DISMISSED' || report?.status === 'RESOLVED'
+                ? 'hidden'
+                : undefined,
           }}
           onClick={() => onDismiss(report.id)}
         >
           Dismiss
         </Button>
-        <Button variant="contained" color="success" onClick={onResolve}>
+        <Button
+          variant="contained"
+          color="success"
+          style={{
+            visibility:
+              report?.status === 'RESOLVED' || report?.status === 'DISMISSED'
+                ? 'hidden'
+                : undefined,
+          }}
+          onClick={onResolve}
+        >
           Resolve
         </Button>
         <Button onClick={onClose}>Close</Button>

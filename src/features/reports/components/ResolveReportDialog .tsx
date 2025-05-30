@@ -94,7 +94,10 @@ const ResolveReportDialog: React.FC<ResolveReportDialogProps> = ({
           onClick={handleConfirm}
           disabled={isSubmitting || !dateTime}
           style={{
-            visibility: report?.status === 'DISMISSED' ? 'hidden' : undefined,
+            visibility:
+              report?.status === 'DISMISSED' || report?.status === 'RESOLVED'
+                ? 'hidden'
+                : undefined,
           }}
         >
           {isSubmitting ? 'Saving…' : 'Confirm'}
