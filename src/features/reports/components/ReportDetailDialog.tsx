@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -9,10 +9,9 @@ import {
   IconButton,
   Box,
   Link,
-  useTheme,
-} from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import { type Report } from "../reportAPI";
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import { type Report } from '../reportAPI';
 
 interface ReportDetailDialogProps {
   open: boolean;
@@ -29,14 +28,13 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
   report,
   onResolve,
   onDismiss,
-  onViewContent,
 }) => {
   if (!report) {
     return null;
   }
 
   const isActionable =
-    report.status !== "RESOLVED" && report.status !== "DISMISSED";
+    report.status !== 'RESOLVED' && report.status !== 'DISMISSED';
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -44,9 +42,9 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
         sx={{
           m: 0,
           p: 2,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}
       >
         Report details
@@ -63,7 +61,7 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
           <Typography
             variant="subtitle2"
             gutterBottom
-            sx={{ fontWeight: "bold" }}
+            sx={{ fontWeight: 'bold' }}
           >
             Reporter:
           </Typography>
@@ -73,7 +71,7 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
           <Typography
             variant="subtitle2"
             gutterBottom
-            sx={{ fontWeight: "bold" }}
+            sx={{ fontWeight: 'bold' }}
           >
             Report Type:
           </Typography>
@@ -83,7 +81,7 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
           <Typography
             variant="subtitle2"
             gutterBottom
-            sx={{ fontWeight: "bold" }}
+            sx={{ fontWeight: 'bold' }}
           >
             Reason:
           </Typography>
@@ -93,7 +91,7 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
           <Typography
             variant="subtitle2"
             gutterBottom
-            sx={{ fontWeight: "bold" }}
+            sx={{ fontWeight: 'bold' }}
           >
             Target URL:
           </Typography>
@@ -111,7 +109,7 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
           <Typography
             variant="subtitle2"
             gutterBottom
-            sx={{ fontWeight: "bold" }}
+            sx={{ fontWeight: 'bold' }}
           >
             Status:
           </Typography>
@@ -121,7 +119,7 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
           <Typography
             variant="subtitle2"
             gutterBottom
-            sx={{ fontWeight: "bold" }}
+            sx={{ fontWeight: 'bold' }}
           >
             Reported At:
           </Typography>
@@ -134,7 +132,7 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
             <Typography
               variant="subtitle2"
               gutterBottom
-              sx={{ fontWeight: "bold" }}
+              sx={{ fontWeight: 'bold' }}
             >
               Resolution Comment:
             </Typography>
@@ -146,7 +144,7 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
             <Typography
               variant="subtitle2"
               gutterBottom
-              sx={{ fontWeight: "bold" }}
+              sx={{ fontWeight: 'bold' }}
             >
               Resolved At:
             </Typography>
