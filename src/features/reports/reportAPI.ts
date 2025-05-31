@@ -1,10 +1,10 @@
-import api from '../../api/baseApi';
+import api from "../../api/baseApi";
 
 export enum ReportTargetType {
-  POST = 'POST',
-  BLOG = 'BLOG',
-  COMMENT = 'COMMENT',
-  USER = 'USER',
+  POST = "POST",
+  BLOG = "BLOG",
+  COMMENT = "COMMENT",
+  USER = "USER",
 }
 
 export interface CreateReportDto {
@@ -14,11 +14,11 @@ export interface CreateReportDto {
 }
 
 export enum ViewTab {
-  ALL = 'all',
-  USER = 'user',
-  POST = 'post',
-  BLOG = 'blog',
-  COMMENT = 'comment',
+  ALL = "all",
+  USER = "user",
+  POST = "post",
+  BLOG = "blog",
+  COMMENT = "comment",
 }
 
 /**
@@ -37,6 +37,7 @@ export interface ReporterSummary {
   id: string;
   username: string;
 }
+export type ReportStatus = "PENDING" | "RESOLVED" | "DISMISSED";
 
 /**
  * Representation of a report returned by the API.
@@ -48,7 +49,7 @@ export interface Report {
   target_id: number;
   target_type: ReportTargetType;
   reason: string;
-  status: string;
+  status: ReportStatus;
   user_id?: string;
   created_at: string;
   updated_at?: string;
@@ -66,7 +67,7 @@ export async function submitReport(
   dto: CreateReportDto,
 ): Promise<{ message: string; reportId: number }> {
   const response = await api.post<{ message: string; reportId: number }>(
-    '/reports',
+    "/reports",
     dto,
   );
   return response.data;
@@ -76,7 +77,7 @@ export async function getPendingReports(
   skip?: number,
   take?: number,
 ): Promise<Report[]> {
-  const response = await api.get<Report[]>('/reports/pending', {
+  const response = await api.get<Report[]>("/reports/pending", {
     params: { skip, take },
   });
   return response.data;
@@ -86,7 +87,7 @@ export async function getPendingReports(
  * Fetch reports filtered by tab (all, user, post, blog, comment).
  */
 export async function viewReports(dto: ViewReportsDto): Promise<Report[]> {
-  const response = await api.post<Report[]>('/reports/view', dto);
+  const response = await api.post<Report[]>("/reports/view", dto);
   return response.data;
 }
 

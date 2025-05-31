@@ -1,5 +1,5 @@
 // src/pages/ReportManagementPage.tsx
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -15,20 +15,20 @@ import {
   useTheme,
   CircularProgress,
   Button,
-} from '@mui/material';
+} from "@mui/material";
 import {
   useGetAllReports,
   useResolveReport,
   useUpdateReportStatus,
-} from './hooks/useReports';
-import ResolveReportDialog from './components/ResolveReportDialog ';
-import { type Report } from './reportAPI';
-import ReportDetailDialog from './components/ReportDetailDialog';
-import { useQueryClient } from '@tanstack/react-query';
+} from "./hooks/useReports";
+import ResolveReportDialog from "./components/ResolveReportDialog ";
+import { type Report } from "./reportAPI";
+import ReportDetailDialog from "./components/ReportDetailDialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 const ReportManagementPage: React.FC = () => {
   const theme = useTheme();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
 
   const { data: reports, isLoading, isError, error } = useGetAllReports({});
@@ -71,7 +71,7 @@ const ReportManagementPage: React.FC = () => {
         sx={{
           zIndex: (theme) => theme.zIndex.modal + 1,
           inset: 0,
-          backgroundColor: 'transparent',
+          backgroundColor: "transparent",
         }}
       >
         <CircularProgress />
@@ -85,17 +85,17 @@ const ReportManagementPage: React.FC = () => {
         p: 3,
         m: 2,
         backgroundColor:
-          theme.palette.mode === 'dark'
+          theme.palette.mode === "dark"
             ? theme.palette.background.paper
-            : '#ffffff',
+            : "#ffffff",
       }}
     >
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
           gap: 2,
           mb: 2,
         }}
@@ -113,9 +113,9 @@ const ReportManagementPage: React.FC = () => {
           sx={{
             width: 180,
             backgroundColor:
-              theme.palette.mode === 'dark' ? '#1f2937' : '#f9fafb',
+              theme.palette.mode === "dark" ? "#1f2937" : "#f9fafb",
             borderRadius: 2,
-            '& input': {
+            "& input": {
               px: 1.5,
               py: 1,
             },
@@ -132,21 +132,28 @@ const ReportManagementPage: React.FC = () => {
         </Alert>
       )}
 
-      <TableContainer sx={{ boxShadow: 'none' }}>
+      <TableContainer sx={{ boxShadow: "none" }}>
         <Table sx={{ minWidth: 650 }} aria-label="reports table">
           <TableHead
             sx={{
               backgroundColor:
-                theme.palette.mode === 'dark' ? '#333' : 'grey.200',
+                theme.palette.mode === "dark" ? "#333" : "grey.200",
             }}
           >
             <TableRow>
-              <TableCell sx={{ fontWeight: 'bold' }}>Reporter</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Reason</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
-              <TableCell align="left" sx={{ fontWeight: 'bold' }}>
+              <TableCell sx={{ fontWeight: "bold" }}>Reporter</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Type</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Reason</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
+              <TableCell
+                align="left"
+                sx={{
+                  fontWeight: "bold",
+                  width: "10%",
+                  whiteSpace: "nowrap", // Useful if you want buttons on one line for sure
+                }}
+              >
                 Actions
               </TableCell>
             </TableRow>
@@ -161,7 +168,13 @@ const ReportManagementPage: React.FC = () => {
                 <TableCell>
                   {new Date(r.created_at).toLocaleDateString()}
                 </TableCell>
-                <TableCell align="left" className="px-0">
+                <TableCell
+                  align="left"
+                  className="px-0"
+                  sx={{
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   <Button
                     size="small"
                     color="primary"
@@ -174,8 +187,8 @@ const ReportManagementPage: React.FC = () => {
                     color="error"
                     style={{
                       visibility:
-                        r.status === 'DISMISSED' || r.status === 'RESOLVED'
-                          ? 'hidden'
+                        r.status === "DISMISSED" || r.status === "RESOLVED"
+                          ? "hidden"
                           : undefined,
                     }}
                     onClick={() => {
@@ -208,7 +221,7 @@ const ReportManagementPage: React.FC = () => {
         onCancel={() => setDialogOpen(false)}
         onConfirm={({ resolve_date, comment }) => {
           if (activeReportId == null) {
-            alert('Do not have reportId');
+            alert("Do not have reportId");
             return;
           }
           if (activeReportId != null) {
@@ -221,6 +234,10 @@ const ReportManagementPage: React.FC = () => {
                 onSuccess: () => {
                   setDialogOpen(false);
                   setDrawerOpen(false);
+                  // Add this line to refetch the reports without page reload
+                  queryClient.invalidateQueries({
+                    queryKey: ["reports", "all"],
+                  });
                 },
               },
             );
@@ -237,12 +254,12 @@ const ReportManagementPage: React.FC = () => {
         }}
         onDismiss={(id) =>
           updateReportStatus(
-            { reportId: id, status: 'DISMISSED' },
+            { reportId: id, status: "DISMISSED" },
             {
               onSuccess: () => {
                 setDrawerOpen(false);
                 setDialogOpen(false);
-                queryClient.invalidateQueries({ queryKey: ['reports', 'all'] });
+                queryClient.invalidateQueries({ queryKey: ["reports", "all"] });
                 // showSnackBar('Report dismissed');
               },
               onError: (err) => {
@@ -252,7 +269,7 @@ const ReportManagementPage: React.FC = () => {
           )
         }
         onViewContent={(r) => {
-          window.open(r.target_url, '_blank', 'noopener,noreferrer');
+          window.open(r.target_url, "_blank", "noopener,noreferrer");
         }}
       />
     </Paper>
