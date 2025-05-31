@@ -1,5 +1,4 @@
-// src/pages/ReportManagementPage.tsx
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react"; // Import useMemo
 import {
   Box,
   Typography,
@@ -15,6 +14,12 @@ import {
   useTheme,
   CircularProgress,
   Button,
+  Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
 } from "@mui/material";
 import {
   useGetAllReports,
@@ -22,16 +27,36 @@ import {
   useUpdateReportStatus,
 } from "./hooks/useReports";
 import ResolveReportDialog from "./components/ResolveReportDialog ";
-import { type Report } from "./reportAPI";
+import { type Report, type ReportStatus } from "./reportAPI"; // Assuming these are in reportAPI.ts
 import ReportDetailDialog from "./components/ReportDetailDialog";
 import { useQueryClient } from "@tanstack/react-query";
+
+// Define styles for status chips (can be moved to a utils file)
+export const statusDisplayInfo: Record<
+  ReportStatus,
+  { label: string; color: "success" | "warning" | "default" | "error" }
+> = {
+  RESOLVED: { label: "Resolved", color: "success" },
+  PENDING: { label: "Pending", color: "warning" },
+  DISMISSED: { label: "Dismissed", color: "default" }, // 'default' is often greyish
+};
 
 const ReportManagementPage: React.FC = () => {
   const theme = useTheme();
   const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: reports, isLoading, isError, error } = useGetAllReports({});
+  const [statusFilter, setStatusFilter] = useState<ReportStatus | "">(""); // '' for 'All'
+
+  const {
+    data: reports,
+    isLoading,
+    isError,
+    error,
+  } = useGetAllReports({
+    // If your hook supports backend filtering by status, pass it here:
+    // status: statusFilter || undefined,
+  });
   const {
     mutate: resolveReport,
     isPending: isResolving,
@@ -40,10 +65,8 @@ const ReportManagementPage: React.FC = () => {
   const { mutate: updateReportStatus, isPending: isUpdateReportLoading } =
     useUpdateReportStatus();
 
-  // Dialog section
   const [dialogOpen, setDialogOpen] = useState(false);
   const [activeReportId, setActiveReportId] = useState<number | null>(null);
-
   const [activeReport, setActiveReport] = useState<Report | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -52,28 +75,41 @@ const ReportManagementPage: React.FC = () => {
     setDrawerOpen(true);
   };
 
-  // ② Filter by reporter username or reason
-  const filtered = React.useMemo(
-    () =>
-      reports?.filter((r) => {
-        const term = search.toLowerCase();
-        return (
+  const handleStatusFilterChange = (
+    event: SelectChangeEvent<ReportStatus | "">,
+  ) => {
+    setStatusFilter(event.target.value as ReportStatus | "");
+  };
+
+  const filteredReports = useMemo(() => {
+    let processedReports = reports ?? [];
+
+    // Filter by search term
+    if (search) {
+      const term = search.toLowerCase();
+      processedReports = processedReports.filter(
+        (r) =>
           r.reporter.username.toLowerCase().includes(term) ||
-          r.reason.toLowerCase().includes(term)
-        );
-      }) ?? [],
-    [reports, search],
-  );
+          r.reason.toLowerCase().includes(term),
+      );
+    }
+
+    // Filter by status
+    if (statusFilter) {
+      processedReports = processedReports.filter(
+        (r) => r.status === statusFilter,
+      );
+    }
+
+    // You could add sorting here if needed, e.g., by date
+    // processedReports.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    return processedReports;
+  }, [reports, search, statusFilter]);
 
   if (isResolving || isUpdateReportLoading || isLoading) {
     return (
-      <Box
-        sx={{
-          zIndex: (theme) => theme.zIndex.modal + 1,
-          inset: 0,
-          backgroundColor: "transparent",
-        }}
-      >
+      <Box /* ... loading spinner ... */>
         <CircularProgress />
       </Box>
     );
@@ -104,36 +140,65 @@ const ReportManagementPage: React.FC = () => {
           Report Management
         </Typography>
 
-        <TextField
-          size="small"
-          variant="outlined"
-          placeholder="Search…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+        <Box
           sx={{
-            width: 180,
-            backgroundColor:
-              theme.palette.mode === "dark" ? "#1f2937" : "#f9fafb",
-            borderRadius: 2,
-            "& input": {
-              px: 1.5,
-              py: 1,
-            },
+            display: "flex",
+            gap: 2,
+            alignItems: "center",
+            flexWrap: "wrap",
           }}
-          InputProps={{
-            sx: { fontSize: 14 },
-          }}
-        />
+        >
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <InputLabel id="status-filter-label">Filter by Status</InputLabel>
+            <Select
+              labelId="status-filter-label"
+              value={statusFilter}
+              label="Filter by Status"
+              onChange={handleStatusFilterChange}
+            >
+              <MenuItem value="">
+                <em>All Statuses</em>
+              </MenuItem>
+              {(Object.keys(statusDisplayInfo) as ReportStatus[]).map(
+                (statusKey) => (
+                  <MenuItem key={statusKey} value={statusKey}>
+                    {statusDisplayInfo[statusKey].label}
+                  </MenuItem>
+                ),
+              )}
+            </Select>
+          </FormControl>
+
+          <TextField
+            size="small"
+            variant="outlined"
+            placeholder="Search Reporter/Reason…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            sx={{
+              width: 300, // Increased from 180 to make it larger
+              backgroundColor:
+                theme.palette.mode === "dark" ? "#1f2937" : "#f9fafb",
+              borderRadius: 2,
+              "& input": { px: 1.5, py: 1 },
+            }}
+            slotProps={{
+              input: { sx: { fontSize: 14 } },
+            }}
+          />
+        </Box>
       </Box>
 
       {isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {error.message}
+          {error?.message || "An unknown error occurred"}
         </Alert>
       )}
 
       <TableContainer sx={{ boxShadow: "none" }}>
-        <Table sx={{ minWidth: 650 }} aria-label="reports table">
+        <Table sx={{ minWidth: 700 }} aria-label="reports table">
+          {" "}
+          {/* Adjusted minWidth slightly */}
           <TableHead
             sx={{
               backgroundColor:
@@ -143,15 +208,21 @@ const ReportManagementPage: React.FC = () => {
             <TableRow>
               <TableCell sx={{ fontWeight: "bold" }}>Reporter</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Type</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Reason</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: "bold", minWidth: "200px" }}>
+                Reason
+              </TableCell>
+              <TableCell
+                sx={{ fontWeight: "bold", width: "120px", textAlign: "center" }}
+              >
+                Status
+              </TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
               <TableCell
                 align="left"
                 sx={{
                   fontWeight: "bold",
-                  width: "10%",
-                  whiteSpace: "nowrap", // Useful if you want buttons on one line for sure
+                  width: "1%", // For shrink-to-fit
+                  whiteSpace: "nowrap",
                 }}
               >
                 Actions
@@ -159,26 +230,44 @@ const ReportManagementPage: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filtered.map((r) => (
+            {filteredReports.map((r) => (
               <TableRow key={r.id} hover>
                 <TableCell>{r.reporter.username}</TableCell>
                 <TableCell>{r.target_type}</TableCell>
-                <TableCell>{r.reason}</TableCell>
-                <TableCell>{r.status}</TableCell>
+                <TableCell>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      maxWidth: 250, // Or adjust based on your layout needs
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                    title={r.reason} // Show full reason on hover
+                  >
+                    {r.reason}
+                  </Typography>
+                </TableCell>
+                <TableCell sx={{ textAlign: "center" }}>
+                  <Chip
+                    label={statusDisplayInfo[r.status]?.label || r.status}
+                    color={statusDisplayInfo[r.status]?.color || "default"}
+                    size="small"
+                  />
+                </TableCell>
                 <TableCell>
                   {new Date(r.created_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell
                   align="left"
-                  className="px-0"
-                  sx={{
-                    whiteSpace: "nowrap",
-                  }}
+                  className="px-0" // Keep if this Tailwind/utility class is used
+                  sx={{ whiteSpace: "nowrap" }}
                 >
                   <Button
                     size="small"
                     color="primary"
                     onClick={() => handleView(r)}
+                    sx={{ mr: 0.5 }} // Add a small margin if buttons are too close
                   >
                     View
                   </Button>
@@ -193,6 +282,7 @@ const ReportManagementPage: React.FC = () => {
                     }}
                     onClick={() => {
                       setActiveReportId(r.id);
+                      setActiveReport(r); // Also set activeReport for ResolveReportDialog
                       setDialogOpen(true);
                     }}
                   >
@@ -201,9 +291,11 @@ const ReportManagementPage: React.FC = () => {
                 </TableCell>
               </TableRow>
             ))}
-            {filtered.length === 0 && (
+            {filteredReports.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} align="center">
+                  {" "}
+                  {/* Adjusted colSpan */}
                   No reports found.
                 </TableCell>
               </TableRow>
@@ -213,7 +305,7 @@ const ReportManagementPage: React.FC = () => {
       </TableContainer>
 
       <ResolveReportDialog
-        report={activeReport}
+        report={activeReport} // Pass the full report object
         open={dialogOpen}
         initialDate={new Date()}
         isSubmitting={isResolving}
@@ -221,27 +313,22 @@ const ReportManagementPage: React.FC = () => {
         onCancel={() => setDialogOpen(false)}
         onConfirm={({ resolve_date, comment }) => {
           if (activeReportId == null) {
-            alert("Do not have reportId");
+            alert("Error: Report ID is missing."); // More user-friendly error
             return;
           }
-          if (activeReportId != null) {
-            resolveReport(
-              {
-                reportId: activeReportId,
-                resolveReportDTO: { resolve_date, resolution_comment: comment },
+          resolveReport(
+            {
+              reportId: activeReportId,
+              resolveReportDTO: { resolve_date, resolution_comment: comment },
+            },
+            {
+              onSuccess: () => {
+                setDialogOpen(false);
+                setDrawerOpen(false); // Close detail drawer if open
+                queryClient.invalidateQueries({ queryKey: ["reports", "all"] });
               },
-              {
-                onSuccess: () => {
-                  setDialogOpen(false);
-                  setDrawerOpen(false);
-                  // Add this line to refetch the reports without page reload
-                  queryClient.invalidateQueries({
-                    queryKey: ["reports", "all"],
-                  });
-                },
-              },
-            );
-          }
+            },
+          );
         }}
       />
       <ReportDetailDialog
@@ -249,8 +336,11 @@ const ReportManagementPage: React.FC = () => {
         onClose={() => setDrawerOpen(false)}
         report={activeReport}
         onResolve={() => {
-          setActiveReportId(activeReport?.id || null);
-          setDialogOpen(true);
+          // Ensure activeReport is set before opening resolve dialog
+          if (activeReport) {
+            setActiveReportId(activeReport.id);
+            setDialogOpen(true);
+          }
         }}
         onDismiss={(id) =>
           updateReportStatus(
@@ -258,9 +348,7 @@ const ReportManagementPage: React.FC = () => {
             {
               onSuccess: () => {
                 setDrawerOpen(false);
-                setDialogOpen(false);
                 queryClient.invalidateQueries({ queryKey: ["reports", "all"] });
-                // showSnackBar('Report dismissed');
               },
               onError: (err) => {
                 alert(err.message);

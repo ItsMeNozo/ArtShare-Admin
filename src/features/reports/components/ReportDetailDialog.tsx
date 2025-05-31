@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Dialog,
   DialogTitle,
@@ -9,9 +9,21 @@ import {
   IconButton,
   Box,
   Link,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import { type Report } from '../reportAPI';
+  Chip, // Import Chip
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+// Ensure Report type and ReportStatus are imported or defined
+import { type Report, type ReportStatus } from "../reportAPI"; // Assuming these are in reportAPI.ts
+// Import or define statusDisplayInfo, or pass it as a prop
+// For simplicity, let's redefine it here if it's not in a shared util
+const statusDisplayInfo: Record<
+  ReportStatus,
+  { label: string; color: "success" | "warning" | "default" | "error" }
+> = {
+  RESOLVED: { label: "Resolved", color: "success" },
+  PENDING: { label: "Pending", color: "warning" },
+  DISMISSED: { label: "Dismissed", color: "default" },
+};
 
 interface ReportDetailDialogProps {
   open: boolean;
@@ -28,13 +40,14 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
   report,
   onResolve,
   onDismiss,
+  onViewContent, // Added onViewContent to props destructuring
 }) => {
   if (!report) {
     return null;
   }
 
   const isActionable =
-    report.status !== 'RESOLVED' && report.status !== 'DISMISSED';
+    report.status !== "RESOLVED" && report.status !== "DISMISSED";
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -42,12 +55,12 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
         sx={{
           m: 0,
           p: 2,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
-        Report details
+        Report Details
         <IconButton
           aria-label="close"
           onClick={onClose}
@@ -57,69 +70,81 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
         </IconButton>
       </DialogTitle>
       <DialogContent dividers>
-        <Box sx={{ mb: 1 }}>
+        {/* Reporter */}
+        <Box sx={{ mb: 1.5 }}>
           <Typography
             variant="subtitle2"
             gutterBottom
-            sx={{ fontWeight: 'bold' }}
+            sx={{ fontWeight: "bold" }}
           >
             Reporter:
           </Typography>
           <Typography variant="body2">{report.reporter.username}</Typography>
         </Box>
-        <Box sx={{ mb: 1 }}>
+        {/* Report Type */}
+        <Box sx={{ mb: 1.5 }}>
           <Typography
             variant="subtitle2"
             gutterBottom
-            sx={{ fontWeight: 'bold' }}
+            sx={{ fontWeight: "bold" }}
           >
             Report Type:
           </Typography>
           <Typography variant="body2">{report.target_type}</Typography>
         </Box>
-        <Box sx={{ mb: 1 }}>
+        {/* Reason */}
+        <Box sx={{ mb: 1.5 }}>
           <Typography
             variant="subtitle2"
             gutterBottom
-            sx={{ fontWeight: 'bold' }}
+            sx={{ fontWeight: "bold" }}
           >
             Reason:
           </Typography>
-          <Typography variant="body2">{report.reason}</Typography>
+          <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+            {report.reason}
+          </Typography>
         </Box>
-        <Box sx={{ mb: 1 }}>
+        {/* Target URL */}
+        <Box sx={{ mb: 1.5 }}>
           <Typography
             variant="subtitle2"
             gutterBottom
-            sx={{ fontWeight: 'bold' }}
+            sx={{ fontWeight: "bold" }}
           >
             Target URL:
           </Typography>
           <Typography variant="body2">
             <Link
-              href={report.target_url}
-              target="_blank"
-              rel="noopener noreferrer"
+              component="button"
+              variant="body2"
+              onClick={() => onViewContent(report)}
             >
-              {report.target_url}
+              View Reported Content
             </Link>
           </Typography>
         </Box>
-        <Box sx={{ mb: 1 }}>
+        {/* Status */}
+        <Box sx={{ mb: 1.5 }}>
           <Typography
             variant="subtitle2"
             gutterBottom
-            sx={{ fontWeight: 'bold' }}
+            sx={{ fontWeight: "bold" }}
           >
             Status:
           </Typography>
-          <Typography variant="body2">{report.status}</Typography>
+          <Chip
+            label={statusDisplayInfo[report.status]?.label || report.status}
+            color={statusDisplayInfo[report.status]?.color || "default"}
+            size="small"
+          />
         </Box>
-        <Box sx={{ mb: 1 }}>
+        {/* Reported At */}
+        <Box sx={{ mb: 1.5 }}>
           <Typography
             variant="subtitle2"
             gutterBottom
-            sx={{ fontWeight: 'bold' }}
+            sx={{ fontWeight: "bold" }}
           >
             Reported At:
           </Typography>
@@ -127,30 +152,70 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
             {new Date(report.created_at).toLocaleString()}
           </Typography>
         </Box>
-        {report.resolution_comment && (
-          <Box sx={{ mb: 1 }}>
+
+        {/* Resolution / Dismissal Info - Conditionally render this section */}
+        {(report.status === "RESOLVED" || report.status === "DISMISSED") && (
+          <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid rgba(0,0,0,0.12)" }}>
             <Typography
-              variant="subtitle2"
+              variant="h6"
               gutterBottom
-              sx={{ fontWeight: 'bold' }}
+              sx={{ fontSize: "1.1rem", fontWeight: "medium" }}
             >
-              Resolution Comment:
+              Outcome Details
             </Typography>
-            <Typography variant="body2">{report.resolution_comment}</Typography>
-          </Box>
-        )}
-        {report.resolved_at && (
-          <Box sx={{ mb: 1 }}>
-            <Typography
-              variant="subtitle2"
-              gutterBottom
-              sx={{ fontWeight: 'bold' }}
-            >
-              Resolved At:
-            </Typography>
-            <Typography variant="body2">
-              {new Date(report.resolved_at).toLocaleString()}
-            </Typography>
+            {report.status === "RESOLVED" && report.moderator && (
+              <Box sx={{ mb: 1 }}>
+                <Typography
+                  variant="subtitle2"
+                  gutterBottom
+                  sx={{ fontWeight: "bold" }}
+                >
+                  Resolved By:
+                </Typography>
+                {/* Now access username from the moderator object */}
+                <Typography variant="body2">
+                  {report.moderator.username}
+                </Typography>
+              </Box>
+            )}
+            {report.status === "RESOLVED" && report.resolved_at && (
+              <Box sx={{ mb: 1 }}>
+                <Typography
+                  variant="subtitle2"
+                  gutterBottom
+                  sx={{ fontWeight: "bold" }}
+                >
+                  Resolved At:
+                </Typography>
+                <Typography variant="body2">
+                  {new Date(report.resolved_at).toLocaleString()}
+                </Typography>
+              </Box>
+            )}
+            {/* Assuming resolution_comment is used for both resolve and dismiss comments */}
+            {report.resolution_comment && (
+              <Box sx={{ mb: 1 }}>
+                <Typography
+                  variant="subtitle2"
+                  gutterBottom
+                  sx={{ fontWeight: "bold" }}
+                >
+                  {report.status === "RESOLVED"
+                    ? "Resolution Comment:"
+                    : "Admin Comment:"}
+                </Typography>
+                <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                  {report.resolution_comment}
+                </Typography>
+              </Box>
+            )}
+            {/* Add specific dismissal info if available (e.g., dismissed_at, dismissed_by) */}
+            {report.status === "DISMISSED" &&
+              !report.resolution_comment && ( // If dismissed without a comment
+                <Typography variant="body2" sx={{ fontStyle: "italic" }}>
+                  This report was dismissed.
+                </Typography>
+              )}
           </Box>
         )}
       </DialogContent>

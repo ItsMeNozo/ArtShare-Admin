@@ -28,7 +28,6 @@ export const router = createBrowserRouter([
       { path: "posts", element: <PostManagementPage /> },
       { path: "users", element: <UserManagementPage /> },
       { path: "categories", element: <CategoryManagementPage /> },
-      { path: "users", element: <UserManagementPage /> },
       { path: "reports", element: <ReportManagementPage /> },
     ],
   },
