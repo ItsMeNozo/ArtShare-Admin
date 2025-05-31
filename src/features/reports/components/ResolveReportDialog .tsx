@@ -1,5 +1,5 @@
 // src/components/ResolveReportDialog.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -9,9 +9,25 @@ import {
   Button,
   Box,
   Typography,
-} from '@mui/material';
+} from "@mui/material";
+import { Report } from "../reportAPI";
+
+const toDatetimeLocal = (dt: Date) => {
+  return (
+    dt.getFullYear() +
+    "-" +
+    String(dt.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(dt.getDate()).padStart(2, "0") +
+    "T" +
+    String(dt.getHours()).padStart(2, "0") +
+    ":" +
+    String(dt.getMinutes()).padStart(2, "0")
+  );
+};
 
 interface ResolveReportDialogProps {
+  report: Report | null;
   open: boolean;
   initialDate?: Date;
   isSubmitting?: boolean;
@@ -24,6 +40,7 @@ interface ResolveReportDialogProps {
 }
 
 const ResolveReportDialog: React.FC<ResolveReportDialogProps> = ({
+  report,
   open,
   initialDate,
   isSubmitting = false,
@@ -31,18 +48,15 @@ const ResolveReportDialog: React.FC<ResolveReportDialogProps> = ({
   onCancel,
   onConfirm,
 }) => {
-  // hold the ISO string for datetime-local (YYYY-MM-DDThh:mm)
-  const [dateTime, setDateTime] = useState<string>('');
-  const [comment, setComment] = useState<string>('');
+  const [dateTime, setDateTime] = useState<string>("");
+  const [comment, setComment] = useState<string>("");
 
   // when opened (or initialDate changes), reset form
   useEffect(() => {
     if (open) {
       const now = initialDate ?? new Date();
-      // slice off seconds and milliseconds
-      const isoLocal = now.toISOString().slice(0, 16);
-      setDateTime(isoLocal);
-      setComment('');
+      setDateTime(toDatetimeLocal(now));
+      setComment("");
     }
   }, [open, initialDate]);
 
@@ -91,8 +105,14 @@ const ResolveReportDialog: React.FC<ResolveReportDialogProps> = ({
           color="primary"
           onClick={handleConfirm}
           disabled={isSubmitting || !dateTime}
+          style={{
+            visibility:
+              report?.status === "DISMISSED" || report?.status === "RESOLVED"
+                ? "hidden"
+                : undefined,
+          }}
         >
-          {isSubmitting ? 'Saving…' : 'Confirm'}
+          {isSubmitting ? "Saving…" : "Confirm"}
         </Button>
       </DialogActions>
     </Dialog>

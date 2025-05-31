@@ -410,10 +410,7 @@ const AdminLayout: React.FC = () => {
               </IconButton>
             </Tooltip>
             <Tooltip title="Account Settings">
-              <IconButton
-                color="inherit"
-                onClick={() => navigate("//settings")}
-              >
+              <IconButton color="inherit" onClick={() => navigate("/settings")}>
                 <SettingsIcon />
               </IconButton>
             </Tooltip>
