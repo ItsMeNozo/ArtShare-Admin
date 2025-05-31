@@ -39,7 +39,7 @@ export function useResolveReport() {
       resolveReportDTO: ResolveReportDto;
     }) => resolveReport(reportId, resolveReportDTO),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reports', 'pending'] });
+      queryClient.invalidateQueries({ queryKey: ['reports', 'all'] });
     },
   });
 }
