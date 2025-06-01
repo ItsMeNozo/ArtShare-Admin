@@ -33,10 +33,13 @@ export interface ViewReportsDto {
 /**
  * A user summary included on each report.
  */
-export interface ReporterSummary {
+interface UserSnippet {
+  // Helper type for user info
   id: string;
   username: string;
 }
+
+export type ReportStatus = 'PENDING' | 'RESOLVED' | 'DISMISSED';
 
 /**
  * Representation of a report returned by the API.
@@ -45,17 +48,17 @@ export interface Report {
   id: number;
   reporter_id: string;
   moderator_id?: string;
+  moderator?: UserSnippet | null;
   target_id: number;
   target_type: ReportTargetType;
   reason: string;
-  status: string;
+  status: ReportStatus;
   user_id?: string;
   created_at: string;
   updated_at?: string;
   resolved_at?: string;
   resolution_comment?: string;
-  reporter: ReporterSummary;
-  moderator?: ReporterSummary;
+  reporter: UserSnippet;
   target_url?: string;
 }
 

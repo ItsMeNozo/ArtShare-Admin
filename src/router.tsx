@@ -6,21 +6,14 @@ import AdminLayout from './components/layout/AdminLayout';
 import CategoryManagementPage from './features/categories/CategoryManagementPage';
 import UserManagementPage from './features/users';
 import ReportManagementPage from './features/reports/ReportManagementPage';
-// TODO: Import other pages when ready
-// import Users from './pages/Users';
-// import Posts from './pages/Posts';
-// import Comments from './pages/Comments';
-// import Reports from './pages/Reports';
-// import Categories from './pages/Categories';
-// import Statistics from './pages/Statistics';
+import PostManagementPage from './features/posts';
+import AnalyticsPage from './features/analytics';
 
 export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
   },
-  { path: 'categories', element: <CategoryManagementPage /> },
-  { path: 'users', element: <UserManagementPage /> },
   {
     // This path will now be the parent for all admin routes
     path: '/', // Or you could use a more specific base like "/admin" if you prefer
@@ -31,12 +24,11 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Dashboard /> }, // For path: '/admin'
-      // { path: "users", element: <UserManagementPage /> },
-      // { path: "posts", element: <PostManagementPage /> },
-      // { path: "comments", element: <CommentManagementPage /> },
+      { path: 'categories', element: <CategoryManagementPage /> },
+      { path: 'posts', element: <PostManagementPage /> },
+      { path: 'users', element: <UserManagementPage /> },
+      { path: 'analytics', element: <AnalyticsPage /> },
       { path: 'reports', element: <ReportManagementPage /> },
-      // { path: "statistics", element: <StatisticsPage /> },
-      // { path: "settings", element: <SettingsPage />}, // For top-bar settings icon
     ],
   },
   {
