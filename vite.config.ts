@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
   // For production, this VITE_API_BASE_URL_PROD should point to your deployed backend.
   const backendApiUrl =
     mode === "production"
-      ? env.VITE_API_BASE_URL_PROD // e.g., https://api.yourdomain.com
+      ? env.VITE_BE_URL // e.g., https://api.yourdomain.com
       : "http://localhost:3000"; // Your local NestJS backend
 
   return {
