@@ -1,11 +1,14 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import ProtectedRoute from "./lib/ProtectedRoute";
 import LoginPage from "./features/auth/components/login";
-import Dashboard from "./pages/Dashboard";
+import DashBoard from "./pages/Dashboard";
 import AdminLayout from "./components/layout/AdminLayout";
 import CategoryManagementPage from "./features/categories/CategoryManagementPage";
 import UserManagementPage from "./features/users";
 import PostManagementPage from "./features/posts";
+import StatisticDashboardPage from "./features/statistics/StatisticsPage";
+import { ModelDetailsPage } from "./features/statistics/ModalDetailsPage";
+import Dashboard from "./pages/Dashboard";
 // TODO: Import other pages when ready
 // import Users from './pages/Users';
 // import Posts from './pages/Posts';
@@ -36,7 +39,8 @@ export const router = createBrowserRouter([
       // { path: "users", element: <UserManagementPage /> },
       // { path: "comments", element: <CommentManagementPage /> },
       // { path: "reports", element: <ReportManagementPage /> },
-      // { path: "statistics", element: <StatisticsPage /> },
+      { path: "statistics", element: <StatisticDashboardPage /> },
+      { path: "models", element: <ModelDetailsPage /> },
       // { path: "settings", element: <SettingsPage />}, // For top-bar settings icon
     ],
   },
