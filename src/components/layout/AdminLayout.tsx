@@ -171,7 +171,7 @@ const AdminLayout: React.FC = () => {
       badge: undefined,
     },
     {
-      text: "Statistics",
+      text: "AI Statistics",
       icon: <BarChartIcon />,
       path: "/statistics",
       section: "MANAGEMENT",
