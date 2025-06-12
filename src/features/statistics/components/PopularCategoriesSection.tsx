@@ -17,7 +17,7 @@ import {
   SelectChangeEvent,
   CircularProgress,
 } from "@mui/material";
-import { PieChartDataItem } from "../analytics.types";
+import { PieChartDataItem } from "../statistics.types";
 import { COLORS } from "../constants";
 import { PopularCategorySortBy } from "../../../types/analytics";
 

@@ -15,7 +15,7 @@ import {
   AnalyticsData,
   CombinedTimePoint,
   PieChartDataItem,
-} from "./analytics.types";
+} from "./statistics.types";
 import { COLORS, COLORS_POSTS } from "./constants";
 
 import CustomPieChart from "./components/CustomPieChart";
@@ -34,7 +34,7 @@ import ContentFunnelChart from "./components/ContentFunnelChart";
 import FollowerEngagementChart from "./components/FollowerEngagementChart";
 import PostsByCategoryChart from "./components/PostsByCategoryChart";
 
-const AdminAnalyticsPage: React.FC = () => {
+const StatisticsPage: React.FC = () => {
   const theme = useTheme();
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({});
   const [popularCategoriesData, setPopularCategoriesData] = useState<
@@ -407,4 +407,4 @@ const AdminAnalyticsPage: React.FC = () => {
   );
 };
 
-export default AdminAnalyticsPage;
+export default StatisticsPage;

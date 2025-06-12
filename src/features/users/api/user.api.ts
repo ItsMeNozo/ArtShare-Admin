@@ -76,6 +76,7 @@ export const updateUser = async (
     bio: userData.bio,
     birthday: userData.birthday,
     roles: userData.roles,
+    status: userData.status,
   };
   try {
     const response = await api.patch<User>(`/admin/users/${userId}`, payload);

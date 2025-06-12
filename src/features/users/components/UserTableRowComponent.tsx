@@ -14,7 +14,10 @@ import {
 import { MoreVert as MoreVertIcon } from "@mui/icons-material";
 import { User } from "../../../types/user";
 import { HeadCell } from "../types";
-import { getPlanTierStyling } from "../utils/userTable.utils";
+import {
+  getPlanTierStyling,
+  getStatusChipProps,
+} from "../utils/userTable.utils";
 
 interface DisplayUser extends User {
   currentPlan?: string;
@@ -165,15 +168,13 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
               currentUser.roles.map((role) => (
                 <Chip
                   key={`${currentUser.id}_${role}`}
-                  label={typeof role === "string" ? role : (role as any).name}
+                  label={role.toLowerCase()}
                   size="small"
-                  color={
-                    (typeof role === "string" ? role : (role as any).name) ===
-                    "ADMIN"
-                      ? "secondary"
-                      : "default"
-                  }
+                  color={role === "ADMIN" ? "secondary" : "default"}
                   variant="outlined"
+                  sx={{
+                    textTransform: "capitalize",
+                  }}
                 />
               ))
             ) : (
@@ -183,6 +184,20 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
             )}
           </Box>
         );
+      case "status": {
+        const { color, label } = getStatusChipProps(currentUser.status);
+        return (
+          <Chip
+            label={label}
+            size="small"
+            color={color}
+            variant="outlined"
+            sx={{
+              textTransform: "capitalize",
+            }}
+          />
+        );
+      }
       case "currentPlan": {
         const { style: planChipStyle, variant: planChipVariant } =
           getPlanTierStyling(currentUser, theme);
