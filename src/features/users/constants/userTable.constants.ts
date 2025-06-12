@@ -50,6 +50,14 @@ export const defaultHeadCells: ReadonlyArray<
     align: "center",
   },
   {
+    id: "status",
+    label: "Status",
+    numeric: false,
+    sortable: false,
+    minWidth: 120,
+    align: "center",
+  },
+  {
     id: "currentPlan",
     label: "Current Plan",
     numeric: false,

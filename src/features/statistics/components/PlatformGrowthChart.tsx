@@ -19,7 +19,7 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import { format, parseISO } from "date-fns";
-import { CombinedTimePoint } from "../analytics.types";
+import { CombinedTimePoint } from "../statistics.types";
 
 interface PlatformGrowthChartProps {
   data: CombinedTimePoint[];

@@ -27,6 +27,7 @@ export interface User {
   stripeCustomerId: string | null;
   roles: UserRoleType[];
   userAccess: UserAccess | null;
+  status: UserStatus;
 }
 
 export interface UserFormData {
@@ -39,4 +40,5 @@ export interface UserFormData {
   bio?: string | null;
   birthday?: string | null;
   roles: UserRoleType[];
+  status: UserStatus;
 }

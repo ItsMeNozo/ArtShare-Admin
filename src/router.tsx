@@ -7,8 +7,8 @@ import CategoryManagementPage from "./features/categories/CategoryManagementPage
 import UserManagementPage from "./features/users";
 import ReportManagementPage from "./features/reports/ReportManagementPage";
 import PostManagementPage from "./features/posts";
-import AnalyticsPage from "./features/analytics";
-import StatisticDashboardPage from "./features/analytics/AIStatistics";
+import StatisticsPage from "./features/statistics";
+import StatisticDashboardPage from "./features/statistics/AIStatistics";
 
 export const router = createBrowserRouter([
   {
@@ -29,9 +29,9 @@ export const router = createBrowserRouter([
       { path: "categories", element: <CategoryManagementPage /> },
       { path: "posts", element: <PostManagementPage /> },
       { path: "users", element: <UserManagementPage /> },
-      { path: "analytics", element: <AnalyticsPage /> },
+      { path: "statistics", element: <StatisticsPage /> },
       { path: "reports", element: <ReportManagementPage /> },
-      { path: "statistics", element: <StatisticDashboardPage /> },
+      { path: "ai", element: <StatisticDashboardPage /> },
     ],
   },
   {

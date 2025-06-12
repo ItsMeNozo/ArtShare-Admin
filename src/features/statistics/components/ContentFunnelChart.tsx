@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import ChartWrapper from "./ChartWrapper";
-import { BarChartDataItem } from "../analytics.types";
+import { BarChartDataItem } from "../statistics.types";
 
 interface ContentFunnelChartProps {
   data: BarChartDataItem[];
