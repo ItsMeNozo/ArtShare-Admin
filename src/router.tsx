@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import ProtectedRoute from "./lib/ProtectedRoute";
 import LoginPage from "./features/auth/components/login";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./features/analytics/Dashboard";
 import AdminLayout from "./components/layout/AdminLayout";
 import CategoryManagementPage from "./features/categories/CategoryManagementPage";
 import UserManagementPage from "./features/users";
