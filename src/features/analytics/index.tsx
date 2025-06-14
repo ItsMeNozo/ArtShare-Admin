@@ -377,6 +377,7 @@ const AdminAnalyticsPage: React.FC = () => {
               <Grid size={{ xs: 12, md: 6, lg: 4 }}>
                 <ContentFunnelChart data={contentFunnelChartData} />
               </Grid>
+
               <Grid size={{ xs: 12, md: 6, lg: 5 }}>
                 <AiEngagementChart data={aiEngagementChartData} />
               </Grid>
