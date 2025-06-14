@@ -511,7 +511,8 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                 size={{ xs: 12, md: 4 }}
                 sx={{
                   p: 3,
-                  bgcolor: "grey.100",
+                  bgcolor: (theme) =>
+                    theme.palette.mode === "dark" ? "grey.800" : "grey.100",
                   borderRight: { md: "1px solid" },
                   borderColor: "divider",
                   borderBottom: { xs: "1px solid", md: "none" },
@@ -552,7 +553,12 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                           bottom: 5,
                           right: 5,
                           bgcolor: "background.paper",
-                          "&:hover": { bgcolor: "grey.200" },
+                          "&:hover": {
+                            bgcolor: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? "grey.700"
+                                : "grey.200",
+                          },
                         }}
                       >
                         <CameraAltIcon fontSize="small" />

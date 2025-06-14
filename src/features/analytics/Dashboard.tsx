@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, ReactNode } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Box,
   Container,
@@ -29,8 +29,6 @@ import {
   AspectRatio as AspectRatioIcon,
   Palette as PaletteIcon,
   ThumbUp as ThumbUpIcon,
-  Group as GroupIcon,
-  PostAdd as PostAddIcon,
 } from "@mui/icons-material";
 import {
   ResponsiveContainer,
@@ -329,13 +327,38 @@ export default function StatisticDashboardPage() {
   const topPostsFiltered = useMemo(() => {
     if (!processedStats.topPosts) return [];
     const data = processedStats.topPosts;
-    if (statsFilter === "all")
-      return data.sort((a, b) => b.like_count - a.like_count).slice(0, 5);
+    console.log(
+      "Raw top posts data:",
+      data.map((p) => ({ id: p.id, title: p.title, like_count: p.like_count })),
+    );
+    if (statsFilter === "all") {
+      const filtered = data
+        .sort((a, b) => b.like_count - a.like_count)
+        .slice(0, 5);
+      console.log(
+        "Filtered posts (all time):",
+        filtered.map((p) => ({
+          id: p.id,
+          title: p.title,
+          like_count: p.like_count,
+        })),
+      );
+      return filtered;
+    }
     const sevenDaysAgo = subDays(new Date(), 7);
-    return data
+    const filtered = data
       .filter((p) => isAfter(p.originalDate, sevenDaysAgo))
       .sort((a, b) => b.like_count - a.like_count)
       .slice(0, 5);
+    console.log(
+      "Filtered posts (7 days):",
+      filtered.map((p) => ({
+        id: p.id,
+        title: p.title,
+        like_count: p.like_count,
+      })),
+    );
+    return filtered;
   }, [processedStats.topPosts, statsFilter]);
 
   // New memoized data for new charts
@@ -510,57 +533,121 @@ export default function StatisticDashboardPage() {
                       }
                     />
                     <CardContent>
-                      <ImageList cols={5} gap={16}>
-                        {topPostsFiltered.map((post) => (
-                          <ImageListItem
-                            key={post.id}
-                            sx={{ borderRadius: 2, overflow: "hidden" }}
-                          >
-                            <img
-                              src={post.thumbnail_url}
-                              alt={post.title}
-                              loading="lazy"
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                              }}
-                            />
-                            <ImageListItemBar
-                              title={
-                                <Tooltip title={post.title}>
-                                  <Typography
-                                    variant="caption"
-                                    noWrap
-                                    sx={{ color: "#fff" }}
-                                  >
-                                    {post.title}
-                                  </Typography>
-                                </Tooltip>
-                              }
-                              subtitle={
-                                <Typography
-                                  variant="caption"
-                                  sx={{ color: "#fff" }}
-                                >
-                                  {format(parseISO(post.created_at), "PP")}
-                                </Typography>
-                              }
-                              actionIcon={
-                                <Badge
-                                  badgeContent={post.like_count}
-                                  color="secondary"
-                                  sx={{ mr: 1 }}
-                                >
-                                  <ThumbUpIcon
-                                    sx={{ color: "#fff", fontSize: 18 }}
-                                  />
-                                </Badge>
-                              }
-                            />
-                          </ImageListItem>
-                        ))}
-                      </ImageList>
+                      {topPostsFiltered.length > 0 ? (
+                        <ImageList
+                          cols={6}
+                          gap={12}
+                          sx={{
+                            height: 200,
+                            "& .MuiImageListItem-root": {
+                              position: "relative",
+                            },
+                            "& .MuiImageListItemBar-root": {
+                              position: "absolute",
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                            },
+                          }}
+                        >
+                          {topPostsFiltered.map((post) => {
+                            console.log(
+                              `Rendering post ${post.id} with like_count: ${post.like_count}`,
+                            );
+                            return (
+                              <ImageListItem
+                                key={post.id}
+                                sx={{
+                                  borderRadius: 2,
+                                  overflow: "hidden",
+                                  position: "relative",
+                                  "& .MuiImageListItemBar-root": {
+                                    background:
+                                      "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%)",
+                                    "& .MuiImageListItemBar-actionIcon": {
+                                      position: "absolute",
+                                      top: 8,
+                                      right: 8,
+                                    },
+                                  },
+                                }}
+                              >
+                                <img
+                                  src={post.thumbnail_url}
+                                  alt={post.title}
+                                  loading="lazy"
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                                <ImageListItemBar
+                                  title={
+                                    <Tooltip title={post.title}>
+                                      <Typography
+                                        variant="caption"
+                                        noWrap
+                                        sx={{ color: "#fff" }}
+                                      >
+                                        {post.title}
+                                      </Typography>
+                                    </Tooltip>
+                                  }
+                                  subtitle={
+                                    <Typography
+                                      variant="caption"
+                                      sx={{ color: "#fff" }}
+                                    >
+                                      {format(parseISO(post.created_at), "PP")}
+                                    </Typography>
+                                  }
+                                  actionIcon={
+                                    <Box sx={{ position: "relative" }}>
+                                      <Badge
+                                        badgeContent={post.like_count}
+                                        showZero
+                                        sx={{
+                                          mr: 1,
+                                          "& .MuiBadge-badge": {
+                                            fontSize: "0.8rem",
+                                            minWidth: "24px",
+                                            height: "24px",
+                                            backgroundColor: "#ff1744",
+                                            color: "#fff",
+                                            fontWeight: "bold",
+                                            border: "2px solid #fff",
+                                            boxShadow:
+                                              "0 2px 8px rgba(0,0,0,0.3)",
+                                            zIndex: 10,
+                                            transform:
+                                              "scale(1) translate(50%, -50%)",
+                                          },
+                                        }}
+                                      >
+                                        <ThumbUpIcon
+                                          sx={{
+                                            color: "#fff",
+                                            fontSize: 24,
+                                            filter:
+                                              "drop-shadow(2px 2px 4px rgba(0,0,0,0.8))",
+                                          }}
+                                        />
+                                      </Badge>
+                                    </Box>
+                                  }
+                                />
+                              </ImageListItem>
+                            );
+                          })}
+                        </ImageList>
+                      ) : (
+                        <Box sx={{ textAlign: "center", py: 4 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            No posts found for the selected time period.
+                          </Typography>
+                        </Box>
+                      )}
                     </CardContent>
                   </Card>
                 </Grid>
