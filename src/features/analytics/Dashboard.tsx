@@ -327,22 +327,12 @@ export default function StatisticDashboardPage() {
   const topPostsFiltered = useMemo(() => {
     if (!processedStats.topPosts) return [];
     const data = processedStats.topPosts;
-    console.log(
-      "Raw top posts data:",
-      data.map((p) => ({ id: p.id, title: p.title, like_count: p.like_count })),
-    );
+
     if (statsFilter === "all") {
       const filtered = data
         .sort((a, b) => b.like_count - a.like_count)
         .slice(0, 5);
-      console.log(
-        "Filtered posts (all time):",
-        filtered.map((p) => ({
-          id: p.id,
-          title: p.title,
-          like_count: p.like_count,
-        })),
-      );
+
       return filtered;
     }
     const sevenDaysAgo = subDays(new Date(), 7);
@@ -350,14 +340,7 @@ export default function StatisticDashboardPage() {
       .filter((p) => isAfter(p.originalDate, sevenDaysAgo))
       .sort((a, b) => b.like_count - a.like_count)
       .slice(0, 5);
-    console.log(
-      "Filtered posts (7 days):",
-      filtered.map((p) => ({
-        id: p.id,
-        title: p.title,
-        like_count: p.like_count,
-      })),
-    );
+
     return filtered;
   }, [processedStats.topPosts, statsFilter]);
 
@@ -551,9 +534,6 @@ export default function StatisticDashboardPage() {
                           }}
                         >
                           {topPostsFiltered.map((post) => {
-                            console.log(
-                              `Rendering post ${post.id} with like_count: ${post.like_count}`,
-                            );
                             return (
                               <ImageListItem
                                 key={post.id}
