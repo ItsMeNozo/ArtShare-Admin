@@ -9,6 +9,7 @@ import ReportManagementPage from "./features/reports/ReportManagementPage";
 import PostManagementPage from "./features/posts";
 import AnalyticsPage from "./features/analytics";
 import StatisticDashboardPage from "./features/analytics/AIStatistics";
+import ProfilePage from "./features/profile/ProfilePage";
 
 export const router = createBrowserRouter([
   {
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
       { path: "analytics", element: <AnalyticsPage /> },
       { path: "reports", element: <ReportManagementPage /> },
       { path: "statistics", element: <StatisticDashboardPage /> },
+      { path: "profile", element: <ProfilePage /> },
     ],
   },
   {

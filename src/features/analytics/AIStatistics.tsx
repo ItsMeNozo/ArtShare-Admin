@@ -310,63 +310,146 @@ export default function StatisticDashboardPage() {
                 <CardHeader
                   title={
                     <Typography variant="subtitle1">
-                      Top 5 AI Posts (
-                      {filter === "last7" ? "7 Days" : "All‑time"})
+                      Top 5 AI Posts (
+                      {filter === "last7" ? "7 Days" : "All‑time"})
                     </Typography>
                   }
                 />
                 <CardContent>
-                  <ImageList cols={5} gap={16} sx={{ m: 0 }}>
-                    {topPostsFiltered.map((post) => (
-                      <ImageListItem
-                        key={post.id}
-                        sx={{ borderRadius: 2, overflow: "hidden" }}
-                      >
-                        <img
-                          src={post.thumbnail_url}
-                          alt={post.title}
-                          loading="lazy"
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
+                  {topPostsFiltered.length > 0 ? (
+                    <ImageList
+                      cols={3}
+                      gap={20}
+                      sx={{
+                        m: 0,
+                        height: 350, // Increased height
+                        "& .MuiImageListItem-root": {
+                          position: "relative",
+                          borderRadius: 2,
+                          overflow: "hidden",
+                        },
+                        "& .MuiImageListItemBar-root": {
+                          position: "absolute",
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          background:
+                            "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 50%, rgba(0,0,0,0.3) 80%, rgba(0,0,0,0) 100%)",
+                          paddingRight: "65px !important", // More space for like button
+                          paddingLeft: "12px !important",
+                          paddingTop: "12px !important",
+                          paddingBottom: "12px !important",
+                          minHeight: "80px", // More height for text
+                          "& .MuiImageListItemBar-actionIcon": {
+                            position: "absolute",
+                            top: 8,
+                            right: 12,
+                          },
+                          "& .MuiImageListItemBar-titleWrap": {
+                            paddingRight: "65px !important",
+                            paddingLeft: "0 !important",
+                            paddingTop: "4px !important",
+                          },
+                        },
+                      }}
+                    >
+                      {topPostsFiltered.map((post) => (
+                        <ImageListItem
+                          key={post.id}
+                          sx={{
+                            position: "relative",
                           }}
-                        />
-                        <ImageListItemBar
-                          title={
-                            <Tooltip title={post.title}>
+                        >
+                          <img
+                            src={post.thumbnail_url}
+                            alt={post.title}
+                            loading="lazy"
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
+                          <ImageListItemBar
+                            title={
+                              <Tooltip title={post.title}>
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color: "#fff",
+                                    fontSize: "0.8rem", // Slightly larger text
+                                    lineHeight: 1.4,
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 3, // Allow up to 3 lines
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    maxHeight: "3.6em", // Space for 3 lines
+                                    wordBreak: "break-word",
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {post.title}
+                                </Typography>
+                              </Tooltip>
+                            }
+                            subtitle={
                               <Typography
                                 variant="caption"
-                                noWrap
-                                sx={{ color: "#fff" }}
+                                sx={{
+                                  color: "#fff",
+                                  fontSize: "0.7rem",
+                                  opacity: 0.9,
+                                  marginTop: "2px",
+                                }}
                               >
-                                {post.title}
+                                {format(parseISO(post.created_at), "MMM d")}
                               </Typography>
-                            </Tooltip>
-                          }
-                          subtitle={
-                            <Typography
-                              variant="caption"
-                              sx={{ color: "#fff" }}
-                            >
-                              {format(parseISO(post.created_at), "PP")}
-                            </Typography>
-                          }
-                          actionIcon={
-                            <Badge
-                              badgeContent={post.like_count}
-                              color="secondary"
-                              sx={{ mr: 1 }}
-                            >
-                              <ThumbUpIcon
-                                sx={{ color: "#fff", fontSize: 18 }}
-                              />
-                            </Badge>
-                          }
-                        />
-                      </ImageListItem>
-                    ))}
-                  </ImageList>
+                            }
+                            actionIcon={
+                              <Box sx={{ position: "relative" }}>
+                                <Badge
+                                  badgeContent={post.like_count}
+                                  showZero
+                                  sx={{
+                                    mr: 0.5,
+                                    "& .MuiBadge-badge": {
+                                      fontSize: "0.7rem", // Smaller badge text
+                                      minWidth: "20px",
+                                      height: "20px",
+                                      backgroundColor: "#ff1744",
+                                      color: "#fff",
+                                      fontWeight: "bold",
+                                      border: "1.5px solid #fff",
+                                      boxShadow: "0 1px 6px rgba(0,0,0,0.4)",
+                                      zIndex: 10,
+                                      transform:
+                                        "scale(1) translate(50%, -50%)",
+                                    },
+                                  }}
+                                >
+                                  <ThumbUpIcon
+                                    sx={{
+                                      color: "#fff",
+                                      fontSize: 18, // Smaller icon
+                                      filter:
+                                        "drop-shadow(1px 1px 3px rgba(0,0,0,0.8))",
+                                    }}
+                                  />
+                                </Badge>
+                              </Box>
+                            }
+                          />
+                        </ImageListItem>
+                      ))}
+                    </ImageList>
+                  ) : (
+                    <Box sx={{ textAlign: "center", py: 4 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        No posts found for the selected time period.
+                      </Typography>
+                    </Box>
+                  )}
                 </CardContent>
               </Card>
 
