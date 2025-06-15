@@ -8,7 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Paper, Typography, Box } from "@mui/material";
-import { PieChartDataItem } from "../analytics.types";
+import { PieChartDataItem } from "../statistics.types";
 
 interface CustomPieChartProps {
   data: PieChartDataItem[];

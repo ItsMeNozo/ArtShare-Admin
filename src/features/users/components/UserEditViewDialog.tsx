@@ -36,6 +36,7 @@ import {
   Description as DescriptionIcon,
   SupervisedUserCircle as SupervisedUserCircleIcon,
   Cancel as CancelIcon,
+  PowerSettingsNew as StatusIcon,
 } from "@mui/icons-material";
 import { User, UserFormData } from "../../../types/user";
 import { PaidAccessLevel } from "../../../constants/plan";
@@ -44,6 +45,7 @@ import { USER_ROLES, UserRoleType } from "../../../constants/roles";
 import { useUserOperations } from "../hooks/useUserOperations";
 import { signUp } from "../../auth/api/auth-api";
 import api from "../../../api/baseApi";
+import { UserStatus } from "../../../constants/user";
 
 interface UserEditViewDialogProps {
   open: boolean;
@@ -61,6 +63,7 @@ interface UserEditViewDialogProps {
 }
 
 const AVAILABLE_ROLES_FOR_SELECT: UserRoleType[] = Object.values(USER_ROLES);
+const AVAILABLE_STATUSES: UserStatus[] = Object.values(UserStatus);
 
 const SnackbarAlert = React.forwardRef<HTMLDivElement, AlertProps>(
   function SnackbarAlert(props, ref) {
@@ -82,6 +85,7 @@ const getInitialDialogFormData = (
       birthday: undefined,
       roles: ["USER"],
       password: "",
+      status: UserStatus.ACTIVE,
     };
   }
   return {
@@ -95,6 +99,7 @@ const getInitialDialogFormData = (
       : undefined,
     roles: user.roles.map((ur) => ur),
     password: "",
+    status: user.status || UserStatus.ACTIVE,
   };
 };
 
@@ -182,6 +187,16 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
       setFormData(getInitialDialogFormData(userForDisplay, false));
     }
     setIsEditing(!isEditing);
+  };
+
+  const handleStatusChange = (event: SelectChangeEvent<UserStatus>) => {
+    const {
+      target: { value },
+    } = event;
+    setFormData((prev) => ({
+      ...prev,
+      status: value as UserStatus,
+    }));
   };
 
   const handleSave = async () => {
@@ -348,6 +363,23 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
     const value = (currentData[id] as string) || "";
 
     if (!isEditing || readOnlyOverride) {
+      const capitalizeFirstLetter = (str: string) => {
+        if (!str) return "";
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+      };
+
+      let displayValue: string;
+
+      if (id === "roles") {
+        displayValue = (currentData.roles as string[])
+          .map(capitalizeFirstLetter)
+          .join(", ");
+      } else if (id === "status") {
+        displayValue = capitalizeFirstLetter(currentData.status);
+      } else {
+        displayValue = value || "-";
+      }
+
       return (
         <Grid size={{ xs: 12 }} key={id + "_view"}>
           <Typography
@@ -366,9 +398,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
             component="div"
             className="break-words min-h-[24px]"
           >
-            {id === "roles"
-              ? (currentData.roles as string[]).join(", ")
-              : value || "-"}
+            {displayValue}
           </Typography>
         </Grid>
       );
@@ -508,7 +538,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
             <Grid container spacing={0}>
               {/* Left Panel */}
               <Grid
-                size={{ xs: 12, md: 4 }}
+                size={{ xs: 12, lg: 4 }}
                 sx={{
                   p: 3,
                   bgcolor: (theme) =>
@@ -706,7 +736,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                 )}
               </Grid>
               {/* Right Panel (Form) */}
-              <Grid size={{ xs: 12, md: 8 }} sx={{ p: 3, minHeight: "620px" }}>
+              <Grid size={{ xs: 12, md: 8 }} sx={{ p: 3, minHeight: "720px" }}>
                 {!isCreatingNewUser && (
                   <Typography
                     variant="h6"
@@ -786,15 +816,63 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                       </FormControl>
                     </Grid>
                   )}
-                  {!isEditing &&
-                    renderField(
-                      "Roles",
-                      "roles",
-                      "text",
-                      <SupervisedUserCircleIcon />,
-                      false,
-                      true,
-                    )}
+                  {isEditing && (
+                    <Grid size={{ xs: 12 }}>
+                      <Typography
+                        variant="caption"
+                        component="label"
+                        htmlFor="status-select-input"
+                        sx={{
+                          display: "block",
+                          color: "text.secondary",
+                          fontWeight: 500,
+                          mb: 0.5,
+                        }}
+                      >
+                        {"Status"}
+                      </Typography>
+                      <FormControl fullWidth>
+                        <Select
+                          name="status"
+                          value={formData.status}
+                          onChange={handleStatusChange}
+                          input={<OutlinedInput id="status-select-input" />}
+                          startAdornment={
+                            <StatusIcon
+                              color="action"
+                              sx={{ ml: 1, mr: 1, pointerEvents: "none" }}
+                            />
+                          }
+                        >
+                          {AVAILABLE_STATUSES.map((statusName) => (
+                            <MenuItem key={statusName} value={statusName}>
+                              <ListItemText primary={statusName} />
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  )}
+                  {!isEditing && (
+                    <>
+                      {renderField(
+                        "Roles",
+                        "roles",
+                        "text",
+                        <SupervisedUserCircleIcon />,
+                        false,
+                        true,
+                      )}
+                      {renderField(
+                        "Status",
+                        "status",
+                        "text",
+                        <StatusIcon />,
+                        false,
+                        true,
+                      )}
+                    </>
+                  )}
                 </Grid>
               </Grid>
             </Grid>

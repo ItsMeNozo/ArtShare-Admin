@@ -1,4 +1,4 @@
-import { Theme } from "@mui/material";
+import { ChipProps, Theme } from "@mui/material";
 
 import {
   CustomChipStyling,
@@ -12,6 +12,7 @@ import {
   PLAN_TIER_CUSTOM_COLORS,
 } from "../../../constants/plan";
 import { User } from "../../../types/user";
+import { UserStatus } from "../../../constants/user";
 
 export function getPlanDisplayName(
   planId: PaidAccessLevel | string | null | undefined,
@@ -190,3 +191,17 @@ export function stableSort<T>(
   });
   return stabilizedThis.map((el) => el[0]);
 }
+
+export const getStatusChipProps = (
+  status: UserStatus,
+): { color: ChipProps["color"]; label: string } => {
+  switch (status) {
+    case UserStatus.ACTIVE:
+      return { color: "success", label: "Active" };
+    case UserStatus.SUSPENDED:
+      return { color: "error", label: "Suspended" };
+    case UserStatus.INACTIVE:
+    default:
+      return { color: "default", label: "Inactive" };
+  }
+};
