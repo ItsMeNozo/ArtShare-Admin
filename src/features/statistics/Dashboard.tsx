@@ -20,6 +20,7 @@ import {
   ImageListItemBar,
   Badge,
   Alert,
+  CardActionArea,
 } from "@mui/material";
 import {
   AutoAwesome as AutoAwesomeIcon,
@@ -45,6 +46,7 @@ import {
 } from "recharts";
 import { format, subDays, isAfter, parseISO } from "date-fns";
 import { AxiosError } from "axios";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/baseApi";
 
 /* -------------------- 1. Theme & Constants -------------------- */
@@ -105,80 +107,124 @@ type CombinedTimePoint = { date: string; users?: number; posts?: number };
 
 /* -------------------- 3. Reusable Components -------------------- */
 
-// No changes to SummaryTile, TimeToggle, PieCard...
-// They are great as they are. Here are the new components:
-
+/**
+ * SummaryTile – now accepts an optional `to` prop. If provided, the card becomes clickable
+ * and navigates to the given route using react‑router‑dom's useNavigate.
+ */
 const SummaryTile = ({
   icon,
   label,
   value,
+  to,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number;
-}) => (
-  <Card sx={{ p: 3, textAlign: "center", height: "100%" }}>
-    <Avatar sx={{ mb: 1, bgcolor: "primary.main", mx: "auto" }}>{icon}</Avatar>
-    <Typography variant="h5" fontWeight={700}>
-      {value.toLocaleString()}
-    </Typography>
-    <Typography variant="caption" color="text.secondary">
-      {label}
-    </Typography>
-  </Card>
-);
+  to?: string;
+}) => {
+  const navigate = useNavigate();
+  const handleClick = () => {
+    if (to) navigate(to);
+  };
 
+  return (
+    <Card
+      onClick={handleClick}
+      sx={{
+        p: 3,
+        textAlign: "center",
+        height: "100%",
+        cursor: to ? "pointer" : "default",
+        "&:hover": to
+          ? {
+              boxShadow: 6,
+            }
+          : undefined,
+      }}
+    >
+      <Avatar sx={{ mb: 1, bgcolor: "primary.main", mx: "auto" }}>
+        {icon}
+      </Avatar>
+      <Typography variant="h5" fontWeight={700}>
+        {value.toLocaleString()}
+      </Typography>
+      <Typography variant="caption" color="text.secondary">
+        {label}
+      </Typography>
+    </Card>
+  );
+};
+
+/**
+ * PieCard – chart card that can optionally navigate to a route when clicked.
+ */
 const PieCard = ({
   title,
   data,
   colors = CHART_COLORS,
   colorOffset = 0,
+  to,
 }: {
   title: string;
   data: PieChartDataItem[];
   colors?: string[];
   colorOffset?: number;
-}) => (
-  <Card sx={{ height: "100%" }}>
-    <CardHeader
-      title={
-        <Typography variant="subtitle1" fontWeight={600}>
-          {title}
-        </Typography>
-      }
-    />
-    <CardContent>
-      <Box sx={{ height: 260 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <RechartsTooltip
-              formatter={(_, __, p) => [
-                `${p.payload.count} items`,
-                p.payload.name,
-              ]}
-            />
-            <Pie
-              innerRadius={60}
-              outerRadius={100}
-              data={data}
-              dataKey="count"
-              nameKey="name"
-              label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-              paddingAngle={data.length > 1 ? 3 : 0}
-            >
-              {data.map((e, i) => (
-                <Cell
-                  key={e.name}
-                  fill={colors[(i + colorOffset) % colors.length]}
-                />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
-      </Box>
-    </CardContent>
-  </Card>
-);
+  to?: string;
+}) => {
+  const navigate = useNavigate();
+  const handleClick = () => {
+    if (to) navigate(to);
+  };
+
+  return (
+    <Card
+      onClick={handleClick}
+      sx={{
+        height: "100%",
+        cursor: to ? "pointer" : "default",
+        "&:hover": to ? { boxShadow: 6 } : undefined,
+      }}
+    >
+      <CardHeader
+        title={
+          <Typography variant="subtitle1" fontWeight={600}>
+            {title}
+          </Typography>
+        }
+      />
+      <CardContent>
+        <Box sx={{ height: 260 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <RechartsTooltip
+                formatter={(_, __, p) => [
+                  `${p.payload.count} items`,
+                  p.payload.name,
+                ]}
+              />
+              <Pie
+                innerRadius={60}
+                outerRadius={100}
+                data={data}
+                dataKey="count"
+                nameKey="name"
+                label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                paddingAngle={data.length > 1 ? 3 : 0}
+              >
+                {data.map((e, i) => (
+                  <Cell
+                    key={e.name}
+                    fill={colors[(i + colorOffset) % colors.length]}
+                  />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+};
 
 const PlatformGrowthChart = ({
   data,
@@ -300,7 +346,7 @@ export default function StatisticDashboardPage() {
 
   // --- Data Processing (Memoization) ---
   const processedStats = useMemo(() => {
-    if (!statisticsData) return {};
+    if (!statisticsData) return {} as any;
     return {
       postsCount: statisticsData.posts_by_ai?.[0]?.count || 0,
       imagesCount: statisticsData.total_ai_images?.[0]?.count || 0,
@@ -321,7 +367,7 @@ export default function StatisticDashboardPage() {
         prompt: t,
         idx: i,
       })),
-    };
+    } as const;
   }, [statisticsData]);
 
   const topPostsFiltered = useMemo(() => {
@@ -330,15 +376,23 @@ export default function StatisticDashboardPage() {
 
     if (statsFilter === "all") {
       const filtered = data
-        .sort((a, b) => b.like_count - a.like_count)
+        .sort(
+          (a: { like_count: number }, b: { like_count: number }) =>
+            b.like_count - a.like_count,
+        )
         .slice(0, 5);
 
       return filtered;
     }
     const sevenDaysAgo = subDays(new Date(), 7);
     const filtered = data
-      .filter((p) => isAfter(p.originalDate, sevenDaysAgo))
-      .sort((a, b) => b.like_count - a.like_count)
+      .filter((p: { originalDate: string | number | Date }) =>
+        isAfter(p.originalDate, sevenDaysAgo),
+      )
+      .sort(
+        (a: { like_count: number }, b: { like_count: number }) =>
+          b.like_count - a.like_count,
+      )
       .slice(0, 5);
 
     return filtered;
@@ -383,7 +437,7 @@ export default function StatisticDashboardPage() {
 
   const overallPostChartData = useMemo(() => {
     if (!analyticsData.postStats)
-      return { publishedVsDraft: [], aiVsHuman: [] };
+      return { publishedVsDraft: [], aiVsHuman: [] } as any;
     return {
       publishedVsDraft: [
         { name: "Published", count: analyticsData.postStats.publishedPosts },
@@ -398,7 +452,7 @@ export default function StatisticDashboardPage() {
             analyticsData.postStats.aiCreatedPosts,
         },
       ].filter((item) => item.count > 0),
-    };
+    } as const;
   }, [analyticsData.postStats]);
 
   if (loading) {
@@ -459,6 +513,7 @@ export default function StatisticDashboardPage() {
                 icon={<AutoAwesomeIcon />}
                 label="AI Posts"
                 value={processedStats.postsCount ?? 0}
+                to="/posts"
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 4, md: 2 }}>
@@ -466,6 +521,7 @@ export default function StatisticDashboardPage() {
                 icon={<AddPhotoAlternateIcon />}
                 label="AI Images"
                 value={processedStats.imagesCount ?? 0}
+                to="/posts"
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 4, md: 2 }}>
@@ -473,6 +529,7 @@ export default function StatisticDashboardPage() {
                 icon={<TimelineIcon />}
                 label="Tokens Used"
                 value={processedStats.tokensCount ?? 0}
+                to="/ai"
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 4, md: 2 }}>
@@ -481,10 +538,11 @@ export default function StatisticDashboardPage() {
                 label="Total Likes"
                 value={
                   processedStats.topPosts?.reduce(
-                    (s, p) => s + p.like_count,
+                    (s: any, p: { like_count: any }) => s + p.like_count,
                     0,
                   ) || 0
                 }
+                to="/posts"
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 4, md: 2 }}>
@@ -492,6 +550,7 @@ export default function StatisticDashboardPage() {
                 icon={<PaletteIcon />}
                 label="Styles"
                 value={(processedStats.styles ?? []).length}
+                to="/categories"
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 4, md: 2 }}>
@@ -499,6 +558,7 @@ export default function StatisticDashboardPage() {
                 icon={<AspectRatioIcon />}
                 label="Ratios"
                 value={(processedStats.ratios ?? []).length}
+                to="/posts"
               />
             </Grid>
 
@@ -533,93 +593,161 @@ export default function StatisticDashboardPage() {
                             },
                           }}
                         >
-                          {topPostsFiltered.map((post) => {
-                            return (
-                              <ImageListItem
-                                key={post.id}
-                                sx={{
-                                  borderRadius: 2,
-                                  overflow: "hidden",
-                                  position: "relative",
-                                  "& .MuiImageListItemBar-root": {
-                                    background:
-                                      "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%)",
-                                    "& .MuiImageListItemBar-actionIcon": {
-                                      position: "absolute",
-                                      top: 8,
-                                      right: 8,
+                          {topPostsFiltered.map(
+                            (post: {
+                              id: React.Key | null | undefined;
+                              thumbnail_url: string | undefined;
+                              title:
+                                | string
+                                | number
+                                | bigint
+                                | boolean
+                                | React.ReactElement<
+                                    unknown,
+                                    string | React.JSXElementConstructor<any>
+                                  >
+                                | Iterable<React.ReactNode>
+                                | Promise<
+                                    | string
+                                    | number
+                                    | bigint
+                                    | boolean
+                                    | React.ReactPortal
+                                    | React.ReactElement<
+                                        unknown,
+                                        | string
+                                        | React.JSXElementConstructor<any>
+                                      >
+                                    | Iterable<React.ReactNode>
+                                    | null
+                                    | undefined
+                                  >
+                                | null
+                                | undefined;
+                              created_at: string;
+                              like_count:
+                                | string
+                                | number
+                                | bigint
+                                | boolean
+                                | React.ReactElement<
+                                    unknown,
+                                    string | React.JSXElementConstructor<any>
+                                  >
+                                | Iterable<React.ReactNode>
+                                | React.ReactPortal
+                                | Promise<
+                                    | string
+                                    | number
+                                    | bigint
+                                    | boolean
+                                    | React.ReactPortal
+                                    | React.ReactElement<
+                                        unknown,
+                                        | string
+                                        | React.JSXElementConstructor<any>
+                                      >
+                                    | Iterable<React.ReactNode>
+                                    | null
+                                    | undefined
+                                  >
+                                | null
+                                | undefined;
+                            }) => {
+                              return (
+                                <ImageListItem
+                                  key={post.id}
+                                  sx={{
+                                    borderRadius: 2,
+                                    overflow: "hidden",
+                                    position: "relative",
+                                    "& .MuiImageListItemBar-root": {
+                                      background:
+                                        "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%)",
+                                      "& .MuiImageListItemBar-actionIcon": {
+                                        position: "absolute",
+                                        top: 8,
+                                        right: 8,
+                                      },
                                     },
-                                  },
-                                }}
-                              >
-                                <img
-                                  src={post.thumbnail_url}
-                                  alt={post.title}
-                                  loading="lazy"
-                                  style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
                                   }}
-                                />
-                                <ImageListItemBar
-                                  title={
-                                    <Tooltip title={post.title}>
+                                >
+                                  <img
+                                    src={post.thumbnail_url}
+                                    alt={
+                                      typeof post.title === "string"
+                                        ? post.title
+                                        : (post.title?.toString?.() ?? "")
+                                    }
+                                    loading="lazy"
+                                    style={{
+                                      width: "100%",
+                                      height: "100%",
+                                      objectFit: "cover",
+                                    }}
+                                  />
+                                  <ImageListItemBar
+                                    title={
+                                      <Tooltip title={post.title}>
+                                        <Typography
+                                          variant="caption"
+                                          noWrap
+                                          sx={{ color: "#fff" }}
+                                        >
+                                          {post.title}
+                                        </Typography>
+                                      </Tooltip>
+                                    }
+                                    subtitle={
                                       <Typography
                                         variant="caption"
-                                        noWrap
                                         sx={{ color: "#fff" }}
                                       >
-                                        {post.title}
+                                        {format(
+                                          parseISO(post.created_at),
+                                          "PP",
+                                        )}
                                       </Typography>
-                                    </Tooltip>
-                                  }
-                                  subtitle={
-                                    <Typography
-                                      variant="caption"
-                                      sx={{ color: "#fff" }}
-                                    >
-                                      {format(parseISO(post.created_at), "PP")}
-                                    </Typography>
-                                  }
-                                  actionIcon={
-                                    <Box sx={{ position: "relative" }}>
-                                      <Badge
-                                        badgeContent={post.like_count}
-                                        showZero
-                                        sx={{
-                                          mr: 1,
-                                          "& .MuiBadge-badge": {
-                                            fontSize: "0.8rem",
-                                            minWidth: "24px",
-                                            height: "24px",
-                                            backgroundColor: "#ff1744",
-                                            color: "#fff",
-                                            fontWeight: "bold",
-                                            border: "2px solid #fff",
-                                            boxShadow:
-                                              "0 2px 8px rgba(0,0,0,0.3)",
-                                            zIndex: 10,
-                                            transform:
-                                              "scale(1) translate(50%, -50%)",
-                                          },
-                                        }}
-                                      >
-                                        <ThumbUpIcon
+                                    }
+                                    actionIcon={
+                                      <Box sx={{ position: "relative" }}>
+                                        <Badge
+                                          badgeContent={post.like_count}
+                                          showZero
                                           sx={{
-                                            color: "#fff",
-                                            fontSize: 24,
-                                            filter:
-                                              "drop-shadow(2px 2px 4px rgba(0,0,0,0.8))",
+                                            mr: 1,
+                                            "& .MuiBadge-badge": {
+                                              fontSize: "0.8rem",
+                                              minWidth: "24px",
+                                              height: "24px",
+                                              backgroundColor: "#ff1744",
+                                              color: "#fff",
+                                              fontWeight: "bold",
+                                              border: "2px solid #fff",
+                                              boxShadow:
+                                                "0 2px 8px rgba(0,0,0,0.3)",
+                                              zIndex: 10,
+                                              transform:
+                                                "scale(1) translate(50%, -50%)",
+                                            },
                                           }}
-                                        />
-                                      </Badge>
-                                    </Box>
-                                  }
-                                />
-                              </ImageListItem>
-                            );
-                          })}
+                                        >
+                                          <ThumbUpIcon
+                                            sx={{
+                                              color: "#fff",
+                                              fontSize: 24,
+                                              filter:
+                                                "drop-shadow(2px 2px 4px rgba(0,0,0,0.8))",
+                                            }}
+                                          />
+                                        </Badge>
+                                      </Box>
+                                    }
+                                  />
+                                </ImageListItem>
+                              );
+                            },
+                          )}
                         </ImageList>
                       ) : (
                         <Box sx={{ textAlign: "center", py: 4 }}>
@@ -641,11 +769,48 @@ export default function StatisticDashboardPage() {
                       }
                     />
                     <CardContent>
-                      {(processedStats.prompts ?? []).slice(0, 5).map((p) => (
-                        <Typography key={p.idx} variant="body2" gutterBottom>
-                          • {p.prompt}
-                        </Typography>
-                      ))}
+                      {(processedStats.prompts ?? [])
+                        .slice(0, 5)
+                        .map(
+                          (p: {
+                            idx: React.Key | null | undefined;
+                            prompt:
+                              | string
+                              | number
+                              | bigint
+                              | boolean
+                              | React.ReactElement<
+                                  unknown,
+                                  string | React.JSXElementConstructor<any>
+                                >
+                              | Iterable<React.ReactNode>
+                              | React.ReactPortal
+                              | Promise<
+                                  | string
+                                  | number
+                                  | bigint
+                                  | boolean
+                                  | React.ReactPortal
+                                  | React.ReactElement<
+                                      unknown,
+                                      string | React.JSXElementConstructor<any>
+                                    >
+                                  | Iterable<React.ReactNode>
+                                  | null
+                                  | undefined
+                                >
+                              | null
+                              | undefined;
+                          }) => (
+                            <Typography
+                              key={p.idx}
+                              variant="body2"
+                              gutterBottom
+                            >
+                              • {p.prompt}
+                            </Typography>
+                          ),
+                        )}
                     </CardContent>
                   </Card>
                 </Grid>
@@ -659,6 +824,7 @@ export default function StatisticDashboardPage() {
                   <PieCard
                     title="Usage by Style"
                     data={processedStats.styles ?? []}
+                    to="/categories"
                   />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
@@ -666,6 +832,7 @@ export default function StatisticDashboardPage() {
                     title="Usage by Aspect Ratio"
                     data={processedStats.ratios ?? []}
                     colorOffset={3}
+                    to="/posts"
                   />
                 </Grid>
               </Grid>
@@ -692,6 +859,7 @@ export default function StatisticDashboardPage() {
                   title="User Onboarding Status"
                   data={overallUserChartData}
                   colors={CHART_COLORS}
+                  to="/users"
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 4 }}>
@@ -699,6 +867,7 @@ export default function StatisticDashboardPage() {
                   title="Posts: Published vs. Drafts"
                   data={overallPostChartData.publishedVsDraft}
                   colors={COLORS_POSTS}
+                  to="/posts"
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 4 }}>
@@ -707,6 +876,7 @@ export default function StatisticDashboardPage() {
                   data={overallPostChartData.aiVsHuman}
                   colors={COLORS_POSTS}
                   colorOffset={2}
+                  to="/posts"
                 />
               </Grid>
             </Grid>
