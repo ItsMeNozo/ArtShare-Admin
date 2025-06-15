@@ -20,7 +20,6 @@ import {
   ImageListItemBar,
   Badge,
   Alert,
-  CardActionArea,
 } from "@mui/material";
 import {
   AutoAwesome as AutoAwesomeIcon,
