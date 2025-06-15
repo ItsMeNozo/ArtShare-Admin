@@ -19,6 +19,9 @@ import {
   AppBar as MuiAppBar,
   Drawer as MuiDrawer,
   Chip,
+  Menu,
+  MenuItem,
+  ListItemAvatar,
 } from "@mui/material";
 import app_logo from "/logo_admin.png";
 
@@ -36,11 +39,13 @@ import CategoryIcon from "@mui/icons-material/Category"; // For Category Managem
 import BarChartIcon from "@mui/icons-material/BarChart"; // For Statistics
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import NotificationsIcon from "@mui/icons-material/Notifications";
-import SettingsIcon from "@mui/icons-material/Settings";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 import { useCustomTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
+import { Person } from "@mui/icons-material";
 
 const drawerWidth = 260;
 
@@ -103,17 +108,19 @@ const StyledDrawer = styled(MuiDrawer, {
 }));
 // --- END Styled Components ---
 
-const adminName = "Jhon Taylor"; // Placeholder, use your actual admin name logic
 const notificationCount = 5; // Example
 
 const AdminLayout: React.FC = () => {
   const { mode: currentThemeMode, toggleColorMode } = useCustomTheme();
+  const { user, logout } = useAuth();
   const muiTheme = useMuiTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [open, setOpen] = React.useState(true);
   const [selectedItem, setSelectedItem] = React.useState("/");
+  const [userMenuAnchorEl, setUserMenuAnchorEl] =
+    React.useState<null | HTMLElement>(null);
 
   const handleDrawerOpen = () => setOpen(true);
   const handleDrawerClose = () => setOpen(false);
@@ -122,6 +129,29 @@ const AdminLayout: React.FC = () => {
     setSelectedItem(path);
     navigate(path);
   };
+
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setUserMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchorEl(null);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Even if logout fails, redirect to login for security
+      navigate("/login", { replace: true });
+    }
+    handleUserMenuClose();
+  };
+
+  // Get admin name from user context or fallback
+  const adminName = user?.username || user?.fullName || "Admin User";
 
   // --- UPDATED sidebarItemsConfig based on your Use Case Diagram ---
   const sidebarItemsConfig = [
@@ -409,19 +439,15 @@ const AdminLayout: React.FC = () => {
                 </Badge>
               </IconButton>
             </Tooltip>
-            <Tooltip title="Account Settings">
-              <IconButton color="inherit" onClick={() => navigate("/settings")}>
-                <SettingsIcon />
-              </IconButton>
-            </Tooltip>
 
             <Box
               sx={{
                 display: "flex", // Align items in a row
                 alignItems: "center", // Vertically center them
                 ml: 1, // Margin for the whole user block
-                // Potentially add cursor: 'pointer' if you want to make this whole area clickable for a user menu
+                cursor: "pointer", // Make it clickable
               }}
+              onClick={handleUserMenuOpen}
             >
               <Avatar
                 sx={{
@@ -449,6 +475,92 @@ const AdminLayout: React.FC = () => {
           </Box>
         </Toolbar>
       </StyledAppBar>
+
+      {/* User Menu */}
+      <Menu
+        anchorEl={userMenuAnchorEl}
+        open={Boolean(userMenuAnchorEl)}
+        onClose={handleUserMenuClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        PaperProps={{
+          elevation: 0,
+          sx: {
+            overflow: "visible",
+            filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+            mt: 1.5,
+            "& .MuiAvatar-root": {
+              width: 32,
+              height: 32,
+              ml: -0.5,
+              mr: 1,
+            },
+            "&:before": {
+              content: '""',
+              display: "block",
+              position: "absolute",
+              top: 0,
+              right: 14,
+              width: 10,
+              height: 10,
+              bgcolor: "background.paper",
+              transform: "translateY(-50%) rotate(45deg)",
+              zIndex: 0,
+            },
+          },
+        }}
+      >
+        <MenuItem onClick={handleUserMenuClose}>
+          <ListItemAvatar>
+            <Avatar sx={{ bgcolor: "secondary.main" }}>
+              {adminName.charAt(0).toUpperCase()}
+            </Avatar>
+          </ListItemAvatar>
+          <Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+              {adminName}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {user?.email || "admin@artshare.com"}
+            </Typography>
+          </Box>
+        </MenuItem>
+        <Divider />
+
+        <MenuItem
+          onClick={() => {
+            navigate("/profile");
+            handleUserMenuClose();
+          }}
+        >
+          <ListItemIcon>
+            <Person
+              fontSize="small"
+              sx={{
+                color:
+                  muiTheme.palette.mode === "dark"
+                    ? "text.primary"
+                    : "text.secondary",
+              }}
+            />
+          </ListItemIcon>
+          Profile
+        </MenuItem>
+        <Divider />
+
+        <MenuItem onClick={handleLogout} sx={{ color: "error.main" }}>
+          <ListItemIcon>
+            <LogoutIcon fontSize="small" sx={{ color: "error.main" }} />
+          </ListItemIcon>
+          Sign Out
+        </MenuItem>
+      </Menu>
 
       <StyledDrawer variant="permanent" open={open}>
         <DrawerHeaderStyled sx={{ justifyContent: "space-between", px: 2.5 }}>

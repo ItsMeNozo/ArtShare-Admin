@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import ProtectedRoute from "./lib/ProtectedRoute";
 import LoginPage from "./features/auth/components/login";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./features/statistics/Dashboard";
 import AdminLayout from "./components/layout/AdminLayout";
 import CategoryManagementPage from "./features/categories/CategoryManagementPage";
 import UserManagementPage from "./features/users";
@@ -9,6 +9,7 @@ import ReportManagementPage from "./features/reports/ReportManagementPage";
 import PostManagementPage from "./features/posts";
 import StatisticsPage from "./features/statistics";
 import StatisticDashboardPage from "./features/statistics/AIStatistics";
+import ProfilePage from "./features/profile/ProfilePage";
 
 export const router = createBrowserRouter([
   {
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
       { path: "statistics", element: <StatisticsPage /> },
       { path: "reports", element: <ReportManagementPage /> },
       { path: "ai", element: <StatisticDashboardPage /> },
+      { path: "profile", element: <ProfilePage /> },
     ],
   },
   {
