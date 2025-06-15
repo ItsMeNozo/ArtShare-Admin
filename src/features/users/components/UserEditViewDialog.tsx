@@ -21,8 +21,6 @@ import {
   SelectChangeEvent,
   ChipProps,
   Snackbar,
-  FormControlLabel,
-  Chip,
 } from "@mui/material";
 import MuiAlert, { AlertProps, AlertColor } from "@mui/material/Alert";
 import {
@@ -48,7 +46,6 @@ import { useUserOperations } from "../hooks/useUserOperations";
 import { signUp } from "../../auth/api/auth-api";
 import api from "../../../api/baseApi";
 import { UserStatus } from "../../../constants/user";
-import { getStatusChipProps } from "../utils/userTable.utils";
 
 interface UserEditViewDialogProps {
   open: boolean;
