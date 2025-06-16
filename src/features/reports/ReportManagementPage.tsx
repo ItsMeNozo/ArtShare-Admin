@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'; // Import useMemo
+import React, { useState, useMemo, useEffect } from 'react'; // Import useMemo
 import {
   Box,
   Typography,
@@ -30,6 +30,7 @@ import ResolveReportDialog from './components/ResolveReportDialog ';
 import { type Report, type ReportStatus } from './reportAPI'; // Assuming these are in reportAPI.ts
 import ReportDetailDialog from './components/ReportDetailDialog';
 import { useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'react-router-dom';
 
 // Define styles for status chips (can be moved to a utils file)
 export const statusDisplayInfo: Record<
@@ -45,6 +46,7 @@ const ReportManagementPage: React.FC = () => {
   const theme = useTheme();
   const [search, setSearch] = useState('');
   const queryClient = useQueryClient();
+  const location = useLocation();
 
   const [statusFilter, setStatusFilter] = useState<ReportStatus | ''>(''); // '' for 'All'
 
@@ -69,6 +71,19 @@ const ReportManagementPage: React.FC = () => {
   const [activeReportId, setActiveReportId] = useState<number | null>(null);
   const [activeReport, setActiveReport] = useState<Report | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    console.log(`noti useeffect ${JSON.stringify(location.state.report_id)}`);
+    if (location.state?.report_id) {
+      const report_id = location.state.report_id;
+
+      setActiveReport(
+        reports?.find((report) => report.id === report_id) || null,
+      );
+      setActiveReportId(report_id);
+      setDrawerOpen(true);
+    }
+  }, [location.state]);
 
   const handleView = (r: Report) => {
     setActiveReport(r);
