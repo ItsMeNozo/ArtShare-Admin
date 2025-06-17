@@ -46,6 +46,8 @@ import {
 import { format, subDays, isAfter, parseISO } from "date-fns";
 import { AxiosError } from "axios";
 import api from "../../api/baseApi";
+import { StripeData } from "./statistics.types";
+import { StripeIncomeCard } from "./components/StripeIncomeCard";
 
 /* -------------------- 1. Theme & Constants -------------------- */
 const theme = createTheme({
@@ -256,6 +258,11 @@ export default function StatisticDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [stripeData, setStripeData] = useState<StripeData | null>(null);
+  const stripeDashboardUrl =
+    import.meta.env.VITE_STRIPE_DASHBOARD_URL ||
+    "https://dashboard.stripe.com/test/dashboard";
+
   // --- Data Fetching ---
   useEffect(() => {
     const fetchAllData = async () => {
@@ -269,12 +276,14 @@ export default function StatisticDashboardPage() {
           postStatsRes,
           usersOverTimeRes,
           postsOverTimeRes,
+          stripeData,
         ] = await Promise.all([
           api.get("/statistics"),
           api.get("/analytics/overall-user-stats"),
           api.get("/analytics/overall-post-stats"),
           api.get(`/analytics/users-over-time?days=${timeSeriesDays}`),
           api.get(`/analytics/posts-over-time?days=${timeSeriesDays}`),
+          api.get(`/api/stripe/income-summary`),
         ]);
 
         setStatisticsData(statsRes.data);
@@ -284,6 +293,7 @@ export default function StatisticDashboardPage() {
           usersOverTime: usersOverTimeRes.data,
           postsOverTime: postsOverTimeRes.data,
         });
+        setStripeData(stripeData.data);
       } catch (err) {
         const axiosError = err as AxiosError;
         const errorMessage =
@@ -711,6 +721,15 @@ export default function StatisticDashboardPage() {
               </Grid>
             </Grid>
           </Box>
+          {stripeData && (
+            <StripeIncomeCard
+              totalIncome={stripeData.totalIncome}
+              period={stripeData.period}
+              currency={stripeData.currency}
+              dailyData={stripeData.dailyBreakdown}
+              stripeDashboardUrl={stripeDashboardUrl}
+            />
+          )}
         </Container>
       </Box>
     </ThemeProvider>
