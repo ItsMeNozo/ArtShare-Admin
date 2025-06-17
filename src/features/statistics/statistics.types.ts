@@ -30,3 +30,23 @@ export interface BarChartDataItem {
   name: string;
   [key: string]: any;
 }
+
+export interface StripeData {
+  totalIncome: number;
+  period: string;
+  currency: string;
+  dailyBreakdown: { date: string; amount: number }[];
+}
+
+export interface DailyData {
+  date: string;
+  amount: number;
+}
+
+export interface StripeIncomeCardProps {
+  totalIncome: number;
+  currency?: string;
+  period: string;
+  stripeDashboardUrl: string;
+  dailyData: DailyData[];
+}
