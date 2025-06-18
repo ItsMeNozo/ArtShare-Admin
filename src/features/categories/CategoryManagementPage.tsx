@@ -98,6 +98,11 @@ const CategoryManagementPage: React.FC = () => {
     null,
   );
   const [moreAnchor, setMoreAnchor] = useState<null | HTMLElement>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    mouseX: number;
+    mouseY: number;
+    categoryId: number;
+  } | null>(null);
   const MAX_IMAGES = 4;
   const DESCRIPTION_MAX_LENGTH = 255;
 
@@ -291,6 +296,23 @@ const CategoryManagementPage: React.FC = () => {
     }
   };
 
+  const handleContextMenu = (event: React.MouseEvent, categoryId: number) => {
+    event.preventDefault();
+    setContextMenu(
+      contextMenu === null
+        ? {
+            mouseX: event.clientX + 2,
+            mouseY: event.clientY - 6,
+            categoryId,
+          }
+        : null,
+    );
+  };
+
+  const handleCloseContextMenu = () => {
+    setContextMenu(null);
+  };
+
   if (loading) {
     return (
       <Box
@@ -410,6 +432,15 @@ const CategoryManagementPage: React.FC = () => {
         </Box>
       </Box>
 
+      {/* Instructions */}
+      <Box sx={{ mb: 2, p: 2, bgcolor: "action.hover", borderRadius: 1 }}>
+        <Typography variant="body2" color="text.secondary">
+          💡 <strong>Tip:</strong> Click on a category name to edit it, or
+          select categories using checkboxes for bulk operations. Use the search
+          and filter options above to find specific categories.
+        </Typography>
+      </Box>
+
       {/* Filter Summary */}
       {(typeFilter !== "ALL" || search) && (
         <Box sx={{ mb: 2 }}>
@@ -499,6 +530,22 @@ const CategoryManagementPage: React.FC = () => {
           </Typography>
 
           <Stack direction="row" spacing={1}>
+            {selectedIds.length === 1 && (
+              <Button
+                startIcon={<EditIcon />}
+                variant="outlined"
+                onClick={() => {
+                  const category = categories.find(
+                    (c) => c.id === selectedIds[0],
+                  );
+                  if (category) handleOpenEditDialog(category);
+                }}
+                sx={{ textTransform: "none" }}
+              >
+                Edit
+              </Button>
+            )}
+
             <Button
               startIcon={<DeleteIcon />}
               color="error"
@@ -548,7 +595,10 @@ const CategoryManagementPage: React.FC = () => {
       )}
 
       <TableContainer sx={{ boxShadow: "none" }}>
-        <Table sx={{ minWidth: 650 }} aria-label="categories table">
+        <Table
+          sx={{ minWidth: 650, tableLayout: "fixed" }}
+          aria-label="categories table"
+        >
           <TableHead
             sx={{
               backgroundColor:
@@ -588,21 +638,35 @@ const CategoryManagementPage: React.FC = () => {
                   disabled={filteredCategories.length === 0}
                 />
               </TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Type</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
+              <TableCell sx={{ fontWeight: "bold", width: "15%" }}>
+                Name
+              </TableCell>
+              <TableCell sx={{ fontWeight: "bold", width: "10%" }}>
+                Type
+              </TableCell>
+              <TableCell sx={{ fontWeight: "bold", width: "45%" }}>
+                Description
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", width: "10%" }}
+              >
                 Examples
               </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", width: "8%" }}
+              >
                 Posts
               </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", width: "8%" }}
+              >
                 Blogs
               </TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Created</TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Actions
+              <TableCell sx={{ fontWeight: "bold", width: "12%" }}>
+                Created
               </TableCell>
             </TableRow>
           </TableHead>
@@ -611,7 +675,11 @@ const CategoryManagementPage: React.FC = () => {
               <TableRow
                 key={category.id}
                 hover
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                sx={{
+                  "&:last-child td, &:last-child th": { border: 0 },
+                  cursor: "pointer",
+                }}
+                onContextMenu={(e) => handleContextMenu(e, category.id)}
               >
                 <TableCell padding="checkbox">
                   <Checkbox
@@ -626,12 +694,24 @@ const CategoryManagementPage: React.FC = () => {
                   />
                 </TableCell>
 
-                <TableCell component="th" scope="row">
-                  <Typography variant="subtitle2" fontWeight="medium">
+                <TableCell component="th" scope="row" sx={{ width: "15%" }}>
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight="medium"
+                    sx={{
+                      cursor: "pointer",
+                      "&:hover": { color: "primary.main" },
+                      wordWrap: "break-word",
+                      lineHeight: 1.3,
+                      fontSize: "0.875rem",
+                    }}
+                    onClick={() => handleOpenEditDialog(category)}
+                    title={category.name}
+                  >
                     {category.name}
                   </Typography>
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ width: "10%" }}>
                   <Tooltip
                     title={
                       categoryTypeTooltips[category.type] || "Category Type"
@@ -656,20 +736,23 @@ const CategoryManagementPage: React.FC = () => {
                 </TableCell>
                 <TableCell
                   sx={{
-                    maxWidth: 200,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
+                    width: "45%",
+                    paddingRight: 2,
                   }}
                 >
-                  <Tooltip
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      lineHeight: 1.4,
+                      wordWrap: "break-word",
+                      whiteSpace: "normal",
+                    }}
                     title={category.description || ""}
-                    placement="top-start"
                   >
-                    <span>{category.description || "N/A"}</span>
-                  </Tooltip>
+                    {category.description || "N/A"}
+                  </Typography>
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" sx={{ width: "10%" }}>
                   {category.example_images.length > 0 ? (
                     <Box
                       sx={{
@@ -716,34 +799,16 @@ const CategoryManagementPage: React.FC = () => {
                     </Typography>
                   )}
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" sx={{ width: "8%" }}>
                   {category.posts_count ?? 0}
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" sx={{ width: "8%" }}>
                   {category.blogs_count ?? 0}
                 </TableCell>
-                <TableCell>
-                  {format(new Date(category.created_at), "PP")}
-                </TableCell>
-                <TableCell align="center">
-                  <Tooltip title="Edit Category">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleOpenEditDialog(category)}
-                      color="primary"
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Delete Category">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleOpenDeleteDialog(category.id)}
-                      color="error"
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
+                <TableCell sx={{ width: "12%" }}>
+                  <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
+                    {format(new Date(category.created_at), "PP")}
+                  </Typography>
                 </TableCell>
               </TableRow>
             ))}
@@ -751,7 +816,7 @@ const CategoryManagementPage: React.FC = () => {
             {filteredCategories.length === 0 && (
               <TableRow>
                 {/* Adjust colSpan based on the number of columns (including checkbox) */}
-                <TableCell colSpan={9} align="center">
+                <TableCell colSpan={8} align="center">
                   <Typography color="textSecondary">
                     {search
                       ? "No categories match your search."
@@ -950,6 +1015,45 @@ const CategoryManagementPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Context Menu for Right Click */}
+      <Menu
+        open={contextMenu !== null}
+        onClose={handleCloseContextMenu}
+        anchorReference="anchorPosition"
+        anchorPosition={
+          contextMenu !== null
+            ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+            : undefined
+        }
+      >
+        <MenuItem
+          onClick={() => {
+            if (contextMenu) {
+              const category = categories.find(
+                (c) => c.id === contextMenu.categoryId,
+              );
+              if (category) handleOpenEditDialog(category);
+            }
+            handleCloseContextMenu();
+          }}
+        >
+          <EditIcon fontSize="small" sx={{ mr: 1 }} />
+          Edit Category
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (contextMenu) {
+              handleOpenDeleteDialog(contextMenu.categoryId);
+            }
+            handleCloseContextMenu();
+          }}
+          sx={{ color: "error.main" }}
+        >
+          <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
+          Delete Category
+        </MenuItem>
+      </Menu>
     </Paper>
   );
 };
