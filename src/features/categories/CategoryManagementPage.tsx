@@ -27,10 +27,10 @@ import {
   Chip,
   CircularProgress,
   Alert,
-  Grid,
   Avatar,
   useTheme,
   Checkbox,
+  SelectChangeEvent,
 } from "@mui/material";
 // csv
 import { CSVLink } from "react-csv";
@@ -65,12 +65,17 @@ const CategoryManagementPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<CategoryType | "ALL">("ALL");
   const filteredCategories = useMemo(
     () =>
-      categories.filter((c) =>
-        c.name.toLowerCase().includes(search.toLowerCase()),
-      ),
-    [categories, search],
+      categories.filter((c) => {
+        const matchesSearch = c.name
+          .toLowerCase()
+          .includes(search.toLowerCase());
+        const matchesType = typeFilter === "ALL" || c.type === typeFilter;
+        return matchesSearch && matchesType;
+      }),
+    [categories, search, typeFilter],
   );
   const categoryTypeTooltips = {
     [CategoryTypeValues.ATTRIBUTE]:
@@ -95,6 +100,12 @@ const CategoryManagementPage: React.FC = () => {
   const [moreAnchor, setMoreAnchor] = useState<null | HTMLElement>(null);
   const MAX_IMAGES = 4;
   const DESCRIPTION_MAX_LENGTH = 255;
+
+  const handleTypeFilterChange = (
+    event: SelectChangeEvent<CategoryType | "ALL">,
+  ) => {
+    setTypeFilter(event.target.value as CategoryType | "ALL");
+  };
 
   const fetchCategories = useCallback(async () => {
     setLoading(true);
@@ -321,6 +332,52 @@ const CategoryManagementPage: React.FC = () => {
         </Typography>
 
         <Box sx={{ display: "flex", gap: 1, alignItems: "center", ml: "auto" }}>
+          {/* Type Filter */}
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel id="type-filter-label">Type</InputLabel>
+            <Select
+              labelId="type-filter-label"
+              id="type-filter-select"
+              value={typeFilter}
+              label="Type"
+              onChange={handleTypeFilterChange}
+              sx={{
+                backgroundColor:
+                  theme.palette.mode === "dark" ? "#1f2937" : "#f9fafb",
+                borderRadius: 2,
+              }}
+            >
+              <MenuItem value="ALL">All Types</MenuItem>
+              <MenuItem value={CategoryTypeValues.ATTRIBUTE}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      backgroundColor: theme.palette.secondary.main,
+                    }}
+                  />
+                  Attribute
+                </Box>
+              </MenuItem>
+              <MenuItem value={CategoryTypeValues.MEDIUM}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      backgroundColor: theme.palette.primary.main,
+                    }}
+                  />
+                  Medium
+                </Box>
+              </MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Search Filter */}
           <TextField
             size="small"
             variant="outlined"
@@ -352,6 +409,66 @@ const CategoryManagementPage: React.FC = () => {
           </Button>
         </Box>
       </Box>
+
+      {/* Filter Summary */}
+      {(typeFilter !== "ALL" || search) && (
+        <Box sx={{ mb: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              flexWrap: "wrap",
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              Showing {filteredCategories.length} of {categories.length}{" "}
+              categories
+            </Typography>
+            {typeFilter !== "ALL" && (
+              <Chip
+                label={`Type: ${typeFilter}`}
+                size="small"
+                onDelete={() => setTypeFilter("ALL")}
+                color={
+                  typeFilter === CategoryTypeValues.MEDIUM
+                    ? "primary"
+                    : "secondary"
+                }
+                sx={{
+                  "& .MuiChip-label": {
+                    paddingRight: "4px",
+                  },
+                  "& .MuiChip-deleteIcon": {
+                    fontSize: "16px",
+                    marginLeft: "4px",
+                    marginRight: "-2px",
+                  },
+                  minWidth: "fit-content",
+                }}
+              />
+            )}
+            {search && (
+              <Chip
+                label={`Search: "${search}"`}
+                size="small"
+                onDelete={() => setSearch("")}
+                sx={{
+                  "& .MuiChip-label": {
+                    paddingRight: "4px",
+                  },
+                  "& .MuiChip-deleteIcon": {
+                    fontSize: "16px",
+                    marginLeft: "4px",
+                    marginRight: "-2px",
+                  },
+                  minWidth: "fit-content",
+                }}
+              />
+            )}
+          </Box>
+        </Box>
+      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -695,35 +812,34 @@ const CategoryManagementPage: React.FC = () => {
               label="Type"
               onChange={handleInputChange}
             >
-                <MenuItem value={CategoryTypeValues.ATTRIBUTE} selected>
-                  <Tooltip
-                    title={categoryTypeTooltips[CategoryTypeValues.ATTRIBUTE]}
-                    arrow
-                    placement="right"
-                  >
-                    <Box width={'100%'}>Attribute</Box>
-                  </Tooltip>
-                </MenuItem>
+              <MenuItem value={CategoryTypeValues.ATTRIBUTE} selected>
+                <Tooltip
+                  title={categoryTypeTooltips[CategoryTypeValues.ATTRIBUTE]}
+                  arrow
+                  placement="right"
+                >
+                  <Box width={"100%"}>Attribute</Box>
+                </Tooltip>
+              </MenuItem>
 
-              
-                <MenuItem value={CategoryTypeValues.MEDIUM}>
-                  <Tooltip
-                    title={categoryTypeTooltips[CategoryTypeValues.MEDIUM]}
-                    arrow
-                    placement="right"
-                  >
-                      <Box width={'100%'}>Medium</Box>
-                  </Tooltip>
-                </MenuItem>
+              <MenuItem value={CategoryTypeValues.MEDIUM}>
+                <Tooltip
+                  title={categoryTypeTooltips[CategoryTypeValues.MEDIUM]}
+                  arrow
+                  placement="right"
+                >
+                  <Box width={"100%"}>Medium</Box>
+                </Tooltip>
+              </MenuItem>
             </Select>
           </FormControl>
 
           <Typography variant="subtitle2" gutterBottom sx={{ mt: 1 }}>
             Example Images (Max {MAX_IMAGES})
           </Typography>
-          <Grid container spacing={1} sx={{ mb: 2 }}>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
             {(categoryFormData.example_images || []).map((imgUrl, index) => (
-              <Grid key={index}>
+              <Box key={index}>
                 <Box sx={{ position: "relative", width: 80, height: 80 }}>
                   <Avatar
                     src={imgUrl}
@@ -747,10 +863,10 @@ const CategoryManagementPage: React.FC = () => {
                     <CloseIcon fontSize="small" color="error" />
                   </IconButton>
                 </Box>
-              </Grid>
+              </Box>
             ))}
             {(categoryFormData.example_images || []).length < MAX_IMAGES && (
-              <Grid>
+              <Box>
                 <Button
                   variant="outlined"
                   component="label"
@@ -773,9 +889,9 @@ const CategoryManagementPage: React.FC = () => {
                     onChange={handleImageAdd}
                   />
                 </Button>
-              </Grid>
+              </Box>
             )}
-          </Grid>
+          </Box>
         </DialogContent>
         <DialogActions sx={{ p: "0 24px 16px" }}>
           <Button
