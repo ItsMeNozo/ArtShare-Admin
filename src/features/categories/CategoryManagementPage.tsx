@@ -785,7 +785,10 @@ const CategoryManagementPage: React.FC = () => {
                             sx={{
                               width: 32,
                               height: 32,
-                              bgcolor: "action.hover",
+                              bgcolor: "primary.main",
+                              color: "primary.contrastText",
+                              fontSize: "0.75rem",
+                              fontWeight: "bold",
                             }}
                           >
                             +{category.example_images.length - 2}
