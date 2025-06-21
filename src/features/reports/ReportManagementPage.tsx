@@ -73,7 +73,6 @@ const ReportManagementPage: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
-    console.log(`noti useeffect ${JSON.stringify(location.state.report_id)}`);
     if (location.state?.report_id) {
       const report_id = location.state.report_id;
 

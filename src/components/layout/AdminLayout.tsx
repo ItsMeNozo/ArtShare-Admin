@@ -208,6 +208,13 @@ const AdminLayout: React.FC = () => {
       section: 'MANAGEMENT',
       badge: undefined,
     },
+    {
+      text: 'Blog Management',
+      icon: <ArticleIcon />,
+      path: '/blogs',
+      section: 'MANAGEMENT',
+      badge: undefined,
+    },
   ];
 
   const mainMenuItems = sidebarItemsConfig.filter(

@@ -10,6 +10,7 @@ import PostManagementPage from './features/posts';
 import AnalyticsPage from './features/analytics';
 import StatisticDashboardPage from './features/analytics/AIStatistics';
 import ProfilePage from './features/profile/ProfilePage';
+import BlogManagementPage from './features/blogs/BlogManagementPage';
 
 export const router = createBrowserRouter([
   {
@@ -33,6 +34,7 @@ export const router = createBrowserRouter([
       { path: 'reports', element: <ReportManagementPage /> },
       { path: 'statistics', element: <StatisticDashboardPage /> },
       { path: 'profile', element: <ProfilePage /> },
+      { path: 'blogs', element: <BlogManagementPage /> },
     ],
   },
   {
