@@ -22,7 +22,6 @@ import {
   Search as SearchIcon,
   UndoOutlined as UndoOutlinedIcon,
   MoreVertOutlined as MoreVertOutlinedIcon,
-  FileDownloadOutlined as FileDownloadOutlinedIcon,
 } from "@mui/icons-material";
 import { format } from "date-fns";
 import jsPDF from "jspdf";
@@ -391,6 +390,8 @@ const AdminPostsPage: React.FC = () => {
           </Stack>
         </Box>
       )}
+
+      {/* Add spacing between header and table */}
       <AdminPostsTable
         posts={posts}
         loading={loading}

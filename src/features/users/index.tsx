@@ -26,7 +26,6 @@ import {
   DialogActions,
   Button,
   CircularProgress,
-  SelectChangeEvent,
 } from "@mui/material";
 import {
   Edit as EditIcon,
@@ -323,7 +322,6 @@ const UserManagementPage: React.FC = () => {
           alignItems: "center",
           flexWrap: "wrap",
           gap: 2,
-          mb: 2,
         }}
       ></Box>{" "}
       <UserTableToolbar
