@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useDebounce } from "./useDebounce";
 import { UserSortableKeys } from "../types";
-import { useUsersQuery } from "./user.queries";
+import { useUsersQuery } from "./useUserQueries";
 
 export const useUserTableControls = () => {
   const [currentPage, setCurrentPage] = useState<number>(0);

@@ -12,10 +12,6 @@ import {
   deleteUser as apiSingleDeleteUser,
   deleteMultipleUsers as apiBulkDeleteUsers,
 } from "../api/user.api";
-import {
-  CreateUserAdminPayload,
-  UpdateUserAdminPayload,
-} from "../utils/data-transformer";
 import { UserFormData } from "../../../types/user";
 
 export const userKeys = {

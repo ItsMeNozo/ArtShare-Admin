@@ -1,10 +1,6 @@
 import axios, { AxiosError } from "axios";
-import { User } from "../../../types/user";
+import { User, UserFormData } from "../../../types/user";
 import api from "../../../api/baseApi";
-import {
-  CreateUserAdminPayload,
-  UpdateUserAdminPayload,
-} from "../utils/data-transformer";
 
 export interface FetchUsersParams {
   page?: number;
@@ -58,9 +54,7 @@ export const fetchUsers = async (
   }
 };
 
-export const createUser = async (
-  userData: CreateUserAdminPayload,
-): Promise<User> => {
+export const createUser = async (userData: UserFormData): Promise<User> => {
   try {
     const response = await api.post<User>("/admin/users/create", userData);
     return response.data;
@@ -71,7 +65,7 @@ export const createUser = async (
 
 export const updateUser = async (
   userId: string,
-  userData: UpdateUserAdminPayload,
+  userData: UserFormData,
 ): Promise<User> => {
   try {
     const response = await api.patch<User>(`/admin/users/${userId}`, userData);

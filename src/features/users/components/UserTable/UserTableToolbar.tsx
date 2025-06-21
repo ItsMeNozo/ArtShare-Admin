@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useCallback, useState } from "react";
 import {
   Box,
   Typography,
@@ -7,7 +7,6 @@ import {
   Stack,
   Menu,
   MenuItem,
-  Theme,
   useTheme,
 } from "@mui/material";
 import {
@@ -17,31 +16,22 @@ import {
   MoreVertOutlined,
 } from "@mui/icons-material";
 import { CSVLink } from "react-csv";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
-interface UserTableToolbarProps {
-  searchTerm: string;
-  onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onAddUser: () => void;
-  selectedIdsCount: number;
-  onBulkDelete: () => void;
-  onDeselectAll: () => void;
-  onExportPDF: () => void;
-  csvFormattedData: Array<Record<string, any>>;
-  theme: Theme;
-}
+import { useUserInterface } from "../../context/UserInterfaceContext";
+import { useUserData } from "../../context/UserDataContext";
 
-export const UserTableToolbar: React.FC<UserTableToolbarProps> = ({
-  searchTerm,
-  onSearchChange,
-  onAddUser,
-  selectedIdsCount,
-  onBulkDelete,
-  onDeselectAll,
-  onExportPDF,
-  csvFormattedData,
-}) => {
+export const UserTableToolbar: React.FC = () => {
   const theme = useTheme();
-  const [moreAnchor, setMoreAnchor] = React.useState<null | HTMLElement>(null);
+  const {
+    selectedIds,
+    handleOpenUserDetailDialog,
+    handleOpenBulkDeleteDialog,
+    resetSelection,
+  } = useUserInterface();
+  const { displayUsers, tableControls } = useUserData();
+  const [moreAnchor, setMoreAnchor] = useState<null | HTMLElement>(null);
 
   const handleMoreMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setMoreAnchor(event.currentTarget);
@@ -50,6 +40,59 @@ export const UserTableToolbar: React.FC<UserTableToolbarProps> = ({
   const handleMoreMenuClose = () => {
     setMoreAnchor(null);
   };
+
+  const getDataForExport = useCallback(() => {
+    return selectedIds.length > 0
+      ? displayUsers.filter((u) => selectedIds.includes(u.id))
+      : displayUsers;
+  }, [displayUsers, selectedIds]);
+
+  const csvFormattedData = useMemo(() => {
+    const dataToExport = getDataForExport();
+    return dataToExport.map((user) => ({
+      Username: user.username,
+      FullName: user.fullName || "",
+      Email: user.email,
+      Roles:
+        user.roles
+          ?.map((r: any) => (typeof r === "string" ? r : r.name))
+          .join(" | ") || "",
+      "Current Plan": user.currentPlan || "N/A",
+      "Joined Date": user.createdAt
+        ? new Date(user.createdAt).toLocaleDateString()
+        : "N/A",
+    }));
+  }, [getDataForExport]);
+
+  const handleExportPDF = useCallback(() => {
+    const doc = new jsPDF("landscape");
+    const dataToExport = getDataForExport();
+    const pdfData = dataToExport.map((user) => [
+      user.username ?? "",
+      user.fullName ?? "",
+      user.email ?? "",
+      user.roles
+        ?.map((r: any) => (typeof r === "string" ? r : r.name))
+        .join(", ") || "",
+      user.currentPlan ?? "N/A",
+      user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A",
+    ]);
+    autoTable(doc, {
+      head: [
+        [
+          "Username",
+          "Full Name",
+          "Email",
+          "Roles",
+          "Current Plan",
+          "Joined Date",
+        ],
+      ],
+      body: pdfData,
+    });
+    doc.save("users-page.pdf");
+    handleMoreMenuClose();
+  }, [getDataForExport]);
 
   return (
     <>
@@ -71,26 +114,21 @@ export const UserTableToolbar: React.FC<UserTableToolbarProps> = ({
             size="small"
             variant="outlined"
             placeholder="Search…"
-            value={searchTerm}
-            onChange={onSearchChange}
+            value={tableControls.searchTerm}
+            onChange={(e) => tableControls.handleSearchChange(e.target.value)}
             sx={{
               width: { xs: "100%", sm: 180 },
               backgroundColor:
                 theme.palette.mode === "dark" ? "#1f2937" : "#f9fafb",
               borderRadius: 2,
-              "& input": {
-                px: 1.5,
-                py: 1,
-              },
+              "& input": { px: 1.5, py: 1 },
             }}
-            InputProps={{
-              sx: { fontSize: 14 },
-            }}
+            InputProps={{ sx: { fontSize: 14 } }}
           />
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={onAddUser}
+            onClick={() => handleOpenUserDetailDialog(null, true)}
             color="primary"
             sx={{ textTransform: "none" }}
           >
@@ -99,7 +137,7 @@ export const UserTableToolbar: React.FC<UserTableToolbarProps> = ({
         </Box>
       </Box>
 
-      {selectedIdsCount > 0 && (
+      {selectedIds.length > 0 && (
         <Box
           sx={{
             mb: 2,
@@ -118,23 +156,21 @@ export const UserTableToolbar: React.FC<UserTableToolbarProps> = ({
           }}
         >
           <Typography sx={{ color: theme.palette.text.primary }}>
-            {selectedIdsCount} selected
+            {selectedIds.length} selected
           </Typography>
 
           <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
-            {" "}
-            {/* Allow stack to wrap */}
             <Button
               startIcon={<DeleteIcon />}
               color="error"
               variant="contained"
-              onClick={onBulkDelete}
+              onClick={handleOpenBulkDeleteDialog}
               sx={{ textTransform: "none" }}
             >
               Delete
             </Button>
             <Button
-              onClick={onDeselectAll}
+              onClick={resetSelection}
               startIcon={<UndoOutlined />}
               sx={{ textTransform: "none" }}
               variant="outlined"
@@ -154,11 +190,7 @@ export const UserTableToolbar: React.FC<UserTableToolbarProps> = ({
               open={Boolean(moreAnchor)}
               onClose={handleMoreMenuClose}
             >
-              <MenuItem
-                onClick={() => {
-                  handleMoreMenuClose();
-                }}
-              >
+              <MenuItem onClick={handleMoreMenuClose}>
                 <CSVLink
                   data={csvFormattedData}
                   headers={[
@@ -181,14 +213,7 @@ export const UserTableToolbar: React.FC<UserTableToolbarProps> = ({
                   Export CSV
                 </CSVLink>
               </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  onExportPDF();
-                  handleMoreMenuClose();
-                }}
-              >
-                Export PDF
-              </MenuItem>
+              <MenuItem onClick={handleExportPDF}>Export PDF</MenuItem>
             </Menu>
           </Stack>
         </Box>

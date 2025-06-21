@@ -1,9 +1,9 @@
 // src/features/users/components/UserProfileSummary.tsx
 
 import React, { ChangeEvent, useRef } from "react";
-import { User } from "../../../types/user";
+import { User } from "../../../../types/user";
 import { FormikProps } from "formik";
-import { UserFormData } from "../../../types/user";
+import { UserFormData } from "../../../../types/user";
 import {
   Avatar,
   Box,
@@ -14,8 +14,8 @@ import {
   Typography,
 } from "@mui/material";
 import { CameraAlt as CameraAltIcon } from "@mui/icons-material";
-import { SubscriptionStatusInfo } from "../types";
-import { PaidAccessLevel } from "../../../constants/plan";
+import { SubscriptionStatusInfo } from "../../types";
+import { PaidAccessLevel } from "../../../../constants/plan";
 
 interface UserProfileSummaryProps {
   formik: FormikProps<UserFormData>;

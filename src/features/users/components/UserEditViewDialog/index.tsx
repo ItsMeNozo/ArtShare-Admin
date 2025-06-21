@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { User } from "../../../types/user";
+import { User } from "../../../../types/user";
 import {
   Dialog,
   DialogTitle,
@@ -7,7 +7,6 @@ import {
   Button,
   Box,
   IconButton,
-  Typography,
   CircularProgress,
   Snackbar,
   Grid,
@@ -19,11 +18,10 @@ import {
   Save as SaveIcon,
   Cancel as CancelIcon,
 } from "@mui/icons-material";
-import { SemanticSubscriptionStatus, SubscriptionStatusInfo } from "../types";
-import { ChipProps } from "@mui/material/Chip";
-import { useUserForm } from "../hooks/useUserForm";
+import { useUserForm } from "../../hooks/useUserForm";
 import { UserProfileSummary } from "./UserProfileSummary";
 import { UserForm } from "./UserForm";
+import { getSubscriptionStatusInfo } from "../../utils/userTable.utils";
 
 // SnackbarAlert can be moved to a shared UI components folder if used elsewhere
 const SnackbarAlert = React.forwardRef<HTMLDivElement, AlertProps>(
@@ -37,10 +35,6 @@ interface UserEditViewDialogProps {
   onClose: () => void;
   user: User | null;
   isCreatingNewUser: boolean;
-  getSubscriptionStatusInfo: (user: User | null) => SubscriptionStatusInfo;
-  getChipColorFromSemanticStatus: (
-    status: SemanticSubscriptionStatus,
-  ) => ChipProps["color"];
 }
 
 export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
@@ -48,7 +42,6 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
   onClose,
   user: initialUser,
   isCreatingNewUser,
-  getSubscriptionStatusInfo,
 }) => {
   const [isEditing, setIsEditing] = useState(isCreatingNewUser);
   const [snackbar, setSnackbar] = useState<{

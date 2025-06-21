@@ -2,10 +2,9 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { User, UserFormData } from "../../../types/user";
 import { UserStatus } from "../../../constants/user";
-import { useUpdateUserMutation } from "./user.queries";
+import { useUpdateUserMutation } from "./useUserQueries";
 import { signUp, updateUserPassword } from "../../auth/api/auth-api";
 import api from "../../../api/baseApi";
-import { createUser } from "../api/user.api";
 
 const getInitialDialogFormData = (
   user: User | null,

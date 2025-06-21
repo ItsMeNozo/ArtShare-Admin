@@ -2,7 +2,7 @@
 
 import React from "react";
 import { FormikProps } from "formik";
-import { UserFormData } from "../../../types/user";
+import { UserFormData } from "../../../../types/user";
 import {
   Grid,
   TextField,
@@ -12,7 +12,6 @@ import {
   Select,
   OutlinedInput,
   MenuItem,
-  Checkbox,
   ListItemText,
   FormHelperText,
 } from "@mui/material";
@@ -27,7 +26,7 @@ import {
 import {
   AVAILABLE_ROLES_FOR_SELECT,
   AVAILABLE_STATUSES,
-} from "../constants/constant";
+} from "../../constants/constant";
 
 interface UserFormProps {
   formik: FormikProps<UserFormData>;
