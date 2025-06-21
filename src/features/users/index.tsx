@@ -28,7 +28,7 @@ import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import autoTable from "jspdf-autotable";
 import jsPDF from "jspdf";
 
-import { User, UserFormData } from "../../types/user";
+import { User } from "../../types/user";
 import {
   getSubscriptionStatusInfo,
   getCurrentEffectivePlanNameForTable,
@@ -40,7 +40,11 @@ import { UserTableToolbar } from "./components/UserTableToolbar";
 import { UserTableHeadComponent } from "./components/UserTableHeadComponent";
 import { UserTableRowComponent } from "./components/UserTableRowComponent";
 
-import { useUserOperations, UserOperations } from "./hooks/useUserOperations";
+import { useUserTableControls } from "./hooks/useUserTableControls";
+import {
+  useDeleteUserMutation,
+  useBulkDeleteUsersMutation,
+} from "./hooks/user.queries";
 
 interface DisplayUser extends User {
   currentPlan?: string;
@@ -54,17 +58,11 @@ const PageSnackbarAlert = React.forwardRef<HTMLDivElement, AlertProps>(
 
 const UserManagementPage: React.FC = () => {
   const theme = useTheme();
+
   const {
     users,
-    loading: crudLoading,
-    error: crudError,
-
-    updateUser,
-    deleteUser,
-    bulkDeleteUsers,
-    clearError,
-    setErrorManually,
-
+    loading: tableLoading,
+    error: tableError,
     totalUsers,
     currentPage,
     rowsPerPage,
@@ -75,46 +73,42 @@ const UserManagementPage: React.FC = () => {
     handleChangeRowsPerPage,
     handleSearchChange,
     handleSortRequest,
-  }: UserOperations = useUserOperations();
+  } = useUserTableControls();
+
+  const deleteUserMutation = useDeleteUserMutation();
+  const bulkDeleteUsersMutation = useBulkDeleteUsersMutation();
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const resetSelection = useCallback(() => setSelectedIds([]), []);
-
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<null | HTMLElement>(
     null,
   );
   const [selectedUserForMenu, setSelectedUserForMenu] = useState<User | null>(
     null,
   );
-
   const [userToEditView, setUserToEditView] = useState<User | null>(null);
   const [isUserDetailDialogOpen, setIsUserDetailDialogOpen] =
     useState<boolean>(false);
   const [isCreatingNewUserFlow, setIsCreatingNewUserFlow] =
     useState<boolean>(false);
-
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
   const [openBulkDeleteDialog, setOpenBulkDeleteDialog] =
     useState<boolean>(false);
-
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("info");
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: AlertColor;
+  }>({ open: false, message: "", severity: "info" });
 
   const showPageNotification = (message: string, severity: AlertColor) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
+    setSnackbar({ open: true, message, severity });
   };
-
   const handlePageSnackbarClose = (
     _?: React.SyntheticEvent | Event,
     reason?: string,
   ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbarOpen(false);
+    if (reason === "clickaway") return;
+    setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
   const handleOpenUserMenu = (
@@ -124,10 +118,7 @@ const UserManagementPage: React.FC = () => {
     setUserMenuAnchorEl(event.currentTarget);
     setSelectedUserForMenu(user);
   };
-
-  const handleCloseUserMenu = () => {
-    setUserMenuAnchorEl(null);
-  };
+  const handleCloseUserMenu = () => setUserMenuAnchorEl(null);
 
   const handleOpenUserDetailDialog = (
     user: User | null,
@@ -138,56 +129,13 @@ const UserManagementPage: React.FC = () => {
     setIsUserDetailDialogOpen(true);
     handleCloseUserMenu();
   };
-
   const handleCloseUserDetailDialog = () => {
     setIsUserDetailDialogOpen(false);
+
     setTimeout(() => {
       setUserToEditView(null);
       setIsCreatingNewUserFlow(false);
-      setSelectedUserForMenu(null);
     }, 150);
-  };
-
-  const handleSaveUserFromDialog = async (
-    dataForBackend: UserFormData,
-    userIdToUpdate?: string,
-  ): Promise<User> => {
-    clearError();
-
-    if (!userIdToUpdate) {
-      setErrorManually(
-        "User ID is missing for update operation initiated from dialog.",
-      );
-      throw new Error("User ID is required for update.");
-    }
-    if (!updateUser) {
-      setErrorManually("Update function not available.");
-      throw new Error("Update user function from hook is not available.");
-    }
-
-    const { password, id, ...updatePayloadData } = dataForBackend;
-
-    try {
-      const updatedUser = await updateUser(
-        userIdToUpdate,
-        updatePayloadData as Omit<UserFormData, "id" | "password">,
-      );
-      if (!updatedUser) {
-        throw new Error(
-          "Failed to update user (operation returned undefined).",
-        );
-      }
-
-      return updatedUser;
-    } catch (error) {
-      console.error("Error in handleSaveUserFromDialog on page:", error);
-      if (error instanceof Error) {
-        setErrorManually(error.message);
-      } else {
-        setErrorManually("An unknown error occurred while saving user.");
-      }
-      throw error;
-    }
   };
 
   const handleOpenDeleteConfirmDialog = (userFromMenu?: User) => {
@@ -199,30 +147,26 @@ const UserManagementPage: React.FC = () => {
     handleCloseUserMenu();
   };
 
-  const handleDeleteUser = async () => {
-    if (!selectedUserForMenu || !selectedUserForMenu.id) {
-      showPageNotification(
-        "Cannot delete user: User data is missing.",
-        "error",
-      );
-      setOpenDeleteDialog(false);
-      setSelectedUserForMenu(null);
-      return;
-    }
-    clearError();
+  const handleDeleteUser = () => {
+    if (!selectedUserForMenu?.id) return;
+
     const userName = selectedUserForMenu.username;
-    try {
-      await deleteUser(selectedUserForMenu.id);
-      showPageNotification(
-        `User "${userName}" deleted successfully.`,
-        "success",
-      );
-    } catch (err) {
-      console.error("Delete user failed from page:", err);
-    } finally {
-      setOpenDeleteDialog(false);
-      setSelectedUserForMenu(null);
-    }
+    deleteUserMutation.mutate(selectedUserForMenu.id, {
+      onSuccess: () => {
+        showPageNotification(
+          `User "${userName}" deleted successfully.`,
+          "success",
+        );
+        setOpenDeleteDialog(false);
+        setSelectedUserForMenu(null);
+      },
+      onError: (error) => {
+        showPageNotification(
+          `Failed to delete user: ${error.message}`,
+          "error",
+        );
+      },
+    });
   };
 
   const handleInitiateBulkDelete = () => {
@@ -233,29 +177,36 @@ const UserManagementPage: React.FC = () => {
     }
   };
 
-  const executeBulkDelete = async () => {
+  const executeBulkDelete = () => {
     if (selectedIds.length === 0) return;
+
     const count = selectedIds.length;
-    clearError();
-    try {
-      await bulkDeleteUsers(selectedIds);
-      showPageNotification(`${count} user(s) deleted successfully.`, "success");
-      resetSelection();
-    } catch (err) {
-      console.error("Bulk delete failed from page:", err);
-    } finally {
-      setOpenBulkDeleteDialog(false);
-    }
+    bulkDeleteUsersMutation.mutate(selectedIds, {
+      onSuccess: () => {
+        showPageNotification(
+          `${count} user(s) deleted successfully.`,
+          "success",
+        );
+        resetSelection();
+        setOpenBulkDeleteDialog(false);
+      },
+      onError: (error) => {
+        showPageNotification(
+          `Failed to delete users: ${error.message}`,
+          "error",
+        );
+      },
+    });
   };
 
   const displayUsers: DisplayUser[] = useMemo(() => {
-    return users.map((user) => {
-      const statusInfo = getSubscriptionStatusInfo(user);
-      return {
-        ...user,
-        currentPlan: getCurrentEffectivePlanNameForTable(user, statusInfo),
-      };
-    });
+    return users.map((user) => ({
+      ...user,
+      currentPlan: getCurrentEffectivePlanNameForTable(
+        user,
+        getSubscriptionStatusInfo(user),
+      ),
+    }));
   }, [users]);
 
   const getDataForExport = useCallback(() => {
@@ -343,7 +294,7 @@ const UserManagementPage: React.FC = () => {
     );
   };
 
-  if (crudLoading && users.length === 0 && !searchTerm && !crudError) {
+  if (tableLoading && users.length === 0) {
     return (
       <Box
         sx={{
@@ -384,17 +335,15 @@ const UserManagementPage: React.FC = () => {
             theme={theme}
           />
 
-          {/* General error display from useUserOperations hook */}
-          {crudError && (
-            <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
-              {crudError}
+          {tableError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {tableError}
             </Alert>
           )}
 
-          {/* Inline loading indicator for table updates/searches */}
-          {crudLoading && (users.length > 0 || searchTerm) && (
+          {tableLoading && (users.length > 0 || searchTerm) && (
             <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
-              <CircularProgress size={24} />
+              <CircularProgress size={24} />{" "}
               <Typography variant="body2" sx={{ ml: 1 }}>
                 Loading...
               </Typography>
@@ -419,7 +368,7 @@ const UserManagementPage: React.FC = () => {
                 rowCount={displayUsers.length}
               />
               <TableBody>
-                {!crudLoading && displayUsers.length === 0 && (
+                {!tableLoading && displayUsers.length === 0 && (
                   <TableRow>
                     <TableCell
                       colSpan={defaultHeadCells.length + 2}
@@ -434,7 +383,7 @@ const UserManagementPage: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 )}
-                {!crudLoading &&
+                {!tableLoading &&
                   displayUsers.map((user) => (
                     <UserTableRowComponent
                       key={user.id}
@@ -470,7 +419,6 @@ const UserManagementPage: React.FC = () => {
             onClose={handleCloseUserDetailDialog}
             user={userToEditView}
             isCreatingNewUser={isCreatingNewUserFlow}
-            onSave={handleSaveUserFromDialog}
             getSubscriptionStatusInfo={getSubscriptionStatusInfo}
             getChipColorFromSemanticStatus={() => "default"}
           />
@@ -505,11 +453,9 @@ const UserManagementPage: React.FC = () => {
         {/* Delete Confirmation Dialog */}
         <Dialog
           open={openDeleteDialog}
-          onClose={() => {
-            if (crudLoading) return;
-            setOpenDeleteDialog(false);
-            setSelectedUserForMenu(null);
-          }}
+          onClose={() =>
+            !deleteUserMutation.isPending && setOpenDeleteDialog(false)
+          }
           maxWidth="xs"
         >
           <DialogTitle>
@@ -524,12 +470,9 @@ const UserManagementPage: React.FC = () => {
           </DialogContent>
           <DialogActions sx={{ p: 2 }}>
             <Button
-              onClick={() => {
-                setOpenDeleteDialog(false);
-                setSelectedUserForMenu(null);
-              }}
+              onClick={() => setOpenDeleteDialog(false)}
               color="inherit"
-              disabled={crudLoading && Boolean(selectedUserForMenu)}
+              disabled={deleteUserMutation.isPending}
             >
               Cancel
             </Button>
@@ -537,9 +480,9 @@ const UserManagementPage: React.FC = () => {
               onClick={handleDeleteUser}
               color="error"
               variant="contained"
-              disabled={crudLoading && Boolean(selectedUserForMenu)}
+              disabled={deleteUserMutation.isPending}
             >
-              {crudLoading && Boolean(selectedUserForMenu) ? (
+              {deleteUserMutation.isPending ? (
                 <CircularProgress size={20} color="inherit" />
               ) : (
                 "Delete"
@@ -551,10 +494,9 @@ const UserManagementPage: React.FC = () => {
         {/* Bulk Delete Confirmation Dialog */}
         <Dialog
           open={openBulkDeleteDialog}
-          onClose={() => {
-            if (crudLoading) return;
-            setOpenBulkDeleteDialog(false);
-          }}
+          onClose={() =>
+            !bulkDeleteUsersMutation.isPending && setOpenBulkDeleteDialog(false)
+          }
           maxWidth="xs"
         >
           <DialogTitle>
@@ -570,7 +512,7 @@ const UserManagementPage: React.FC = () => {
             <Button
               onClick={() => setOpenBulkDeleteDialog(false)}
               color="inherit"
-              disabled={crudLoading && selectedIds.length > 0}
+              disabled={bulkDeleteUsersMutation.isPending}
             >
               Cancel
             </Button>
@@ -578,9 +520,9 @@ const UserManagementPage: React.FC = () => {
               onClick={executeBulkDelete}
               color="error"
               variant="contained"
-              disabled={crudLoading && selectedIds.length > 0}
+              disabled={bulkDeleteUsersMutation.isPending}
             >
-              {crudLoading && selectedIds.length > 0 ? (
+              {bulkDeleteUsersMutation.isPending ? (
                 <CircularProgress size={20} color="inherit" />
               ) : (
                 "Delete Selected"
@@ -592,17 +534,17 @@ const UserManagementPage: React.FC = () => {
 
       {/* Page-level Snackbar for notifications like delete success/failure */}
       <Snackbar
-        open={snackbarOpen}
+        open={snackbar.open}
         autoHideDuration={6000}
         onClose={handlePageSnackbarClose}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <PageSnackbarAlert
           onClose={handlePageSnackbarClose}
-          severity={snackbarSeverity}
+          severity={snackbar.severity}
           sx={{ width: "100%" }}
         >
-          {snackbarMessage}
+          {snackbar.message}
         </PageSnackbarAlert>
       </Snackbar>
     </>

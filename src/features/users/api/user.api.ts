@@ -1,6 +1,10 @@
 import axios, { AxiosError } from "axios";
-import { User, UserFormData } from "../../../types/user";
+import { User } from "../../../types/user";
 import api from "../../../api/baseApi";
+import {
+  CreateUserAdminPayload,
+  UpdateUserAdminPayload,
+} from "../utils/data-transformer";
 
 export interface FetchUsersParams {
   page?: number;
@@ -11,7 +15,7 @@ export interface FetchUsersParams {
 }
 
 export interface PaginatedUsersApiResponse {
-  data: User[]; // Assuming your User type matches UserResponseDto structure
+  data: User[];
   total: number;
   page: number;
   limit: number;
@@ -43,7 +47,6 @@ export const fetchUsers = async (
   params?: FetchUsersParams,
 ): Promise<PaginatedUsersApiResponse> => {
   try {
-    // Pass params to the GET request, Axios will serialize them as query string
     const response = await api.get<PaginatedUsersApiResponse>(
       "/admin/users/all",
       { params },
@@ -51,11 +54,13 @@ export const fetchUsers = async (
     return response.data;
   } catch (error) {
     console.error("API fetchUsers error:", error);
-    throw new Error(getApiErrorMessage(error)); // Rethrow with formatted message
+    throw new Error(getApiErrorMessage(error));
   }
 };
 
-export const createUser = async (userData: UserFormData): Promise<User> => {
+export const createUser = async (
+  userData: CreateUserAdminPayload,
+): Promise<User> => {
   try {
     const response = await api.post<User>("/admin/users/create", userData);
     return response.data;
@@ -66,20 +71,10 @@ export const createUser = async (userData: UserFormData): Promise<User> => {
 
 export const updateUser = async (
   userId: string,
-  userData: Omit<UserFormData, "id" | "password">,
+  userData: UpdateUserAdminPayload,
 ): Promise<User> => {
-  const payload = {
-    username: userData.username,
-    email: userData.email,
-    fullName: userData.fullName,
-    profilePictureUrl: userData.profilePictureUrl,
-    bio: userData.bio,
-    birthday: userData.birthday,
-    roles: userData.roles,
-    status: userData.status,
-  };
   try {
-    const response = await api.patch<User>(`/admin/users/${userId}`, payload);
+    const response = await api.patch<User>(`/admin/users/${userId}`, userData);
     return response.data;
   } catch (error) {
     throw new Error(getApiErrorMessage(error));
