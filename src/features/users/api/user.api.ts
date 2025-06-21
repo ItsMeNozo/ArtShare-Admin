@@ -1,5 +1,6 @@
 import axios, { AxiosError } from "axios";
 import { User, UserFormData } from "../../../types/user";
+import { UserStatus } from "../../../constants/user";
 import api from "../../../api/baseApi";
 
 export interface FetchUsersParams {
@@ -8,6 +9,7 @@ export interface FetchUsersParams {
   sortBy?: string;
   sortOrder?: "asc" | "desc";
   search?: string;
+  status?: UserStatus;
 }
 
 export interface PaginatedUsersApiResponse {

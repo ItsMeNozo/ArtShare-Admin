@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { User, UserFormData } from "../../../types/user";
+import { UserStatus } from "../../../constants/user";
 import {
   fetchUsers as apiFetchUsers,
   FetchUsersParams,
@@ -20,6 +21,7 @@ export interface UserOperations {
   currentPage: number;
   rowsPerPage: number;
   searchTerm: string;
+  statusFilter: UserStatus | "ALL";
   order: "asc" | "desc";
   orderBy: UserSortableKeys;
 
@@ -39,6 +41,7 @@ export interface UserOperations {
   handleChangePage: (newPage: number) => void;
   handleChangeRowsPerPage: (newRowsPerPage: number) => void;
   handleSearchChange: (newSearchTerm: string) => void;
+  handleStatusFilterChange: (newStatusFilter: UserStatus | "ALL") => void;
   handleSortRequest: (property: UserSortableKeys) => void;
 }
 
@@ -51,6 +54,7 @@ export const useUserOperations = (): UserOperations => {
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<UserStatus | "ALL">("ALL");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [orderBy, setOrderBy] = useState<UserSortableKeys>("createdAt");
 
@@ -69,6 +73,7 @@ export const useUserOperations = (): UserOperations => {
         sortBy: orderBy,
         sortOrder: order,
         search: debouncedSearchTerm || undefined,
+        status: statusFilter !== "ALL" ? statusFilter : undefined,
       };
       const response: PaginatedUsersApiResponse = await apiFetchUsers(params);
       setUsers(response.data);
@@ -82,7 +87,14 @@ export const useUserOperations = (): UserOperations => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, rowsPerPage, debouncedSearchTerm, order, orderBy]);
+  }, [
+    currentPage,
+    rowsPerPage,
+    debouncedSearchTerm,
+    statusFilter,
+    order,
+    orderBy,
+  ]);
 
   useEffect(() => {
     loadUsers();
@@ -192,6 +204,11 @@ export const useUserOperations = (): UserOperations => {
     setCurrentPage(0);
   };
 
+  const handleStatusFilterChange = (newStatusFilter: UserStatus | "ALL") => {
+    setStatusFilter(newStatusFilter);
+    setCurrentPage(0);
+  };
+
   const handleSortRequest = useCallback(
     (property: UserSortableKeys) => {
       const isAsc = orderBy === property && order === "asc";
@@ -210,6 +227,7 @@ export const useUserOperations = (): UserOperations => {
     currentPage,
     rowsPerPage,
     searchTerm,
+    statusFilter,
     order,
     orderBy,
     loadUsers,
@@ -222,6 +240,7 @@ export const useUserOperations = (): UserOperations => {
     handleChangePage,
     handleChangeRowsPerPage,
     handleSearchChange,
+    handleStatusFilterChange,
     handleSortRequest,
   };
 };
