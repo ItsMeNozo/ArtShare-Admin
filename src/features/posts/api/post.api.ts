@@ -1,14 +1,14 @@
 import api from "../../../api/baseApi";
 import {
   GetAllPostsAdminParams,
-  AdminPostsResponse,
+  PostsResponse,
   PostDetailsResponseDto,
   AdminUpdatePostDto,
 } from "../types/post-api.types";
 
 export const fetchAdminPosts = async (
   params: GetAllPostsAdminParams,
-): Promise<AdminPostsResponse> => {
+): Promise<PostsResponse> => {
   const queryParams: any = { ...params };
   if (params.isPublished === true) queryParams.isPublished = "true";
   else if (params.isPublished === false) queryParams.isPublished = "false";

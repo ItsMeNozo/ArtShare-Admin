@@ -10,6 +10,9 @@ import {
   useTheme,
   InputAdornment,
   CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
 } from "@mui/material";
 import {
   Delete as DeleteIcon,
@@ -25,6 +28,7 @@ import autoTable from "jspdf-autotable";
 
 import { usePostsData } from "../context/PostsDataContext";
 import { usePostsUI } from "../context/PostsUIContext";
+import { useGetCategories } from "../hooks/useCategoryQueries";
 
 interface TableToolbarProps {
   onBulkDelete: () => void;
@@ -40,6 +44,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
   const theme = useTheme();
   const { posts, tableControls } = usePostsData();
   const { selected, handleDeselectAll } = usePostsUI();
+  const { data: categories = [] } = useGetCategories();
   const [moreAnchor, setMoreAnchor] = useState<null | HTMLElement>(null);
 
   const handleMoreMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -113,6 +118,29 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
         )}
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <FormControl sx={{ minWidth: 180 }} size="small">
+            <InputLabel id="category-filter-label">Category</InputLabel>
+            <Select
+              labelId="category-filter-label"
+              id="category-filter-select"
+              value={tableControls.categoryId ?? ""}
+              label="Category"
+              onChange={(e) => {
+                const value = e.target.value;
+                tableControls.setCategoryId(value ? Number(value) : null);
+              }}
+            >
+              <MenuItem value="">
+                <em>All Categories</em>
+              </MenuItem>
+              {categories.map((category) => (
+                <MenuItem key={category.id} value={category.id}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
           <TextField
             size="small"
             variant="outlined"

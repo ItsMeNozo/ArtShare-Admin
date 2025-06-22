@@ -1,11 +1,11 @@
 import React, { createContext, useState, useContext } from "react";
-import { AdminPostListItemDto } from "../api/post.api";
 import { useDebounce } from "../../../common/hooks/useDebounce";
 import { useGetAdminPosts } from "../hooks/usePostQueries";
 import { Order } from "../../users/types";
+import { PostListItemDto } from "../types/post-api.types";
 
 interface PostsDataContextType {
-  posts: AdminPostListItemDto[];
+  posts: PostListItemDto[];
   totalPosts: number;
   isLoading: boolean;
   error: string | null;
@@ -15,7 +15,9 @@ interface PostsDataContextType {
     sortBy: string;
     sortOrder: Order;
     searchTerm: string;
+    categoryId: number | null;
     setSearchTerm: (term: string) => void;
+    setCategoryId: (id: number | null) => void;
     handleChangePage: (event: unknown, newPage: number) => void;
     handleChangePageSize: (event: React.ChangeEvent<HTMLInputElement>) => void;
     handleRequestSort: (
@@ -32,19 +34,22 @@ const PostsDataContext = createContext<PostsDataContextType | undefined>(
 export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [sortBy, setSortBy] = useState("created_at");
   const [sortOrder, setSortOrder] = useState<Order>("desc");
   const [searchTerm, setSearchTerm] = useState("");
+  const [categoryId, setCategoryId] = useState<number | null>(null);
+
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const { data, isLoading, error } = useGetAdminPosts({
-    page: page,
+    page: page + 1,
     pageSize: pageSize,
     sortBy: sortBy,
     sortOrder: sortOrder,
     searchTerm: debouncedSearchTerm,
+    categoryId: categoryId,
   });
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -65,6 +70,11 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
     setSortBy(property);
   };
 
+  const handleSetCategoryId = (id: number | null) => {
+    setCategoryId(id);
+    setPage(1);
+  };
+
   const value = {
     posts: data?.posts || [],
     totalPosts: data?.total || 0,
@@ -77,6 +87,8 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
       sortOrder,
       searchTerm,
       setSearchTerm,
+      categoryId,
+      setCategoryId: handleSetCategoryId,
       handleChangePage,
       handleChangePageSize,
       handleRequestSort,

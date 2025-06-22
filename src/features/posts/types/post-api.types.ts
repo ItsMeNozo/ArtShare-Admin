@@ -1,23 +1,28 @@
-export interface AdminPostListItemUserDto {
+export interface PostListItemUserDto {
   id: string;
   username: string;
   profile_picture_url?: string | null;
 }
 
-export interface AdminPostListItemDto {
+export interface PostCategoryDto {
+  id: number;
+  name: string;
+}
+
+export interface PostListItemDto {
   id: number;
   user_id: string;
   title: string;
   description?: string;
   thumbnail_url: string;
-  is_published: boolean;
   is_private: boolean;
   like_count: number;
   share_count: number;
   comment_count: number;
   view_count: number;
   created_at: string;
-  user: AdminPostListItemUserDto;
+  user: PostListItemUserDto;
+  categories: PostCategoryDto[];
 }
 
 export interface GetAllPostsAdminParams {
@@ -29,10 +34,11 @@ export interface GetAllPostsAdminParams {
   isPrivate?: boolean | null;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  categoryId?: number | null;
 }
 
-export interface AdminPostsResponse {
-  posts: AdminPostListItemDto[];
+export interface PostsResponse {
+  posts: PostListItemDto[];
   total: number;
 }
 

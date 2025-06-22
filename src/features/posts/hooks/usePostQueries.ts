@@ -14,7 +14,7 @@ import {
 } from "../api/post.api";
 import {
   GetAllPostsAdminParams,
-  AdminPostsResponse,
+  PostsResponse,
   PostDetailsResponseDto,
   AdminUpdatePostDto,
 } from "../types/post-api.types";
@@ -30,7 +30,7 @@ export const postKeys = {
 
 export const useGetAdminPosts = (
   params: GetAllPostsAdminParams,
-): UseQueryResult<AdminPostsResponse, Error> => {
+): UseQueryResult<PostsResponse, Error> => {
   return useQuery({
     queryKey: postKeys.list(params),
     queryFn: () => fetchAdminPosts(params),

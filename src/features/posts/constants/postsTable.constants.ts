@@ -15,7 +15,7 @@ export const headCells: ReadonlyArray<CustomHeadCell> = [
     id: "id",
     label: "ID",
     numeric: false,
-    sortable: false,
+    sortable: true,
     minWidth: 60,
     maxWidth: 80,
   },
@@ -36,6 +36,14 @@ export const headCells: ReadonlyArray<CustomHeadCell> = [
     minWidth: 180,
     cellMaxWidth: "250px",
     truncate: true,
+  },
+  {
+    id: "categories",
+    label: "Categories",
+    numeric: false,
+    sortable: false,
+    minWidth: 200,
+    align: "center",
   },
   {
     id: "created_at",

@@ -8,15 +8,16 @@ import {
   Box,
   Tooltip,
   IconButton,
+  Chip,
 } from "@mui/material";
 import { MoreVert as MoreVertIcon } from "@mui/icons-material";
 import { format } from "date-fns";
 
 import { usePostsUI } from "../context/PostsUIContext";
-import { AdminPostListItemDto } from "../types/post-api.types";
+import { PostListItemDto } from "../types/post-api.types";
 
 interface PostTableRowProps {
-  post: AdminPostListItemDto;
+  post: PostListItemDto;
 }
 
 const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
@@ -25,6 +26,15 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
 
   const isSelected = selected.includes(post.id);
   const isMenuCurrentlyOpenForThisRow = currentPostForMenu?.id === post.id;
+
+  const MAX_CATEGORIES_DISPLAY = 3;
+  const displayCategories = post.categories.slice(0, MAX_CATEGORIES_DISPLAY);
+  const hiddenCategoriesCount =
+    post.categories.length - displayCategories.length;
+  const tooltipTitle =
+    hiddenCategoriesCount > 0
+      ? post.categories.map((cat) => cat.name).join(", ")
+      : "";
 
   return (
     <TableRow
@@ -91,6 +101,42 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
             </Typography>
           </Tooltip>
         </Box>
+      </TableCell>
+
+      <TableCell align="center">
+        <Tooltip
+          title={tooltipTitle}
+          placement="top"
+          disableHoverListener={!hiddenCategoriesCount}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: 0.5,
+              pt: 0.5,
+            }}
+          >
+            {displayCategories.map((category) => (
+              <Chip key={category.id} label={category.name} size="small" />
+            ))}
+
+            {hiddenCategoriesCount > 0 && (
+              <Chip
+                label={`+${hiddenCategoriesCount}`}
+                size="small"
+                variant="outlined"
+              />
+            )}
+
+            {post.categories.length === 0 && (
+              <Typography variant="body2" color="text.secondary">
+                --
+              </Typography>
+            )}
+          </Box>
+        </Tooltip>
       </TableCell>
 
       <TableCell>

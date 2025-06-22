@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useCallback } from "react";
-import { AdminPostListItemDto } from "../api/post.api";
 import { AlertColor } from "@mui/material/Alert";
+import { PostListItemDto } from "../types/post-api.types";
 
 interface ConfirmationDialogState {
   open: boolean;
@@ -28,10 +28,10 @@ interface PostsUIContextType {
   handleDeselectAll: () => void;
 
   anchorEl: HTMLElement | null;
-  currentPostForMenu: AdminPostListItemDto | null;
+  currentPostForMenu: PostListItemDto | null;
   handleMenuOpen: (
     event: React.MouseEvent<HTMLElement>,
-    item: AdminPostListItemDto,
+    item: PostListItemDto,
   ) => void;
   handleMenuClose: () => void;
 
@@ -63,7 +63,7 @@ export const PostsUIProvider: React.FC<{ children: React.ReactNode }> = ({
   const [selected, setSelected] = useState<readonly number[]>([]);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [currentPostForMenu, setCurrentPostForMenu] =
-    useState<AdminPostListItemDto | null>(null);
+    useState<PostListItemDto | null>(null);
   const [confirmDialogState, setConfirmDialogState] =
     useState<ConfirmationDialogState>({ open: false, title: "", message: "" });
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
@@ -110,7 +110,7 @@ export const PostsUIProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const handleMenuOpen = useCallback(
-    (event: React.MouseEvent<HTMLElement>, item: AdminPostListItemDto) => {
+    (event: React.MouseEvent<HTMLElement>, item: PostListItemDto) => {
       setAnchorEl(event.currentTarget);
       setCurrentPostForMenu(item);
     },

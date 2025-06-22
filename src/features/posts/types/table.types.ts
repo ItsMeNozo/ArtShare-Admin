@@ -1,7 +1,7 @@
-export type SortableFields = "title" | "user" | "created_at";
+export type SortableFields = "id" | "title" | "user" | "created_at";
 
 export interface CustomHeadCell {
-  id: SortableFields | "id" | "actions" | "select";
+  id: SortableFields | "categories" | "actions" | "select";
   label: string;
   numeric: boolean;
   sortable: boolean;
