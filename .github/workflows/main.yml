@@ -55,7 +55,7 @@ jobs:
         uses: qltysh/qlty-action/install@main
 
       - name: Initialize Qlty configuration
-        run: qlty init --force
+        run: qlty init
 
       - name: Run Qlty quality checks
         run: |
