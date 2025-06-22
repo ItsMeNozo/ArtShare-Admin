@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useDebounce } from "./useDebounce";
+import { useDebounce } from "../../../common/hooks/useDebounce";
 import { UserSortableKeys } from "../types";
 import { useUsersQuery } from "./useUserQueries";
 

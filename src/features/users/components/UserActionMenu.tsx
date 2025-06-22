@@ -1,25 +1,25 @@
 import React from "react";
 import { Menu, MenuItem } from "@mui/material";
 import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { useUserInterface } from "../context/UserInterfaceContext";
 
 interface UserActionMenuProps {
   anchorEl: null | HTMLElement;
-  onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }
 
 export const UserActionMenu: React.FC<UserActionMenuProps> = ({
   anchorEl,
-  onClose,
   onEdit,
   onDelete,
 }) => {
+  const { handleCloseUserMenu } = useUserInterface();
   return (
     <Menu
       anchorEl={anchorEl}
       open={Boolean(anchorEl)}
-      onClose={onClose}
+      onClose={handleCloseUserMenu}
       transformOrigin={{ horizontal: "right", vertical: "top" }}
       anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
     >

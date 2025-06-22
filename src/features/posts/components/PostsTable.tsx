@@ -1,0 +1,167 @@
+import React from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Checkbox,
+  TableSortLabel,
+  CircularProgress,
+  Typography,
+  useTheme,
+} from "@mui/material";
+import AdminPostTableRow from "./PostTableRow";
+import { usePostsData } from "../context/PostsDataContext";
+import { usePostsUI } from "../context/PostsUIContext";
+import { SortableFields } from "../types/table.types";
+import { headCells } from "../constants/postsTable.constants";
+
+export const PostsTable: React.FC = () => {
+  const theme = useTheme();
+  const { posts, totalPosts, isLoading, error, tableControls } = usePostsData();
+  const { selected, handleSelectAllClick } = usePostsUI();
+
+  const postIdsOnPage = posts.map((p) => p.id);
+  const numSelectedOnPage = selected.filter((id) =>
+    postIdsOnPage.includes(id),
+  ).length;
+  const rowCountOnPage = posts.length;
+
+  return (
+    <>
+      <TableContainer>
+        <Table>
+          {/* ==================== Table Head ==================== */}
+          <TableHead
+            sx={{
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? theme.palette.grey[800]
+                  : theme.palette.grey[100],
+            }}
+          >
+            <TableRow>
+              {headCells.map((headCell) => (
+                <TableCell
+                  key={headCell.id}
+                  align={headCell.align || "left"}
+                  padding={headCell.id === "select" ? "checkbox" : "normal"}
+                  style={{
+                    minWidth: headCell.minWidth,
+                    maxWidth: headCell.maxWidth || headCell.cellMaxWidth,
+                    fontWeight: "bold",
+                  }}
+                  sortDirection={
+                    tableControls.sortBy === headCell.id
+                      ? tableControls.sortOrder
+                      : false
+                  }
+                >
+                  {headCell.id === "select" ? (
+                    <Checkbox
+                      color="primary"
+                      indeterminate={
+                        numSelectedOnPage > 0 &&
+                        numSelectedOnPage < rowCountOnPage
+                      }
+                      checked={
+                        rowCountOnPage > 0 &&
+                        numSelectedOnPage === rowCountOnPage
+                      }
+                      onChange={(e) => handleSelectAllClick(e, postIdsOnPage)}
+                      disabled={rowCountOnPage === 0}
+                      inputProps={{
+                        "aria-label": "select all posts on this page",
+                      }}
+                    />
+                  ) : headCell.sortable ? (
+                    <TableSortLabel
+                      active={tableControls.sortBy === headCell.id}
+                      direction={
+                        tableControls.sortBy === headCell.id
+                          ? tableControls.sortOrder
+                          : "asc"
+                      }
+                      onClick={(e) =>
+                        tableControls.handleRequestSort(
+                          e,
+                          headCell.id as SortableFields,
+                        )
+                      }
+                    >
+                      {headCell.label}
+                    </TableSortLabel>
+                  ) : (
+                    headCell.label
+                  )}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+
+          {/* ==================== Table Body ==================== */}
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={headCells.length}
+                  align="center"
+                  sx={{ py: 8 }}
+                >
+                  <CircularProgress sx={{ mb: 1 }} />
+                  <Typography>Loading posts...</Typography>
+                </TableCell>
+              </TableRow>
+            ) : error ? (
+              <TableRow>
+                <TableCell
+                  colSpan={headCells.length}
+                  align="center"
+                  sx={{ py: 8 }}
+                >
+                  <Typography color="error">
+                    Failed to load posts: {error}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : posts.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={headCells.length}
+                  align="center"
+                  sx={{ py: 8 }}
+                >
+                  <Typography>
+                    {tableControls.searchTerm
+                      ? "No posts found matching your search."
+                      : "No posts available."}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              posts.map((post) => (
+                <AdminPostTableRow key={post.id} post={post} />
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* ==================== Table Pagination ==================== */}
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25, 50, 100]}
+        component="div"
+        count={totalPosts}
+        rowsPerPage={tableControls.pageSize}
+        page={tableControls.page}
+        onPageChange={tableControls.handleChangePage}
+        onRowsPerPageChange={tableControls.handleChangePageSize}
+      />
+    </>
+  );
+};
+
+export default PostsTable;

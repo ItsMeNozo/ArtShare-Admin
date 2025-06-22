@@ -22,6 +22,7 @@ import { useUserForm } from "../../hooks/useUserForm";
 import { UserProfileSummary } from "./UserProfileSummary";
 import { UserForm } from "./UserForm";
 import { getSubscriptionStatusInfo } from "../../utils/userTable.utils";
+import { useUserInterface } from "../../context/UserInterfaceContext";
 
 // SnackbarAlert can be moved to a shared UI components folder if used elsewhere
 const SnackbarAlert = React.forwardRef<HTMLDivElement, AlertProps>(
@@ -32,17 +33,16 @@ const SnackbarAlert = React.forwardRef<HTMLDivElement, AlertProps>(
 
 interface UserEditViewDialogProps {
   open: boolean;
-  onClose: () => void;
   user: User | null;
   isCreatingNewUser: boolean;
 }
 
 export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
   open,
-  onClose,
   user: initialUser,
   isCreatingNewUser,
 }) => {
+  const { handleCloseUserDetailDialog } = useUserInterface();
   const [isEditing, setIsEditing] = useState(isCreatingNewUser);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -89,7 +89,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
     if (reason === "clickaway") return;
     setSnackbar((prev) => ({ ...prev, open: false }));
     if (closeDialogOnSnackbarHide) {
-      onClose();
+      handleCloseUserDetailDialog();
     }
   };
 
@@ -104,7 +104,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
     <>
       <Dialog
         open={open}
-        onClose={onClose}
+        onClose={handleCloseUserDetailDialog}
         maxWidth="lg"
         fullWidth
         scroll="body"
@@ -153,7 +153,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                     : "Save Changes"}
               </Button>
             )}
-            <IconButton onClick={onClose} sx={{ ml: 1 }}>
+            <IconButton onClick={handleCloseUserDetailDialog} sx={{ ml: 1 }}>
               <CloseIcon />
             </IconButton>
           </Box>

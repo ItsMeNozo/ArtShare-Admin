@@ -22,10 +22,8 @@ const UserManagementView: React.FC = () => {
     resetSelection,
     showPageNotification,
     handleOpenUserDetailDialog,
-    handleCloseUserDetailDialog,
     handleOpenDeleteConfirmDialog,
     userMenu,
-    handleCloseUserMenu,
     snackbar,
     handlePageSnackbarClose,
   } = useUserInterface();
@@ -109,7 +107,6 @@ const UserManagementView: React.FC = () => {
       {dialogs.editView.open && (
         <UserEditViewDialog
           open={dialogs.editView.open}
-          onClose={handleCloseUserDetailDialog}
           user={dialogs.editView.user}
           isCreatingNewUser={dialogs.editView.isCreating}
         />
@@ -117,7 +114,6 @@ const UserManagementView: React.FC = () => {
 
       <UserActionMenu
         anchorEl={userMenu.anchorEl}
-        onClose={handleCloseUserMenu}
         onEdit={() => handleOpenUserDetailDialog(userMenu.user)}
         onDelete={() => {
           if (userMenu.user) {

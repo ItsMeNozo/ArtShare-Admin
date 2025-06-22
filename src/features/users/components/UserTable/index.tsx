@@ -18,7 +18,7 @@ export const UserTable: React.FC = () => {
   const { displayUsers, loading, totalUsers, tableControls } = useUserData();
 
   return (
-    <Paper sx={{ p: 2 }}>
+    <Paper sx={{ p: 3 }}>
       <UserTableToolbar />
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
