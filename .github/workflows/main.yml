@@ -50,13 +50,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Run tests with coverage
+        run: npm run test:coverage
 
       - name: Install Qlty CLI
         uses: qltysh/qlty-action/install@main
 
-      - name: Initialize Qlty configuration
-        run: qlty init
-
+      # No init step needed - using committed .qlty/qlty.toml
+      
       - name: Run Qlty quality checks
         run: |
           qlty check --reporter github-pr-review
