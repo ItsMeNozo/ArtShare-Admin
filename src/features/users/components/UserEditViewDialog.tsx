@@ -36,6 +36,8 @@ import {
   SupervisedUserCircle as SupervisedUserCircleIcon,
   Cancel as CancelIcon,
   PowerSettingsNew as StatusIcon,
+  Block as BlockIcon,
+  CheckCircle as UnsuspendIcon,
 } from "@mui/icons-material";
 import { User, UserFormData } from "../../../types/user";
 import { PaidAccessLevel } from "../../../constants/plan";
@@ -111,7 +113,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
   onSave,
   getSubscriptionStatusInfo: getStatusInfoProp,
 }) => {
-  const { loadUsers } = useUserOperations();
+  const { loadUsers, updateUser } = useUserOperations();
   const [isEditing, setIsEditing] = useState(isCreatingNewUser);
   const [formData, setFormData] = useState<UserFormData>(
     getInitialDialogFormData(initialUser, isCreatingNewUser),
@@ -459,6 +461,76 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
     onClose();
   };
 
+  // Suspend handler
+  const handleSuspendUser = async () => {
+    if (!initialUser?.id || isCreatingNewUser) return;
+
+    try {
+      // Check if user is already suspended
+      if (initialUser.status === UserStatus.SUSPENDED) {
+        showNotification("User is already suspended.", "warning");
+        return;
+      }
+
+      // Update user status to SUSPENDED
+      const userData = {
+        username: initialUser.username,
+        email: initialUser.email,
+        fullName: initialUser.fullName,
+        profilePictureUrl: initialUser.profilePictureUrl,
+        bio: initialUser.bio,
+        birthday: initialUser.birthday,
+        roles: initialUser.roles,
+        status: UserStatus.SUSPENDED,
+      };
+
+      const updatedUser = await updateUser(initialUser.id, userData);
+      if (updatedUser) {
+        showNotification("User suspended successfully.", "success");
+        // Update the dialog's form data to reflect the change
+        setFormData((prev) => ({ ...prev, status: UserStatus.SUSPENDED }));
+      }
+    } catch (err) {
+      console.error("Suspend user failed:", err);
+      showNotification("Failed to suspend user.", "error");
+    }
+  };
+
+  // Unsuspend handler
+  const handleUnsuspendUser = async () => {
+    if (!initialUser?.id || isCreatingNewUser) return;
+
+    try {
+      // Check if user is not suspended
+      if (initialUser.status !== UserStatus.SUSPENDED) {
+        showNotification("User is not suspended.", "warning");
+        return;
+      }
+
+      // Update user status to ACTIVE
+      const userData = {
+        username: initialUser.username,
+        email: initialUser.email,
+        fullName: initialUser.fullName,
+        profilePictureUrl: initialUser.profilePictureUrl,
+        bio: initialUser.bio,
+        birthday: initialUser.birthday,
+        roles: initialUser.roles,
+        status: UserStatus.ACTIVE,
+      };
+
+      const updatedUser = await updateUser(initialUser.id, userData);
+      if (updatedUser) {
+        showNotification("User unsuspended successfully.", "success");
+        // Update the dialog's form data to reflect the change
+        setFormData((prev) => ({ ...prev, status: UserStatus.ACTIVE }));
+      }
+    } catch (err) {
+      console.error("Unsuspend user failed:", err);
+      showNotification("Failed to unsuspend user.", "error");
+    }
+  };
+
   return (
     <>
       {/* Use handleDirectClose for the Dialog's native close actions */}
@@ -512,6 +584,32 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                     ? "Create User"
                     : "Save Changes"}
               </Button>
+            )}
+            {/* Suspend/Unsuspend buttons - only show when not creating and not editing */}
+            {!isCreatingNewUser && !isEditing && initialUser && (
+              <>
+                {initialUser.status === UserStatus.SUSPENDED ? (
+                  <Button
+                    onClick={handleUnsuspendUser}
+                    startIcon={<UnsuspendIcon />}
+                    variant="outlined"
+                    color="success"
+                    sx={{ ml: 1 }}
+                  >
+                    Unsuspend
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleSuspendUser}
+                    startIcon={<BlockIcon />}
+                    variant="outlined"
+                    color="warning"
+                    sx={{ ml: 1 }}
+                  >
+                    Suspend
+                  </Button>
+                )}
+              </>
             )}
             {/* IconButton close should also use handleDirectClose */}
             <IconButton onClick={handleDirectClose} sx={{ ml: 1 }}>

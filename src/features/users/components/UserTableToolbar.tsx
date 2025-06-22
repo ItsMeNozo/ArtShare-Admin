@@ -22,12 +22,15 @@ import {
 } from "@mui/icons-material";
 import { CSVLink } from "react-csv";
 import { UserStatus } from "../../../constants/user";
+import { UserRoleType } from "../../../constants/roles";
 
 interface UserTableToolbarProps {
   searchTerm: string;
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   statusFilter: UserStatus | "ALL";
   onStatusFilterChange: (event: SelectChangeEvent<UserStatus | "ALL">) => void;
+  roleFilter: UserRoleType | "ALL";
+  onRoleFilterChange: (event: SelectChangeEvent<UserRoleType | "ALL">) => void;
   onAddUser: () => void;
   selectedIdsCount: number;
   onBulkDelete: () => void;
@@ -42,6 +45,8 @@ export const UserTableToolbar: React.FC<UserTableToolbarProps> = ({
   onSearchChange,
   statusFilter,
   onStatusFilterChange,
+  roleFilter,
+  onRoleFilterChange,
   onAddUser,
   selectedIdsCount,
   onBulkDelete,
@@ -129,6 +134,51 @@ export const UserTableToolbar: React.FC<UserTableToolbarProps> = ({
                     }}
                   />
                   Suspended
+                </Box>
+              </MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Role Filter */}
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel id="role-filter-label">Role</InputLabel>
+            <Select
+              labelId="role-filter-label"
+              id="role-filter-select"
+              value={roleFilter}
+              label="Role"
+              onChange={onRoleFilterChange}
+              sx={{
+                backgroundColor:
+                  theme.palette.mode === "dark" ? "#1f2937" : "#f9fafb",
+                borderRadius: 2,
+              }}
+            >
+              <MenuItem value="ALL">All Roles</MenuItem>
+              <MenuItem value="ADMIN">
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      backgroundColor: theme.palette.secondary.main,
+                    }}
+                  />
+                  Admin
+                </Box>
+              </MenuItem>
+              <MenuItem value="USER">
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      backgroundColor: theme.palette.grey[500],
+                    }}
+                  />
+                  User
                 </Box>
               </MenuItem>
             </Select>

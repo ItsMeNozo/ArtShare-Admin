@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { User, UserFormData } from "../../../types/user";
 import { UserStatus } from "../../../constants/user";
+import { UserRoleType } from "../../../constants/roles";
 import {
   fetchUsers as apiFetchUsers,
   FetchUsersParams,
@@ -12,6 +13,21 @@ import {
 } from "../api/user.api";
 import { useDebounce } from "./useDebounce";
 import { UserSortableKeys } from "../types";
+import { getPrimaryRole } from "../utils/userTable.utils";
+
+/**
+ * Hook for managing user operations and filtering.
+ *
+ * Backend Filter Support:
+ * - ✅ search: Full text search across user fields
+ * - ✅ sortBy/sortOrder: Server-side sorting
+ * - ✅ page/limit: Pagination
+ * - ❌ status: Client-side only until backend supports it
+ * - ❌ role: Client-side only until backend supports it
+ *
+ * Note: Status and role filters are applied client-side after fetching data.
+ * This may impact pagination accuracy and performance with large datasets.
+ */
 
 export interface UserOperations {
   users: User[];
@@ -22,6 +38,7 @@ export interface UserOperations {
   rowsPerPage: number;
   searchTerm: string;
   statusFilter: UserStatus | "ALL";
+  roleFilter: UserRoleType | "ALL";
   order: "asc" | "desc";
   orderBy: UserSortableKeys;
 
@@ -42,6 +59,7 @@ export interface UserOperations {
   handleChangeRowsPerPage: (newRowsPerPage: number) => void;
   handleSearchChange: (newSearchTerm: string) => void;
   handleStatusFilterChange: (newStatusFilter: UserStatus | "ALL") => void;
+  handleRoleFilterChange: (newRoleFilter: UserRoleType | "ALL") => void;
   handleSortRequest: (property: UserSortableKeys) => void;
 }
 
@@ -55,6 +73,7 @@ export const useUserOperations = (): UserOperations => {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<UserStatus | "ALL">("ALL");
+  const [roleFilter, setRoleFilter] = useState<UserRoleType | "ALL">("ALL");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [orderBy, setOrderBy] = useState<UserSortableKeys>("createdAt");
 
@@ -67,17 +86,39 @@ export const useUserOperations = (): UserOperations => {
     setLoading(true);
     setError(null);
     try {
+      // Note: Backend doesn't support role filtering yet, so we only send supported parameters
       const params: FetchUsersParams = {
         page: currentPage + 1,
         limit: rowsPerPage,
         sortBy: orderBy,
         sortOrder: order,
         search: debouncedSearchTerm || undefined,
-        status: statusFilter !== "ALL" ? statusFilter : undefined,
+        // status: statusFilter !== "ALL" ? statusFilter : undefined, // TODO: Uncomment when backend supports status filtering
+        // role: roleFilter !== "ALL" ? roleFilter : undefined, // TODO: Uncomment when backend supports role filtering
       };
+
       const response: PaginatedUsersApiResponse = await apiFetchUsers(params);
-      setUsers(response.data);
-      setTotalUsers(response.total);
+
+      // Apply client-side filtering for status and role until backend supports them
+      let filteredUsers = response.data;
+
+      // Client-side status filtering
+      if (statusFilter !== "ALL") {
+        filteredUsers = filteredUsers.filter(
+          (user) => user.status === statusFilter,
+        );
+      }
+
+      // Client-side role filtering
+      if (roleFilter !== "ALL") {
+        filteredUsers = filteredUsers.filter((user) => {
+          const primaryRole = getPrimaryRole(user.roles);
+          return primaryRole === roleFilter;
+        });
+      }
+
+      setUsers(filteredUsers);
+      setTotalUsers(response.total); // Keep original total for now, will be fixed when backend supports role filtering
     } catch (err: any) {
       const message = err.message || "Failed to fetch users.";
       setError(message);
@@ -92,6 +133,7 @@ export const useUserOperations = (): UserOperations => {
     rowsPerPage,
     debouncedSearchTerm,
     statusFilter,
+    roleFilter,
     order,
     orderBy,
   ]);
@@ -209,6 +251,11 @@ export const useUserOperations = (): UserOperations => {
     setCurrentPage(0);
   };
 
+  const handleRoleFilterChange = (newRoleFilter: UserRoleType | "ALL") => {
+    setRoleFilter(newRoleFilter);
+    setCurrentPage(0);
+  };
+
   const handleSortRequest = useCallback(
     (property: UserSortableKeys) => {
       const isAsc = orderBy === property && order === "asc";
@@ -228,6 +275,7 @@ export const useUserOperations = (): UserOperations => {
     rowsPerPage,
     searchTerm,
     statusFilter,
+    roleFilter,
     order,
     orderBy,
     loadUsers,
@@ -241,6 +289,7 @@ export const useUserOperations = (): UserOperations => {
     handleChangeRowsPerPage,
     handleSearchChange,
     handleStatusFilterChange,
+    handleRoleFilterChange,
     handleSortRequest,
   };
 };

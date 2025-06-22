@@ -30,6 +30,8 @@ import {
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
+  Block as BlockIcon,
+  CheckCircle as UnsuspendIcon,
   MoreVert as MoreVertIcon,
 } from "@mui/icons-material";
 import { useUserOperations } from "./hooks/useUserOperations";
@@ -39,6 +41,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { User, UserFormData } from "../../types/user";
 import { UserStatus } from "../../constants/user";
+import { UserRoleType } from "../../constants/roles";
 import {
   getSubscriptionStatusInfo,
   getCurrentEffectivePlanNameForTable,
@@ -59,6 +62,7 @@ const UserManagementPage: React.FC = () => {
     rowsPerPage,
     searchTerm,
     statusFilter,
+    roleFilter,
     deleteUser,
     bulkDeleteUsers,
     clearError,
@@ -67,6 +71,7 @@ const UserManagementPage: React.FC = () => {
     handleChangeRowsPerPage,
     handleSearchChange,
     handleStatusFilterChange,
+    handleRoleFilterChange,
     updateUser,
   } = useUserOperations();
 
@@ -288,6 +293,78 @@ const UserManagementPage: React.FC = () => {
     }
   };
 
+  // Suspend handler
+  const handleSuspendUser = async () => {
+    if (!selectedUserForMenu?.id) return;
+
+    try {
+      const currentUser = selectedUserForMenu;
+
+      // Check if user is already suspended
+      if (currentUser.status === UserStatus.SUSPENDED) {
+        showPageNotification("User is already suspended.", "warning");
+        handleCloseUserMenu();
+        return;
+      }
+
+      // Update user status to SUSPENDED
+      const userData = {
+        username: currentUser.username,
+        email: currentUser.email,
+        fullName: currentUser.fullName,
+        profilePictureUrl: currentUser.profilePictureUrl,
+        bio: currentUser.bio,
+        birthday: currentUser.birthday,
+        roles: currentUser.roles,
+        status: UserStatus.SUSPENDED,
+      };
+
+      await updateUser(currentUser.id, userData);
+      showPageNotification("User suspended successfully.", "success");
+    } catch (err) {
+      console.error("Suspend user failed:", err);
+      showPageNotification("Failed to suspend user.", "error");
+    } finally {
+      handleCloseUserMenu();
+    }
+  };
+
+  // Unsuspend handler
+  const handleUnsuspendUser = async () => {
+    if (!selectedUserForMenu?.id) return;
+
+    try {
+      const currentUser = selectedUserForMenu;
+
+      // Check if user is not suspended
+      if (currentUser.status !== UserStatus.SUSPENDED) {
+        showPageNotification("User is not suspended.", "warning");
+        handleCloseUserMenu();
+        return;
+      }
+
+      // Update user status to ACTIVE
+      const userData = {
+        username: currentUser.username,
+        email: currentUser.email,
+        fullName: currentUser.fullName,
+        profilePictureUrl: currentUser.profilePictureUrl,
+        bio: currentUser.bio,
+        birthday: currentUser.birthday,
+        roles: currentUser.roles,
+        status: UserStatus.ACTIVE,
+      };
+
+      await updateUser(currentUser.id, userData);
+      showPageNotification("User unsuspended successfully.", "success");
+    } catch (err) {
+      console.error("Unsuspend user failed:", err);
+      showPageNotification("Failed to unsuspend user.", "error");
+    } finally {
+      handleCloseUserMenu();
+    }
+  };
+
   // Notification helpers
   const showPageNotification = (message: string, severity: AlertColor) => {
     setSnackbarMessage(message);
@@ -331,6 +408,10 @@ const UserManagementPage: React.FC = () => {
         statusFilter={statusFilter}
         onStatusFilterChange={(event) =>
           handleStatusFilterChange(event.target.value as UserStatus | "ALL")
+        }
+        roleFilter={roleFilter}
+        onRoleFilterChange={(event) =>
+          handleRoleFilterChange(event.target.value as UserRoleType | "ALL")
         }
         onAddUser={() => handleOpenUserDetailDialog(null, true)}
         selectedIdsCount={selectedIds.length}
@@ -469,6 +550,21 @@ const UserManagementPage: React.FC = () => {
           <EditIcon fontSize="small" sx={{ mr: 1 }} />
           Edit
         </MenuItem>
+        {/* Conditional Suspend/Unsuspend based on current status */}
+        {selectedUserForMenu?.status === UserStatus.SUSPENDED ? (
+          <MenuItem
+            onClick={handleUnsuspendUser}
+            sx={{ color: "success.main" }}
+          >
+            <UnsuspendIcon fontSize="small" sx={{ mr: 1 }} />
+            Unsuspend User
+          </MenuItem>
+        ) : (
+          <MenuItem onClick={handleSuspendUser} sx={{ color: "warning.main" }}>
+            <BlockIcon fontSize="small" sx={{ mr: 1 }} />
+            Suspend User
+          </MenuItem>
+        )}
         <MenuItem onClick={handleOpenDeleteDialog} sx={{ color: "error.main" }}>
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
           Delete
