@@ -15,7 +15,6 @@ import {
   FormControl,
   Select,
   MenuItem,
-  Checkbox,
   ListItemText,
   OutlinedInput,
   SelectChangeEvent,
@@ -46,6 +45,7 @@ import { useUserOperations } from "../hooks/useUserOperations";
 import { signUp } from "../../auth/api/auth-api";
 import api from "../../../api/baseApi";
 import { UserStatus } from "../../../constants/user";
+import { getPrimaryRole } from "../utils/userTable.utils";
 
 interface UserEditViewDialogProps {
   open: boolean;
@@ -97,7 +97,7 @@ const getInitialDialogFormData = (
     birthday: user.birthday
       ? (new Date(user.birthday).toISOString().split("T")[0] as any)
       : undefined,
-    roles: user.roles.map((ur) => ur),
+    roles: [getPrimaryRole(user.roles)],
     password: "",
     status: user.status || UserStatus.ACTIVE,
   };
@@ -167,18 +167,13 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleRolesChange = (
-    event: SelectChangeEvent<typeof formData.roles>,
-  ) => {
+  const handleRolesChange = (event: SelectChangeEvent<string>) => {
     const {
       target: { value },
     } = event;
     setFormData((prev) => ({
       ...prev,
-      roles:
-        typeof value === "string"
-          ? (value.split(",") as Array<"ADMIN" | "USER">)
-          : (value as Array<"ADMIN" | "USER">),
+      roles: [value as UserRoleType], // Store as single-item array
     }));
   };
 
@@ -371,9 +366,8 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
       let displayValue: string;
 
       if (id === "roles") {
-        displayValue = (currentData.roles as string[])
-          .map(capitalizeFirstLetter)
-          .join(", ");
+        const primaryRole = getPrimaryRole(currentData.roles as UserRoleType[]);
+        displayValue = capitalizeFirstLetter(primaryRole);
       } else if (id === "status") {
         displayValue = capitalizeFirstLetter(currentData.status);
       } else {
@@ -660,7 +654,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                     </Grid>
 
                     {displayUser.roles &&
-                      !displayUser.roles.some((r) => r === "ADMIN") && (
+                      getPrimaryRole(displayUser.roles) !== "ADMIN" && (
                         <Grid size={{ xs: 6, md: 12 }}>
                           <Typography
                             variant="subtitle2"
@@ -695,9 +689,8 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                                     ? "Yes"
                                     : "No"}
                                 </Typography>
-                                {initialUser?.roles.some(
-                                  (r) => r === "ADMIN",
-                                ) && (
+                                {getPrimaryRole(initialUser?.roles) ===
+                                  "ADMIN" && (
                                   <>
                                     <Typography
                                       variant="body2"
@@ -784,18 +777,13 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                           mb: 0.5,
                         }}
                       >
-                        {"Roles"}
+                        {"Role"}
                       </Typography>
                       <FormControl fullWidth>
                         <Select
-                          multiple
                           name="roles"
-                          value={formData.roles}
+                          value={formData.roles[0] || "USER"}
                           onChange={handleRolesChange}
-                          input={<OutlinedInput id="roles-select-input" />}
-                          renderValue={(selected: UserRoleType[]) =>
-                            selected.join(", ")
-                          }
                           displayEmpty
                           startAdornment={
                             <SupervisedUserCircleIcon
@@ -806,9 +794,6 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                         >
                           {AVAILABLE_ROLES_FOR_SELECT.map((roleName) => (
                             <MenuItem key={roleName} value={roleName}>
-                              <Checkbox
-                                checked={formData.roles.indexOf(roleName) > -1}
-                              />
                               <ListItemText primary={roleName} />
                             </MenuItem>
                           ))}

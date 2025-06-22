@@ -43,6 +43,7 @@ import {
   getSubscriptionStatusInfo,
   getCurrentEffectivePlanNameForTable,
   getStatusChipProps,
+  getPrimaryRole,
 } from "./utils/userTable.utils";
 import { DisplayUser } from "./types";
 
@@ -116,7 +117,7 @@ const UserManagementPage: React.FC = () => {
       Username: user.username,
       FullName: user.fullName || "",
       Email: user.email,
-      Roles: user.roles?.join(" | ") || "",
+      Role: getPrimaryRole(user.roles),
       "Current Plan": user.currentPlan || "N/A",
       "Joined Date": user.createdAt
         ? new Date(user.createdAt).toLocaleDateString()
@@ -131,7 +132,7 @@ const UserManagementPage: React.FC = () => {
       user.username ?? "",
       user.fullName ?? "",
       user.email ?? "",
-      user.roles?.join(", ") || "",
+      getPrimaryRole(user.roles),
       user.currentPlan ?? "N/A",
       user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A",
     ]);
@@ -141,7 +142,7 @@ const UserManagementPage: React.FC = () => {
           "Username",
           "Full Name",
           "Email",
-          "Roles",
+          "Role",
           "Current Plan",
           "Joined Date",
         ],
@@ -365,7 +366,7 @@ const UserManagementPage: React.FC = () => {
               <TableCell>Username</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Full Name</TableCell>
-              <TableCell>Roles</TableCell>
+              <TableCell>Role</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Current Plan</TableCell>
               <TableCell>Actions</TableCell>
@@ -410,15 +411,16 @@ const UserManagementPage: React.FC = () => {
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.fullName || "-"}</TableCell>
                     <TableCell>
-                      {user.roles?.map((role) => (
-                        <Chip
-                          key={role}
-                          label={role}
-                          size="small"
-                          color={role === "ADMIN" ? "secondary" : "default"}
-                          sx={{ mr: 0.5 }}
-                        />
-                      ))}
+                      <Chip
+                        label={getPrimaryRole(user.roles)}
+                        size="small"
+                        color={
+                          getPrimaryRole(user.roles) === "ADMIN"
+                            ? "secondary"
+                            : "default"
+                        }
+                        sx={{ mr: 0.5 }}
+                      />
                     </TableCell>{" "}
                     <TableCell>
                       <Chip
