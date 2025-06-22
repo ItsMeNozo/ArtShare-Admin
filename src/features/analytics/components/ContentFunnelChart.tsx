@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   BarChart,
   Bar,
@@ -7,9 +7,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from 'recharts';
-import ChartWrapper from './ChartWrapper';
-import { BarChartDataItem } from '../analytics.types';
+} from "recharts";
+import ChartWrapper from "./ChartWrapper";
+import { BarChartDataItem } from "../analytics.types";
 
 interface ContentFunnelChartProps {
   data: BarChartDataItem[];

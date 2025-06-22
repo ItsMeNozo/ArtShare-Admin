@@ -1,5 +1,5 @@
-import React from 'react';
-import { Card, CardContent, Typography, SxProps, Theme } from '@mui/material';
+import React from "react";
+import { Card, CardContent, Typography, SxProps, Theme } from "@mui/material";
 
 interface StatCardProps {
   title: string;
@@ -16,7 +16,7 @@ const StatCard: React.FC<StatCardProps> = ({
   className,
   sx,
 }) => (
-  <Card className={`h-full border-dashed border ${className || ''}`} sx={sx}>
+  <Card className={`h-full border-dashed border ${className || ""}`} sx={sx}>
     <CardContent>
       <Typography
         variant="h6"
@@ -31,7 +31,7 @@ const StatCard: React.FC<StatCardProps> = ({
         component="p"
         className="text-[#03799e] font-bold"
       >
-        {value ?? 'N/A'}
+        {value ?? "N/A"}
       </Typography>
       {description && (
         <Typography variant="body2" color="text.secondary" className="mt-1">

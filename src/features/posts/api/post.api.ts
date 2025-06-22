@@ -1,4 +1,4 @@
-import api from '../../../api/baseApi';
+import api from "../../../api/baseApi";
 
 export interface AdminPostListItemUserDto {
   id: string;
@@ -30,7 +30,7 @@ export interface GetAllPostsAdminParams {
   isPublished?: boolean | null;
   isPrivate?: boolean | null;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 export interface AdminPostsResponse {
@@ -91,18 +91,18 @@ export const fetchAdminPosts = async (
   params: GetAllPostsAdminParams,
 ): Promise<AdminPostsResponse> => {
   const queryParams: any = { ...params };
-  if (params.isPublished === true) queryParams.isPublished = 'true';
-  else if (params.isPublished === false) queryParams.isPublished = 'false';
+  if (params.isPublished === true) queryParams.isPublished = "true";
+  else if (params.isPublished === false) queryParams.isPublished = "false";
   else delete queryParams.isPublished;
 
-  if (params.isPrivate === true) queryParams.isPrivate = 'true';
-  else if (params.isPrivate === false) queryParams.isPrivate = 'false';
+  if (params.isPrivate === true) queryParams.isPrivate = "true";
+  else if (params.isPrivate === false) queryParams.isPrivate = "false";
   else delete queryParams.isPrivate;
 
   if (queryParams.page === undefined) delete queryParams.page;
   if (queryParams.pageSize === undefined) delete queryParams.pageSize;
 
-  const { data } = await api.get('/posts/admin/all', {
+  const { data } = await api.get("/posts/admin/all", {
     params: queryParams,
   });
   return data;
@@ -131,7 +131,7 @@ export const bulkPublishAdminPosts = async (
   postIds: number[],
   publish: boolean,
 ): Promise<{ count: number }> => {
-  const { data } = await api.patch('/posts/admin/bulk-publish', {
+  const { data } = await api.patch("/posts/admin/bulk-publish", {
     postIds,
     publish,
   });
@@ -141,7 +141,7 @@ export const bulkPublishAdminPosts = async (
 export const bulkDeleteAdminPosts = async (
   postIds: number[],
 ): Promise<{ count: number }> => {
-  const { data } = await api.delete('/posts/admin/bulk-delete', {
+  const { data } = await api.delete("/posts/admin/bulk-delete", {
     data: { postIds },
   });
   return data;

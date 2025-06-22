@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogActions,
@@ -20,20 +20,20 @@ import {
   Card,
   CardActionArea,
   CardMedia,
-} from '@mui/material';
+} from "@mui/material";
 import {
   AdminUpdatePostDto,
   PostDetailsResponseDto,
   adminUpdatePost,
   fetchAdminPostDetails,
-} from '../api/post.api';
+} from "../api/post.api";
 
 const MOCK_CATEGORIES = [
-  { id: 1, name: 'Art' },
-  { id: 2, name: 'Photography' },
-  { id: 3, name: 'Digital' },
-  { id: 4, name: 'Abstract' },
-  { id: 5, name: 'Nature' },
+  { id: 1, name: "Art" },
+  { id: 2, name: "Photography" },
+  { id: 3, name: "Digital" },
+  { id: 4, name: "Abstract" },
+  { id: 5, name: "Nature" },
 ];
 
 interface AdminPostEditModalProps {
@@ -64,7 +64,7 @@ const StyledFormField: React.FC<{
   rows,
   required,
   disabled,
-  type = 'text',
+  type = "text",
 }) => (
   <Grid container direction="column" spacing={0.5} sx={{ mb: 2 }}>
     <Grid size={{ xs: 12 }}>
@@ -73,8 +73,8 @@ const StyledFormField: React.FC<{
         component="label"
         htmlFor={id}
         sx={{
-          display: 'block',
-          color: 'text.secondary',
+          display: "block",
+          color: "text.secondary",
           fontWeight: 500,
           mb: 0.5,
         }}
@@ -89,7 +89,7 @@ const StyledFormField: React.FC<{
         type={type}
         name={id}
         id={id}
-        value={value || ''}
+        value={value || ""}
         onChange={onChange}
         multiline={multiline}
         rows={multiline ? rows || 3 : 1}
@@ -129,7 +129,7 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
           setPost(data);
           setFormData({
             title: data.title,
-            description: data.description || '',
+            description: data.description || "",
           });
           setSelectedCategoryIds(data.categories.map((c) => c.id));
 
@@ -149,8 +149,8 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
           }
         })
         .catch((err) => {
-          console.error('Failed to fetch post details:', err);
-          setError('Failed to load post data.');
+          console.error("Failed to fetch post details:", err);
+          setError("Failed to load post data.");
         })
         .finally(() => setLoading(false));
     } else {
@@ -167,7 +167,7 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
   ) => {
     const target = event.target;
     const name = target.name;
-    if (target instanceof HTMLInputElement && target.type === 'checkbox') {
+    if (target instanceof HTMLInputElement && target.type === "checkbox") {
       setFormData((prev) => ({ ...prev, [name]: target.checked }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: target.value }));
@@ -179,13 +179,13 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
       target: { value },
     } = event;
     setSelectedCategoryIds(
-      typeof value === 'string' ? value.split(',').map(Number) : value,
+      typeof value === "string" ? value.split(",").map(Number) : value,
     );
   };
 
   // Parameter type is now directly the inferred type from post.medias array
   const handleThumbnailSelectionChange = (
-    media: PostDetailsResponseDto['medias'][0],
+    media: PostDetailsResponseDto["medias"][0],
   ) => {
     setSelectedMediaIdForThumbnail(media.id); // Access 'id' directly
     setCurrentDisplayThumbnailUrl(media.url);
@@ -211,8 +211,8 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
       onPostUpdated();
       onClose();
     } catch (err: any) {
-      console.error('Failed to update post:', err);
-      setError(err.response?.data?.message || 'Failed to update post.');
+      console.error("Failed to update post:", err);
+      setError(err.response?.data?.message || "Failed to update post.");
     } finally {
       setSaving(false);
     }
@@ -226,7 +226,7 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
       <form onSubmit={handleSubmit}>
         <DialogContent>
           {loading && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", my: 3 }}>
               <CircularProgress />
             </Box>
           )}
@@ -262,8 +262,8 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                     component="label"
                     htmlFor="categories-select"
                     sx={{
-                      display: 'block',
-                      color: 'text.secondary',
+                      display: "block",
+                      color: "text.secondary",
                       fontWeight: 500,
                       mb: 0.5,
                     }}
@@ -278,7 +278,7 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                     onChange={handleCategoryChange}
                     input={<OutlinedInput notched={false} size="small" />}
                     renderValue={(selected) => (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                         {(selected as number[]).map((id) => (
                           <Chip
                             key={id}
@@ -312,8 +312,8 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                   variant="caption"
                   component="div"
                   sx={{
-                    display: 'block',
-                    color: 'text.secondary',
+                    display: "block",
+                    color: "text.secondary",
                     fontWeight: 500,
                     mb: 0.5,
                   }}
@@ -323,14 +323,14 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                 <Paper
                   variant="outlined"
                   sx={{
-                    width: '100%',
-                    aspectRatio: '16/9',
-                    backgroundColor: 'grey.200',
+                    width: "100%",
+                    aspectRatio: "16/9",
+                    backgroundColor: "grey.200",
                     borderRadius: 1,
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    overflow: "hidden",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     mb: 2,
                   }}
                 >
@@ -339,13 +339,13 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                       src={currentDisplayThumbnailUrl}
                       alt="Selected Thumbnail"
                       style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
                       }}
                     />
                   ) : (
-                    <Typography sx={{ color: 'text.secondary' }}>
+                    <Typography sx={{ color: "text.secondary" }}>
                       No Thumbnail Selected
                     </Typography>
                   )}
@@ -355,8 +355,8 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                   variant="caption"
                   component="div"
                   sx={{
-                    display: 'block',
-                    color: 'text.secondary',
+                    display: "block",
+                    color: "text.secondary",
                     fontWeight: 500,
                     mb: 0.5,
                   }}
@@ -366,14 +366,14 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                 {post.medias && post.medias.length > 0 ? ( // Check post.medias itself
                   <Box
                     sx={{
-                      display: 'flex',
-                      overflowX: 'auto',
+                      display: "flex",
+                      overflowX: "auto",
                       py: 1,
                       gap: 1,
-                      border: '1px solid',
-                      borderColor: 'divider',
+                      border: "1px solid",
+                      borderColor: "divider",
                       borderRadius: 1,
-                      backgroundColor: 'action.hover',
+                      backgroundColor: "action.hover",
                     }}
                   >
                     {post.medias.map(
@@ -386,20 +386,20 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                           sx={{
                             minWidth: 100,
                             maxWidth: 100,
-                            cursor: 'pointer',
+                            cursor: "pointer",
                             border:
                               selectedMediaIdForThumbnail === media.id
-                                ? '2px solid'
-                                : '2px solid transparent',
+                                ? "2px solid"
+                                : "2px solid transparent",
                             borderColor:
                               selectedMediaIdForThumbnail === media.id
-                                ? 'primary.main'
-                                : 'transparent',
-                            transition: 'border-color 0.2s',
-                            '&:hover': {
+                                ? "primary.main"
+                                : "transparent",
+                            transition: "border-color 0.2s",
+                            "&:hover": {
                               borderColor:
                                 selectedMediaIdForThumbnail !== media.id
-                                  ? 'grey.500'
+                                  ? "grey.500"
                                   : undefined,
                             },
                           }}
@@ -410,7 +410,7 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                               height="80"
                               image={media.url}
                               alt={media.description || `Media ${media.id}`}
-                              sx={{ objectFit: 'cover' }}
+                              sx={{ objectFit: "cover" }}
                             />
                           </CardActionArea>
                         </Card>
@@ -419,7 +419,7 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                   </Box>
                 ) : (
                   <Typography
-                    sx={{ color: 'text.secondary', fontStyle: 'italic', mt: 1 }}
+                    sx={{ color: "text.secondary", fontStyle: "italic", mt: 1 }}
                   >
                     No media items available in this post.
                   </Typography>
@@ -438,7 +438,7 @@ const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
             color="primary"
             disabled={saving || loading}
           >
-            {saving ? <CircularProgress size={24} /> : 'Save Changes'}
+            {saving ? <CircularProgress size={24} /> : "Save Changes"}
           </Button>
         </DialogActions>
       </form>

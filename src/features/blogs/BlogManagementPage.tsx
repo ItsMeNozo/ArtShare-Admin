@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useMemo, useCallback, useState } from "react";
 import {
   Container,
   Typography,
@@ -7,28 +7,28 @@ import {
   Menu,
   Snackbar,
   AlertColor,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Delete as DeleteIcon,
   Visibility as VisibilityIcon,
-} from '@mui/icons-material';
-import { format } from 'date-fns';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+} from "@mui/icons-material";
+import { format } from "date-fns";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
-import ConfirmationDialog from './components/ConfirmationDialog';
-import PostTableToolbar from './components/PostTableToolbar';
+import ConfirmationDialog from "./components/ConfirmationDialog";
+import PostTableToolbar from "./components/PostTableToolbar";
 
-import { useTableSelection } from './hooks/useTableSelection';
-import { useRowActionMenu } from './hooks/useRowActionMenu';
-import { useConfirmationDialog } from './hooks/useConfirmationDialog';
-import { useAdminBlogs } from './hooks/useAdminBlogs';
+import { useTableSelection } from "./hooks/useTableSelection";
+import { useRowActionMenu } from "./hooks/useRowActionMenu";
+import { useConfirmationDialog } from "./hooks/useConfirmationDialog";
+import { useAdminBlogs } from "./hooks/useAdminBlogs";
 import {
   AdminBlogListItemDto,
   adminDeleteBlog,
   bulkDeleteAdminPosts,
-} from './api/blog.api';
-import AdminBlogsTable from './components/AdminPostsTable';
+} from "./api/blog.api";
+import AdminBlogsTable from "./components/AdminPostsTable";
 
 const BlogManagementPage: React.FC = () => {
   const {
@@ -76,15 +76,15 @@ const BlogManagementPage: React.FC = () => {
   const [actionLoading, setActionLoading] = useState(false);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] =
-    useState<AlertColor>('success');
+    useState<AlertColor>("success");
 
   const handleSnackbarClose = (
     _event?: React.SyntheticEvent | Event,
     reason?: string,
   ) => {
-    if (reason === 'clickaway') {
+    if (reason === "clickaway") {
       return;
     }
     setSnackbarOpen(false);
@@ -99,14 +99,14 @@ const BlogManagementPage: React.FC = () => {
       try {
         await bulkDeleteAdminPosts(selected);
         setSnackbarMessage(`${selected.length} blog(s) deleted successfully!`);
-        setSnackbarSeverity('success');
+        setSnackbarSeverity("success");
         setSelected([]);
         await refreshPosts();
       } catch (err) {
         const errorMsg = `Failed to delete ${selected.length} selected blog(s).`;
         setSnackbarMessage(errorMsg);
-        setSnackbarSeverity('error');
-        console.error('Bulk delete failed:', err);
+        setSnackbarSeverity("error");
+        console.error("Bulk delete failed:", err);
       } finally {
         setActionLoading(false);
         closeConfirmation();
@@ -115,7 +115,7 @@ const BlogManagementPage: React.FC = () => {
     };
 
     showConfirmation(
-      'Confirm Deletion',
+      "Confirm Deletion",
       `Are you sure you want to delete ${numSelected} selected post(s)? This action cannot be undone.`,
       performAction,
     );
@@ -130,7 +130,7 @@ const BlogManagementPage: React.FC = () => {
         try {
           await adminDeleteBlog(id);
           setSnackbarMessage(`Blog "${title}" deleted successfully!`);
-          setSnackbarSeverity('success');
+          setSnackbarSeverity("success");
           await refreshPosts();
           setSelected((prevSelected) =>
             prevSelected.filter((selId) => selId !== id),
@@ -138,7 +138,7 @@ const BlogManagementPage: React.FC = () => {
         } catch (err) {
           const errorMsg = `Failed to delete blog "${title}".`;
           setSnackbarMessage(errorMsg);
-          setSnackbarSeverity('error');
+          setSnackbarSeverity("error");
           console.error(`Delete blog ${id} failed:`, err);
         } finally {
           setActionLoading(false);
@@ -147,7 +147,7 @@ const BlogManagementPage: React.FC = () => {
         }
       };
       showConfirmation(
-        'Confirm Deletion',
+        "Confirm Deletion",
         `Are you sure you want to delete blog "${title}" (ID: ${id})? This action cannot be undone.`,
         performDelete,
       );
@@ -167,29 +167,29 @@ const BlogManagementPage: React.FC = () => {
       ID: post.id,
       Title: post.title,
       Author: post.user_id || String(post.user_id),
-      CreatedAt: format(new Date(post.created_at), 'yyyy-MM-dd HH:mm:ss'),
+      CreatedAt: format(new Date(post.created_at), "yyyy-MM-dd HH:mm:ss"),
     }));
   }, [getDataForExport]);
 
   const handleExportPDF = () => {
-    const doc = new jsPDF('landscape');
+    const doc = new jsPDF("landscape");
     const dataToExport = getDataForExport();
     const pdfData = dataToExport.map((post) => [
       post.id,
       post.title,
       String(post.user_id),
-      format(new Date(post.created_at), 'MMM dd, yyyy HH:mm'),
+      format(new Date(post.created_at), "MMM dd, yyyy HH:mm"),
     ]);
     autoTable(doc, {
-      head: [['ID', 'Title', 'Author', 'Created At']],
+      head: [["ID", "Title", "Author", "Created At"]],
       body: pdfData,
       startY: 20,
       didDrawPage: (data) => {
         doc.setFontSize(16);
-        doc.text('Admin Blogs Report', data.settings.margin.left, 15);
+        doc.text("Admin Blogs Report", data.settings.margin.left, 15);
       },
     });
-    doc.save('admin-posts-report.pdf');
+    doc.save("admin-posts-report.pdf");
   };
 
   const postIdsOnPage = useMemo(() => blogs.map((p) => p.id), [blogs]);
@@ -258,7 +258,7 @@ const BlogManagementPage: React.FC = () => {
         open={menuOpen}
         onClose={handleMenuClose}
         MenuListProps={{
-          'aria-labelledby': currentPostForMenu
+          "aria-labelledby": currentPostForMenu
             ? `actions-button-for-post-${currentPostForMenu.id}`
             : undefined,
         }}
@@ -266,10 +266,10 @@ const BlogManagementPage: React.FC = () => {
         {currentPostForMenu && (
           <MenuItem
             onClick={() => {
-              const userUrl = import.meta.env.VITE_FE_USER_URL || '';
+              const userUrl = import.meta.env.VITE_FE_USER_URL || "";
               window.open(
                 `${userUrl}/blogs/${currentPostForMenu.id}`,
-                '_blank',
+                "_blank",
               );
               handleMenuClose();
             }}
@@ -279,7 +279,7 @@ const BlogManagementPage: React.FC = () => {
         )}
         <MenuItem
           onClick={handleDeletePostFromMenu}
-          sx={{ color: 'error.main' }}
+          sx={{ color: "error.main" }}
         >
           <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} /> Delete
         </MenuItem>
@@ -321,13 +321,13 @@ const BlogManagementPage: React.FC = () => {
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert
           onClose={handleSnackbarClose}
           severity={snackbarSeverity}
           variant="filled"
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
           {snackbarMessage}
         </Alert>

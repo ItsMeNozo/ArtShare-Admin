@@ -4,7 +4,7 @@ import {
   PostsByCategory,
   PlatformWideStats,
   TimeSeriesData,
-} from '../../types/analytics';
+} from "../../types/analytics";
 
 export interface AnalyticsData {
   userStats?: OverallUserStats;
