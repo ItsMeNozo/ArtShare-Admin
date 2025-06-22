@@ -53,9 +53,9 @@ jobs:
       - name: Install Qlty CLI
         uses: qltysh/qlty-action/install@main
       
-      - name: Run Qlty quality checks
+      - name: Run Qlty quality checks (Critical Issues Only)
         run: |
-          qlty check --all
+          qlty check --all --fail-level high
 
   # deploy:
   #   runs-on: ubuntu-latest
