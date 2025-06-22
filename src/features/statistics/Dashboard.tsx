@@ -758,61 +758,6 @@ export default function StatisticDashboardPage() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <Card>
-                    <CardHeader
-                      title={
-                        <Typography variant="subtitle1" fontWeight={600}>
-                          Trending Prompts
-                        </Typography>
-                      }
-                    />
-                    <CardContent>
-                      {(processedStats.prompts ?? [])
-                        .slice(0, 5)
-                        .map(
-                          (p: {
-                            idx: React.Key | null | undefined;
-                            prompt:
-                              | string
-                              | number
-                              | bigint
-                              | boolean
-                              | React.ReactElement<
-                                  unknown,
-                                  string | React.JSXElementConstructor<any>
-                                >
-                              | Iterable<React.ReactNode>
-                              | React.ReactPortal
-                              | Promise<
-                                  | string
-                                  | number
-                                  | bigint
-                                  | boolean
-                                  | React.ReactPortal
-                                  | React.ReactElement<
-                                      unknown,
-                                      string | React.JSXElementConstructor<any>
-                                    >
-                                  | Iterable<React.ReactNode>
-                                  | null
-                                  | undefined
-                                >
-                              | null
-                              | undefined;
-                          }) => (
-                            <Typography
-                              key={p.idx}
-                              variant="body2"
-                              gutterBottom
-                            >
-                              • {p.prompt}
-                            </Typography>
-                          ),
-                        )}
-                    </CardContent>
-                  </Card>
-                </Grid>
               </Grid>
             </Grid>
 
