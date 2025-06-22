@@ -13,6 +13,24 @@ import {
 } from "../../../constants/plan";
 import { User } from "../../../types/user";
 import { UserStatus } from "../../../constants/user";
+import { UserRoleType } from "../../../constants/roles";
+
+/**
+ * Utility function to get the primary role from an array of roles.
+ * Admin takes priority over user roles.
+ */
+export function getPrimaryRole(
+  roles: UserRoleType[] | string[] | undefined,
+): UserRoleType {
+  if (!roles || roles.length === 0) return "USER";
+
+  // Admin takes priority over user
+  if (roles.includes("ADMIN")) return "ADMIN";
+  if (roles.includes("USER")) return "USER";
+
+  // Default to first role if none of the expected roles are found
+  return roles[0] as UserRoleType;
+}
 
 export function getPlanDisplayName(
   planId: PaidAccessLevel | string | null | undefined,

@@ -1,39 +1,50 @@
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useMemo, useCallback, useState } from "react";
 import {
-  Container,
   Typography,
   Alert,
   MenuItem,
   Menu,
   Snackbar,
   AlertColor,
-} from '@mui/material';
+  Paper,
+  Box,
+  useTheme,
+  TextField,
+  Button,
+  Stack,
+  InputAdornment,
+  CircularProgress,
+} from "@mui/material";
 import {
   Delete as DeleteIcon,
   Edit as EditIcon,
   Visibility as VisibilityIcon,
-} from '@mui/icons-material';
-import { format } from 'date-fns';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+  Search as SearchIcon,
+  UndoOutlined as UndoOutlinedIcon,
+  MoreVertOutlined as MoreVertOutlinedIcon,
+} from "@mui/icons-material";
+import { format } from "date-fns";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { CSVLink } from "react-csv";
 
 import {
   bulkDeleteAdminPosts,
   AdminPostListItemDto,
   adminDeletePost,
-} from './api/post.api';
-import ConfirmationDialog from './components/ConfirmationDialog';
-import AdminPostEditModal from './components/AdminPostEditModal';
-import PostTableToolbar from './components/PostTableToolbar';
-import AdminPostsTable from './components/AdminPostsTable';
+} from "./api/post.api";
+import ConfirmationDialog from "./components/ConfirmationDialog";
+import AdminPostEditModal from "./components/AdminPostEditModal";
+import AdminPostsTable from "./components/AdminPostsTable";
 
-import { useAdminPosts } from './hooks/useAdminPosts';
-import { useTableSelection } from './hooks/useTableSelection';
-import { useRowActionMenu } from './hooks/useRowActionMenu';
-import { useConfirmationDialog } from './hooks/useConfirmationDialog';
-import { useEditModal } from './hooks/useEditModal';
+import { useAdminPosts } from "./hooks/useAdminPosts";
+import { useTableSelection } from "./hooks/useTableSelection";
+import { useRowActionMenu } from "./hooks/useRowActionMenu";
+import { useConfirmationDialog } from "./hooks/useConfirmationDialog";
+import { useEditModal } from "./hooks/useEditModal";
 
 const AdminPostsPage: React.FC = () => {
+  const theme = useTheme();
   const {
     posts,
     totalPosts,
@@ -84,17 +95,26 @@ const AdminPostsPage: React.FC = () => {
   } = useEditModal<number>();
 
   const [actionLoading, setActionLoading] = useState(false);
+  const [moreAnchor, setMoreAnchor] = useState<null | HTMLElement>(null);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] =
-    useState<AlertColor>('success');
+    useState<AlertColor>("success");
+
+  const handleMoreMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setMoreAnchor(event.currentTarget);
+  };
+
+  const handleMoreMenuClose = () => {
+    setMoreAnchor(null);
+  };
 
   const handleSnackbarClose = (
     _event?: React.SyntheticEvent | Event,
     reason?: string,
   ) => {
-    if (reason === 'clickaway') {
+    if (reason === "clickaway") {
       return;
     }
     setSnackbarOpen(false);
@@ -109,14 +129,14 @@ const AdminPostsPage: React.FC = () => {
       try {
         await bulkDeleteAdminPosts(selected);
         setSnackbarMessage(`${selected.length} post(s) deleted successfully!`);
-        setSnackbarSeverity('success');
+        setSnackbarSeverity("success");
         setSelected([]);
         await refreshPosts();
       } catch (err) {
         const errorMsg = `Failed to delete ${selected.length} selected post(s).`;
         setSnackbarMessage(errorMsg);
-        setSnackbarSeverity('error');
-        console.error('Bulk delete failed:', err);
+        setSnackbarSeverity("error");
+        console.error("Bulk delete failed:", err);
       } finally {
         setActionLoading(false);
         closeConfirmation();
@@ -125,7 +145,7 @@ const AdminPostsPage: React.FC = () => {
     };
 
     showConfirmation(
-      'Confirm Deletion',
+      "Confirm Deletion",
       `Are you sure you want to delete ${numSelected} selected post(s)? This action cannot be undone.`,
       performAction,
     );
@@ -147,7 +167,7 @@ const AdminPostsPage: React.FC = () => {
         try {
           await adminDeletePost(id);
           setSnackbarMessage(`Post "${title}" deleted successfully!`);
-          setSnackbarSeverity('success');
+          setSnackbarSeverity("success");
           await refreshPosts();
           setSelected((prevSelected) =>
             prevSelected.filter((selId) => selId !== id),
@@ -155,7 +175,7 @@ const AdminPostsPage: React.FC = () => {
         } catch (err) {
           const errorMsg = `Failed to delete post "${title}".`;
           setSnackbarMessage(errorMsg);
-          setSnackbarSeverity('error');
+          setSnackbarSeverity("error");
           console.error(`Delete post ${id} failed:`, err);
         } finally {
           setActionLoading(false);
@@ -164,7 +184,7 @@ const AdminPostsPage: React.FC = () => {
         }
       };
       showConfirmation(
-        'Confirm Deletion',
+        "Confirm Deletion",
         `Are you sure you want to delete post "${title}" (ID: ${id})? This action cannot be undone.`,
         performDelete,
       );
@@ -184,65 +204,194 @@ const AdminPostsPage: React.FC = () => {
       ID: post.id,
       Title: post.title,
       Author: post.user.username || String(post.user_id),
-      CreatedAt: format(new Date(post.created_at), 'yyyy-MM-dd HH:mm:ss'),
+      CreatedAt: format(new Date(post.created_at), "yyyy-MM-dd HH:mm:ss"),
     }));
   }, [getDataForExport]);
 
   const handleExportPDF = () => {
-    const doc = new jsPDF('landscape');
+    const doc = new jsPDF("landscape");
     const dataToExport = getDataForExport();
     const pdfData = dataToExport.map((post) => [
       post.id,
       post.title,
       post.user.username || String(post.user_id),
-      format(new Date(post.created_at), 'MMM dd, yyyy HH:mm'),
+      format(new Date(post.created_at), "MMM dd, yyyy HH:mm"),
     ]);
     autoTable(doc, {
-      head: [['ID', 'Title', 'Author', 'Created At']],
+      head: [["ID", "Title", "Author", "Created At"]],
       body: pdfData,
       startY: 20,
       didDrawPage: (data) => {
         doc.setFontSize(16);
-        doc.text('Admin Posts Report', data.settings.margin.left, 15);
+        doc.text("Admin Posts Report", data.settings.margin.left, 15);
       },
     });
-    doc.save('admin-posts-report.pdf');
+    doc.save("admin-posts-report.pdf");
   };
 
   const postIdsOnPage = useMemo(() => posts.map((p) => p.id), [posts]);
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 3 }}>
-        Admin - Post Management
-      </Typography>
+    <Paper
+      sx={{
+        p: 3,
+        m: 2,
+        backgroundColor:
+          theme.palette.mode === "dark"
+            ? theme.palette.background.paper
+            : "#ffffff",
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 2,
+          mb: 2,
+        }}
+      >
+        <Typography variant="h5" component="h1" fontWeight="bold">
+          Post Management
+        </Typography>
+
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center", ml: "auto" }}>
+          {/* Search Filter */}
+          <TextField
+            size="small"
+            variant="outlined"
+            placeholder="Search posts..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{
+              width: 250,
+              backgroundColor:
+                theme.palette.mode === "dark" ? "#1f2937" : "#f9fafb",
+              borderRadius: 2,
+              "& input": {
+                px: 1.5,
+                py: 1,
+              },
+            }}
+            InputProps={{
+              sx: { fontSize: 14 },
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon
+                    fontSize="small"
+                    sx={{ color: "text.secondary" }}
+                  />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+      </Box>
+
       {fetchError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {fetchError}
         </Alert>
       )}
-      {/* 
-        Removed actionError Alert as Snackbar will handle this feedback for delete operations
-        {actionError && (
-          <Alert
-            severity="error"
-            sx={{ mb: 2 }}
-            onClose={() => setActionError(null)}
+
+      {/* Selection Toolbar - Only shown when posts are selected */}
+      {numSelected > 0 && (
+        <Box
+          sx={{
+            mb: 2,
+            px: 2,
+            py: 1.5,
+            borderRadius: 2,
+            backgroundColor:
+              theme.palette.mode === "dark" ? "#d1d5db" : "#e5e7eb",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Typography
+            sx={{
+              color: theme.palette.mode === "dark" ? "#000" : "#333",
+            }}
           >
-            {actionError}
-          </Alert>
-        )} 
-      */}
-      <PostTableToolbar
-        searchTerm={searchTerm}
-        onSearchChange={(e) => setSearchTerm(e.target.value)}
-        selectedPostsCount={numSelected}
-        onBulkDelete={handleBulkDelete}
-        onDeselectAll={handleDeselectAll}
-        onExportPDF={handleExportPDF}
-        csvFormattedData={csvFormattedData}
-        isActionLoading={actionLoading}
-      />
+            {numSelected} selected from {totalPosts}
+          </Typography>
+
+          <Stack direction="row" spacing={1}>
+            <Button
+              startIcon={<DeleteIcon />}
+              color="error"
+              variant="contained"
+              onClick={handleBulkDelete}
+              disabled={actionLoading}
+              sx={{ textTransform: "none" }}
+            >
+              {actionLoading ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                "Delete"
+              )}
+            </Button>
+
+            <Button
+              onClick={handleDeselectAll}
+              startIcon={<UndoOutlinedIcon />}
+              sx={{ textTransform: "none" }}
+            >
+              Deselect all
+            </Button>
+
+            {/* More menu */}
+            <Button
+              variant="outlined"
+              startIcon={<MoreVertOutlinedIcon />}
+              onClick={handleMoreMenuOpen}
+              sx={{ textTransform: "none" }}
+            >
+              More
+            </Button>
+
+            <Menu
+              anchorEl={moreAnchor}
+              open={Boolean(moreAnchor)}
+              onClose={handleMoreMenuClose}
+            >
+              <MenuItem onClick={handleMoreMenuClose}>
+                <CSVLink
+                  data={csvFormattedData}
+                  headers={[
+                    { label: "ID", key: "ID" },
+                    { label: "Title", key: "Title" },
+                    { label: "Author", key: "Author" },
+                    { label: "Created At", key: "CreatedAt" },
+                  ]}
+                  filename="posts.csv"
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    width: "100%",
+                    display: "block",
+                  }}
+                  target="_blank"
+                >
+                  Export CSV
+                </CSVLink>
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleExportPDF();
+                  handleMoreMenuClose();
+                }}
+              >
+                Export PDF
+              </MenuItem>
+            </Menu>
+          </Stack>
+        </Box>
+      )}
+
+      {/* Add spacing between header and table */}
       <AdminPostsTable
         posts={posts}
         loading={loading}
@@ -275,7 +424,7 @@ const AdminPostsPage: React.FC = () => {
         open={menuOpen}
         onClose={handleMenuClose}
         MenuListProps={{
-          'aria-labelledby': currentPostForMenu
+          "aria-labelledby": currentPostForMenu
             ? `actions-button-for-post-${currentPostForMenu.id}`
             : undefined,
         }}
@@ -286,10 +435,10 @@ const AdminPostsPage: React.FC = () => {
         {currentPostForMenu && (
           <MenuItem
             onClick={() => {
-              const userUrl = import.meta.env.VITE_FE_USER_URL || '';
+              const userUrl = import.meta.env.VITE_FE_USER_URL || "";
               window.open(
                 `${userUrl}/posts/${currentPostForMenu.id}`,
-                '_blank',
+                "_blank",
               );
               handleMenuClose();
             }}
@@ -299,7 +448,7 @@ const AdminPostsPage: React.FC = () => {
         )}
         <MenuItem
           onClick={handleDeletePostFromMenu}
-          sx={{ color: 'error.main' }}
+          sx={{ color: "error.main" }}
         >
           <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} /> Delete
         </MenuItem>
@@ -329,8 +478,8 @@ const AdminPostsPage: React.FC = () => {
             closeEditModal();
             await refreshPosts();
 
-            setSnackbarMessage('Post updated successfully!');
-            setSnackbarSeverity('success');
+            setSnackbarMessage("Post updated successfully!");
+            setSnackbarSeverity("success");
             setSnackbarOpen(true);
           }}
         />
@@ -341,18 +490,18 @@ const AdminPostsPage: React.FC = () => {
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert
           onClose={handleSnackbarClose}
           severity={snackbarSeverity}
           variant="filled"
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </Container>
+    </Paper>
   );
 };
 

@@ -155,6 +155,11 @@ const ReportManagementPage: React.FC = () => {
               value={statusFilter}
               label="Filter by Status"
               onChange={handleStatusFilterChange}
+              sx={{
+                backgroundColor:
+                  theme.palette.mode === "dark" ? "#1f2937" : "#f9fafb",
+                borderRadius: 2,
+              }}
             >
               <MenuItem value="">
                 <em>All Statuses</em>
@@ -162,7 +167,24 @@ const ReportManagementPage: React.FC = () => {
               {(Object.keys(statusDisplayInfo) as ReportStatus[]).map(
                 (statusKey) => (
                   <MenuItem key={statusKey} value={statusKey}>
-                    {statusDisplayInfo[statusKey].label}
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: "50%",
+                          backgroundColor:
+                            statusKey === "RESOLVED"
+                              ? theme.palette.success.main
+                              : statusKey === "PENDING"
+                                ? theme.palette.warning.main
+                                : statusKey === "DISMISSED"
+                                  ? theme.palette.grey[500]
+                                  : theme.palette.grey[500],
+                        }}
+                      />
+                      {statusDisplayInfo[statusKey].label}
+                    </Box>
                   </MenuItem>
                 ),
               )}
