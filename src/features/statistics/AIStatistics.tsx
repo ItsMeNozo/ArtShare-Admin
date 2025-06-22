@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -19,7 +19,7 @@ import {
   ImageListItem,
   ImageListItemBar,
   Badge,
-} from "@mui/material";
+} from '@mui/material';
 import {
   AutoAwesome as AutoAwesomeIcon,
   AddPhotoAlternate as AddPhotoAlternateIcon,
@@ -28,35 +28,35 @@ import {
   AspectRatio as AspectRatioIcon,
   Palette as PaletteIcon,
   ThumbUp as ThumbUpIcon,
-} from "@mui/icons-material";
+} from '@mui/icons-material';
 import {
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
   Tooltip as RechartsTooltip,
-} from "recharts";
-import { format, subDays, isAfter, parseISO } from "date-fns";
-import api from "../../api/baseApi";
+} from 'recharts';
+import { format, subDays, isAfter, parseISO } from 'date-fns';
+import api from '../../api/baseApi';
 
 /* -------------------- 1. Theme -------------------- */
 const theme = createTheme({
   palette: {
-    mode: "light",
-    primary: { main: "#0062d2" },
-    background: { default: "#f0f4f9", paper: "#ffffff" },
+    mode: 'light',
+    primary: { main: '#0062d2' },
+    background: { default: '#f0f4f9', paper: '#ffffff' },
   },
   shape: { borderRadius: 16 },
-  typography: { fontFamily: "Inter, sans-serif" },
+  typography: { fontFamily: 'Inter, sans-serif' },
 });
 
 const CHART_COLORS = [
-  "#0062d2",
-  "#29b6f6",
-  "#66bb6a",
-  "#ffa726",
-  "#ef5350",
-  "#ab47bc",
+  '#0062d2',
+  '#29b6f6',
+  '#66bb6a',
+  '#ffa726',
+  '#ef5350',
+  '#ab47bc',
 ];
 
 /** @typedef {"all"|"last7"} TimeFilter */
@@ -64,18 +64,18 @@ const CHART_COLORS = [
 const useFilteredData = <T extends { [key: string]: any } = any>(
   data: T[] | undefined,
   filter: unknown,
-  dateKey = "originalDate",
+  dateKey = 'originalDate',
 ) =>
   useMemo(() => {
     if (!Array.isArray(data)) return [];
-    if (filter === "all") return data;
+    if (filter === 'all') return data;
     const start = subDays(new Date(), 7);
     return data.filter((d) => isAfter(d[dateKey], start));
   }, [data, filter, dateKey]);
 
 type TimeToggleProps = {
-  value: "all" | "last7";
-  onChange: (value: "all" | "last7") => void;
+  value: 'all' | 'last7';
+  onChange: (value: 'all' | 'last7') => void;
 };
 
 const TimeToggle = ({ value, onChange }: TimeToggleProps) => (
@@ -97,8 +97,8 @@ type SummaryTileProps = {
 };
 
 const SummaryTile = ({ icon, label, value }: SummaryTileProps) => (
-  <Card sx={{ p: 3, textAlign: "center" }}>
-    <Avatar sx={{ mb: 1, bgcolor: "primary.main", mx: "auto" }}>{icon}</Avatar>
+  <Card sx={{ p: 3, textAlign: 'center' }}>
+    <Avatar sx={{ mb: 1, bgcolor: 'primary.main', mx: 'auto' }}>{icon}</Avatar>
     <Typography variant="h5" fontWeight={700}>
       {value.toLocaleString()}
     </Typography>
@@ -115,7 +115,7 @@ type PieCardProps = {
 };
 
 const PieCard = ({ title, data, colorOffset = 0 }: PieCardProps) => (
-  <Card sx={{ height: "100%" }}>
+  <Card sx={{ height: '100%' }}>
     <CardHeader title={<Typography variant="subtitle1">{title}</Typography>} />
     <CardContent>
       <Box sx={{ height: 260 }}>
@@ -171,12 +171,12 @@ type AnalyticsData = {
 export default function StatisticDashboardPage() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "last7">("all");
+  const [filter, setFilter] = useState<'all' | 'last7'>('all');
 
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await api.get("/statistics");
+        const { data } = await api.get('/statistics');
         setAnalytics(data);
       } catch (e) {
         console.error(e);
@@ -189,16 +189,16 @@ export default function StatisticDashboardPage() {
   const processed = useMemo(() => {
     if (!analytics) return {};
     const now = new Date();
-    const nowStr = format(now, "yyyy-MM-dd");
+    const nowStr = format(now, 'yyyy-MM-dd');
 
     const single = (key: string) => [
       { count: analytics[key]?.[0]?.count || 0, date: nowStr },
     ];
 
     return {
-      postsCount: single("posts_by_ai")[0].count,
-      imagesCount: single("total_ai_images")[0].count,
-      tokensCount: single("token_usage")[0].count,
+      postsCount: single('posts_by_ai')[0].count,
+      imagesCount: single('total_ai_images')[0].count,
+      tokensCount: single('token_usage')[0].count,
       styles:
         analytics.styles?.map((d) => ({ name: d.key, count: d.count })) || [],
       ratios:
@@ -223,10 +223,10 @@ export default function StatisticDashboardPage() {
     return (
       <Box
         sx={{
-          height: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
         }}
       >
         <CircularProgress />
@@ -237,14 +237,14 @@ export default function StatisticDashboardPage() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 6 }}>
+      <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 6 }}>
         <Container maxWidth="xl">
           {/* Header */}
           <Box
             sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
               mb: 3,
             }}
           >
@@ -311,7 +311,7 @@ export default function StatisticDashboardPage() {
                   title={
                     <Typography variant="subtitle1">
                       Top 5 AI Posts (
-                      {filter === "last7" ? "7 Days" : "All‑time"})
+                      {filter === 'last7' ? '7 Days' : 'All‑time'})
                     </Typography>
                   }
                 />
@@ -323,32 +323,32 @@ export default function StatisticDashboardPage() {
                       sx={{
                         m: 0,
                         height: 350, // Increased height
-                        "& .MuiImageListItem-root": {
-                          position: "relative",
+                        '& .MuiImageListItem-root': {
+                          position: 'relative',
                           borderRadius: 2,
-                          overflow: "hidden",
+                          overflow: 'hidden',
                         },
-                        "& .MuiImageListItemBar-root": {
-                          position: "absolute",
+                        '& .MuiImageListItemBar-root': {
+                          position: 'absolute',
                           bottom: 0,
                           left: 0,
                           right: 0,
                           background:
-                            "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 50%, rgba(0,0,0,0.3) 80%, rgba(0,0,0,0) 100%)",
-                          paddingRight: "65px !important", // More space for like button
-                          paddingLeft: "12px !important",
-                          paddingTop: "12px !important",
-                          paddingBottom: "12px !important",
-                          minHeight: "80px", // More height for text
-                          "& .MuiImageListItemBar-actionIcon": {
-                            position: "absolute",
+                            'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 50%, rgba(0,0,0,0.3) 80%, rgba(0,0,0,0) 100%)',
+                          paddingRight: '65px !important', // More space for like button
+                          paddingLeft: '12px !important',
+                          paddingTop: '12px !important',
+                          paddingBottom: '12px !important',
+                          minHeight: '80px', // More height for text
+                          '& .MuiImageListItemBar-actionIcon': {
+                            position: 'absolute',
                             top: 8,
                             right: 12,
                           },
-                          "& .MuiImageListItemBar-titleWrap": {
-                            paddingRight: "65px !important",
-                            paddingLeft: "0 !important",
-                            paddingTop: "4px !important",
+                          '& .MuiImageListItemBar-titleWrap': {
+                            paddingRight: '65px !important',
+                            paddingLeft: '0 !important',
+                            paddingTop: '4px !important',
                           },
                         },
                       }}
@@ -357,7 +357,7 @@ export default function StatisticDashboardPage() {
                         <ImageListItem
                           key={post.id}
                           sx={{
-                            position: "relative",
+                            position: 'relative',
                           }}
                         >
                           <img
@@ -365,9 +365,9 @@ export default function StatisticDashboardPage() {
                             alt={post.title}
                             loading="lazy"
                             style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
                             }}
                           />
                           <ImageListItemBar
@@ -376,16 +376,16 @@ export default function StatisticDashboardPage() {
                                 <Typography
                                   variant="caption"
                                   sx={{
-                                    color: "#fff",
-                                    fontSize: "0.8rem", // Slightly larger text
+                                    color: '#fff',
+                                    fontSize: '0.8rem', // Slightly larger text
                                     lineHeight: 1.4,
-                                    display: "-webkit-box",
+                                    display: '-webkit-box',
                                     WebkitLineClamp: 3, // Allow up to 3 lines
-                                    WebkitBoxOrient: "vertical",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    maxHeight: "3.6em", // Space for 3 lines
-                                    wordBreak: "break-word",
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    maxHeight: '3.6em', // Space for 3 lines
+                                    wordBreak: 'break-word',
                                     fontWeight: 500,
                                   }}
                                 >
@@ -397,43 +397,43 @@ export default function StatisticDashboardPage() {
                               <Typography
                                 variant="caption"
                                 sx={{
-                                  color: "#fff",
-                                  fontSize: "0.7rem",
+                                  color: '#fff',
+                                  fontSize: '0.7rem',
                                   opacity: 0.9,
-                                  marginTop: "2px",
+                                  marginTop: '2px',
                                 }}
                               >
-                                {format(parseISO(post.created_at), "MMM d")}
+                                {format(parseISO(post.created_at), 'MMM d')}
                               </Typography>
                             }
                             actionIcon={
-                              <Box sx={{ position: "relative" }}>
+                              <Box sx={{ position: 'relative' }}>
                                 <Badge
                                   badgeContent={post.like_count}
                                   showZero
                                   sx={{
                                     mr: 0.5,
-                                    "& .MuiBadge-badge": {
-                                      fontSize: "0.7rem", // Smaller badge text
-                                      minWidth: "20px",
-                                      height: "20px",
-                                      backgroundColor: "#ff1744",
-                                      color: "#fff",
-                                      fontWeight: "bold",
-                                      border: "1.5px solid #fff",
-                                      boxShadow: "0 1px 6px rgba(0,0,0,0.4)",
+                                    '& .MuiBadge-badge': {
+                                      fontSize: '0.7rem', // Smaller badge text
+                                      minWidth: '20px',
+                                      height: '20px',
+                                      backgroundColor: '#ff1744',
+                                      color: '#fff',
+                                      fontWeight: 'bold',
+                                      border: '1.5px solid #fff',
+                                      boxShadow: '0 1px 6px rgba(0,0,0,0.4)',
                                       zIndex: 10,
                                       transform:
-                                        "scale(1) translate(50%, -50%)",
+                                        'scale(1) translate(50%, -50%)',
                                     },
                                   }}
                                 >
                                   <ThumbUpIcon
                                     sx={{
-                                      color: "#fff",
+                                      color: '#fff',
                                       fontSize: 18, // Smaller icon
                                       filter:
-                                        "drop-shadow(1px 1px 3px rgba(0,0,0,0.8))",
+                                        'drop-shadow(1px 1px 3px rgba(0,0,0,0.8))',
                                     }}
                                   />
                                 </Badge>
@@ -444,7 +444,7 @@ export default function StatisticDashboardPage() {
                       ))}
                     </ImageList>
                   ) : (
-                    <Box sx={{ textAlign: "center", py: 4 }}>
+                    <Box sx={{ textAlign: 'center', py: 4 }}>
                       <Typography variant="body2" color="text.secondary">
                         No posts found for the selected time period.
                       </Typography>

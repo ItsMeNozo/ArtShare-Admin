@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Stack,
   Menu,
@@ -27,16 +27,16 @@ import {
   Chip,
   CircularProgress,
   Alert,
-  Grid,
   Avatar,
   useTheme,
   Checkbox,
-} from "@mui/material";
+  SelectChangeEvent,
+} from '@mui/material';
 // csv
-import { CSVLink } from "react-csv";
+import { CSVLink } from 'react-csv';
 // pdf
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 import {
   AddCircleOutline as AddIcon,
@@ -46,17 +46,17 @@ import {
   Close as CloseIcon,
   UndoOutlined,
   MoreVertOutlined,
-} from "@mui/icons-material";
-import { format } from "date-fns"; // For date formatting
-import type { Category, CategoryType } from "../../types/category";
-import { CategoryTypeValues } from "../../types/category";
+} from '@mui/icons-material';
+import { format } from 'date-fns'; // For date formatting
+import type { Category, CategoryType } from '../../types/category';
+import { CategoryTypeValues } from '../../types/category';
 import {
   // Import your new API functions
   fetchCategories as fetchCategoriesAPI,
   addCategory as addCategoryAPI,
   updateCategory as updateCategoryAPI,
   deleteCategory as deleteCategoryAPI,
-} from "./categoryAPI"; // Adjust the import path as necessary
+} from './categoryAPI'; // Adjust the import path as necessary
 
 const CategoryManagementPage: React.FC = () => {
   const theme = useTheme();
@@ -64,13 +64,18 @@ const CategoryManagementPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState<CategoryType | 'ALL'>('ALL');
   const filteredCategories = useMemo(
     () =>
-      categories.filter((c) =>
-        c.name.toLowerCase().includes(search.toLowerCase()),
-      ),
-    [categories, search],
+      categories.filter((c) => {
+        const matchesSearch = c.name
+          .toLowerCase()
+          .includes(search.toLowerCase());
+        const matchesType = typeFilter === 'ALL' || c.type === typeFilter;
+        return matchesSearch && matchesType;
+      }),
+    [categories, search, typeFilter],
   );
   const categoryTypeTooltips = {
     [CategoryTypeValues.ATTRIBUTE]:
@@ -81,8 +86,8 @@ const CategoryManagementPage: React.FC = () => {
   const [openFormDialog, setOpenFormDialog] = useState<boolean>(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryFormData, setCategoryFormData] = useState<Partial<Category>>({
-    name: "",
-    description: "",
+    name: '',
+    description: '',
     type: CategoryTypeValues.ATTRIBUTE as CategoryType,
     example_images: [],
   });
@@ -93,8 +98,19 @@ const CategoryManagementPage: React.FC = () => {
     null,
   );
   const [moreAnchor, setMoreAnchor] = useState<null | HTMLElement>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    mouseX: number;
+    mouseY: number;
+    categoryId: number;
+  } | null>(null);
   const MAX_IMAGES = 4;
   const DESCRIPTION_MAX_LENGTH = 255;
+
+  const handleTypeFilterChange = (
+    event: SelectChangeEvent<CategoryType | 'ALL'>,
+  ) => {
+    setTypeFilter(event.target.value as CategoryType | 'ALL');
+  };
 
   const fetchCategories = useCallback(async () => {
     setLoading(true);
@@ -103,7 +119,7 @@ const CategoryManagementPage: React.FC = () => {
       const data = await fetchCategoriesAPI();
       setCategories(data);
     } catch (err) {
-      setError("Failed to fetch categories.");
+      setError('Failed to fetch categories.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -117,8 +133,8 @@ const CategoryManagementPage: React.FC = () => {
   const handleOpenAddDialog = () => {
     setEditingCategory(null);
     setCategoryFormData({
-      name: "",
-      description: "",
+      name: '',
+      description: '',
       type: CategoryTypeValues.ATTRIBUTE,
       example_images: [],
     });
@@ -129,7 +145,7 @@ const CategoryManagementPage: React.FC = () => {
     setEditingCategory(category);
     setCategoryFormData({
       name: category.name,
-      description: category.description || "",
+      description: category.description || '',
       type: category.type,
       example_images: [...category.example_images], // Create a copy
     });
@@ -167,7 +183,7 @@ const CategoryManagementPage: React.FC = () => {
       }
     }
     // Reset file input to allow selecting the same file again if removed
-    event.target.value = "";
+    event.target.value = '';
   };
 
   const handleImageRemove = (indexToRemove: number) => {
@@ -182,12 +198,12 @@ const CategoryManagementPage: React.FC = () => {
   const handleFormSubmit = async () => {
     if (!categoryFormData.name?.trim()) {
       // Also trim to avoid just spaces
-      alert("Category name is required.");
+      alert('Category name is required.');
       return;
     }
     if (!categoryFormData.description?.trim()) {
       // Also trim
-      alert("Category description is required.");
+      alert('Category description is required.');
       return;
     }
     // Ensure example_images are strings if your DTO expects that.
@@ -213,7 +229,7 @@ const CategoryManagementPage: React.FC = () => {
       handleCloseFormDialog();
     } catch (err: any) {
       setError(
-        `Failed to ${editingCategory ? "update" : "add"} category: ${err.message || "Unknown error"}`,
+        `Failed to ${editingCategory ? 'update' : 'add'} category: ${err.message || 'Unknown error'}`,
       );
       console.error(err);
     } finally {
@@ -240,7 +256,7 @@ const CategoryManagementPage: React.FC = () => {
         await fetchCategories(); // Refresh list
         handleCloseDeleteDialog();
       } catch (err) {
-        setError("Failed to delete category.");
+        setError('Failed to delete category.');
         console.error(err);
       } finally {
         setFormSubmitting(false);
@@ -249,20 +265,20 @@ const CategoryManagementPage: React.FC = () => {
   };
 
   const handleExportPDF = () => {
-    const doc = new jsPDF("landscape");
+    const doc = new jsPDF('landscape');
     autoTable(doc, {
-      head: [["Name", "Type", "Posts", "Blogs"]],
+      head: [['Name', 'Type', 'Posts', 'Blogs']],
       body: selectedIds.map((id) => {
         const cat = categories.find((c) => c.id === id)!;
         return [
-          cat.name ?? "",
-          cat.type ?? "",
+          cat.name ?? '',
+          cat.type ?? '',
           cat.posts_count ?? 0,
           cat.blogs_count ?? 0,
         ];
       }),
     });
-    doc.save("categories.pdf");
+    doc.save('categories.pdf');
   };
 
   const handleBulkDelete = async () => {
@@ -273,21 +289,38 @@ const CategoryManagementPage: React.FC = () => {
       await fetchCategories();
       setSelectedIds([]);
     } catch (err) {
-      setError("Failed to delete selected categories.");
+      setError('Failed to delete selected categories.');
       console.error(err);
     } finally {
       setFormSubmitting(false);
     }
   };
 
+  const handleContextMenu = (event: React.MouseEvent, categoryId: number) => {
+    event.preventDefault();
+    setContextMenu(
+      contextMenu === null
+        ? {
+            mouseX: event.clientX + 2,
+            mouseY: event.clientY - 6,
+            categoryId,
+          }
+        : null,
+    );
+  };
+
+  const handleCloseContextMenu = () => {
+    setContextMenu(null);
+  };
+
   if (loading) {
     return (
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "80vh",
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '80vh',
         }}
       >
         <CircularProgress />
@@ -301,17 +334,17 @@ const CategoryManagementPage: React.FC = () => {
         p: 3,
         m: 2,
         backgroundColor:
-          theme.palette.mode === "dark"
+          theme.palette.mode === 'dark'
             ? theme.palette.background.paper
-            : "#ffffff",
+            : '#ffffff',
       }}
     >
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
           gap: 2,
           mb: 2,
         }}
@@ -320,7 +353,53 @@ const CategoryManagementPage: React.FC = () => {
           Category Management
         </Typography>
 
-        <Box sx={{ display: "flex", gap: 1, alignItems: "center", ml: "auto" }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', ml: 'auto' }}>
+          {/* Type Filter */}
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel id="type-filter-label">Type</InputLabel>
+            <Select
+              labelId="type-filter-label"
+              id="type-filter-select"
+              value={typeFilter}
+              label="Type"
+              onChange={handleTypeFilterChange}
+              sx={{
+                backgroundColor:
+                  theme.palette.mode === 'dark' ? '#1f2937' : '#f9fafb',
+                borderRadius: 2,
+              }}
+            >
+              <MenuItem value="ALL">All Types</MenuItem>
+              <MenuItem value={CategoryTypeValues.ATTRIBUTE}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      backgroundColor: theme.palette.secondary.main,
+                    }}
+                  />
+                  Attribute
+                </Box>
+              </MenuItem>
+              <MenuItem value={CategoryTypeValues.MEDIUM}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      backgroundColor: theme.palette.primary.main,
+                    }}
+                  />
+                  Medium
+                </Box>
+              </MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Search Filter */}
           <TextField
             size="small"
             variant="outlined"
@@ -330,9 +409,9 @@ const CategoryManagementPage: React.FC = () => {
             sx={{
               width: 180,
               backgroundColor:
-                theme.palette.mode === "dark" ? "#1f2937" : "#f9fafb",
+                theme.palette.mode === 'dark' ? '#1f2937' : '#f9fafb',
               borderRadius: 2,
-              "& input": {
+              '& input': {
                 px: 1.5,
                 py: 1,
               },
@@ -346,12 +425,81 @@ const CategoryManagementPage: React.FC = () => {
             startIcon={<AddIcon />}
             onClick={handleOpenAddDialog}
             color="primary"
-            sx={{ textTransform: "none" }}
+            sx={{ textTransform: 'none' }}
           >
             Add Category
           </Button>
         </Box>
       </Box>
+
+      {/* Instructions */}
+      <Box sx={{ mb: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
+        <Typography variant="body2" color="text.secondary">
+          💡 <strong>Tip:</strong> Click on a category name to edit it, or
+          select categories using checkboxes for bulk operations. Use the search
+          and filter options above to find specific categories.
+        </Typography>
+      </Box>
+
+      {/* Filter Summary */}
+      {(typeFilter !== 'ALL' || search) && (
+        <Box sx={{ mb: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              flexWrap: 'wrap',
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              Showing {filteredCategories.length} of {categories.length}{' '}
+              categories
+            </Typography>
+            {typeFilter !== 'ALL' && (
+              <Chip
+                label={`Type: ${typeFilter}`}
+                size="small"
+                onDelete={() => setTypeFilter('ALL')}
+                color={
+                  typeFilter === CategoryTypeValues.MEDIUM
+                    ? 'primary'
+                    : 'secondary'
+                }
+                sx={{
+                  '& .MuiChip-label': {
+                    paddingRight: '4px',
+                  },
+                  '& .MuiChip-deleteIcon': {
+                    fontSize: '16px',
+                    marginLeft: '4px',
+                    marginRight: '-2px',
+                  },
+                  minWidth: 'fit-content',
+                }}
+              />
+            )}
+            {search && (
+              <Chip
+                label={`Search: "${search}"`}
+                size="small"
+                onDelete={() => setSearch('')}
+                sx={{
+                  '& .MuiChip-label': {
+                    paddingRight: '4px',
+                  },
+                  '& .MuiChip-deleteIcon': {
+                    fontSize: '16px',
+                    marginLeft: '4px',
+                    marginRight: '-2px',
+                  },
+                  minWidth: 'fit-content',
+                }}
+              />
+            )}
+          </Box>
+        </Box>
+      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -367,27 +515,43 @@ const CategoryManagementPage: React.FC = () => {
             py: 1,
             borderRadius: 2,
             backgroundColor:
-              theme.palette.mode === "dark" ? "#d1d5db" : "#e5e7eb", // gray‑300
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+              theme.palette.mode === 'dark' ? '#d1d5db' : '#e5e7eb', // gray‑300
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
           }}
         >
           <Typography
             sx={{
-              color: theme.palette.mode === "dark" ? "#000" : "#333",
+              color: theme.palette.mode === 'dark' ? '#000' : '#333',
             }}
           >
             {selectedIds.length} selected from {categories.length}
           </Typography>
 
           <Stack direction="row" spacing={1}>
+            {selectedIds.length === 1 && (
+              <Button
+                startIcon={<EditIcon />}
+                variant="outlined"
+                onClick={() => {
+                  const category = categories.find(
+                    (c) => c.id === selectedIds[0],
+                  );
+                  if (category) handleOpenEditDialog(category);
+                }}
+                sx={{ textTransform: 'none' }}
+              >
+                Edit
+              </Button>
+            )}
+
             <Button
               startIcon={<DeleteIcon />}
               color="error"
               variant="contained"
               onClick={handleBulkDelete}
-              sx={{ textTransform: "none" }}
+              sx={{ textTransform: 'none' }}
             >
               Delete
             </Button>
@@ -395,7 +559,7 @@ const CategoryManagementPage: React.FC = () => {
             <Button
               onClick={() => setSelectedIds([])}
               startIcon={<UndoOutlined />}
-              sx={{ textTransform: "none" }}
+              sx={{ textTransform: 'none' }}
             >
               Deselect all
             </Button>
@@ -405,7 +569,7 @@ const CategoryManagementPage: React.FC = () => {
               variant="outlined"
               startIcon={<MoreVertOutlined />}
               onClick={(e) => setMoreAnchor(e.currentTarget)}
-              sx={{ textTransform: "none" }}
+              sx={{ textTransform: 'none' }}
             >
               More
             </Button>
@@ -419,7 +583,7 @@ const CategoryManagementPage: React.FC = () => {
                 <CSVLink
                   data={categories}
                   filename="categories.csv"
-                  style={{ textDecoration: "none", color: "inherit" }}
+                  style={{ textDecoration: 'none', color: 'inherit' }}
                 >
                   Export CSV
                 </CSVLink>
@@ -430,12 +594,15 @@ const CategoryManagementPage: React.FC = () => {
         </Box>
       )}
 
-      <TableContainer sx={{ boxShadow: "none" }}>
-        <Table sx={{ minWidth: 650 }} aria-label="categories table">
+      <TableContainer sx={{ boxShadow: 'none' }}>
+        <Table
+          sx={{ minWidth: 650, tableLayout: 'fixed' }}
+          aria-label="categories table"
+        >
           <TableHead
             sx={{
               backgroundColor:
-                theme.palette.mode === "dark" ? "#333" : "grey.200",
+                theme.palette.mode === 'dark' ? '#333' : 'grey.200',
             }}
           >
             <TableRow>
@@ -471,21 +638,35 @@ const CategoryManagementPage: React.FC = () => {
                   disabled={filteredCategories.length === 0}
                 />
               </TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Type</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
+              <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>
+                Name
+              </TableCell>
+              <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>
+                Type
+              </TableCell>
+              <TableCell sx={{ fontWeight: 'bold', width: '45%' }}>
+                Description
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: 'bold', width: '10%' }}
+              >
                 Examples
               </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: 'bold', width: '8%' }}
+              >
                 Posts
               </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: 'bold', width: '8%' }}
+              >
                 Blogs
               </TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Created</TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Actions
+              <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>
+                Created
               </TableCell>
             </TableRow>
           </TableHead>
@@ -494,7 +675,11 @@ const CategoryManagementPage: React.FC = () => {
               <TableRow
                 key={category.id}
                 hover
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                sx={{
+                  '&:last-child td, &:last-child th': { border: 0 },
+                  cursor: 'pointer',
+                }}
+                onContextMenu={(e) => handleContextMenu(e, category.id)}
               >
                 <TableCell padding="checkbox">
                   <Checkbox
@@ -509,15 +694,27 @@ const CategoryManagementPage: React.FC = () => {
                   />
                 </TableCell>
 
-                <TableCell component="th" scope="row">
-                  <Typography variant="subtitle2" fontWeight="medium">
+                <TableCell component="th" scope="row" sx={{ width: '15%' }}>
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight="medium"
+                    sx={{
+                      cursor: 'pointer',
+                      '&:hover': { color: 'primary.main' },
+                      wordWrap: 'break-word',
+                      lineHeight: 1.3,
+                      fontSize: '0.875rem',
+                    }}
+                    onClick={() => handleOpenEditDialog(category)}
+                    title={category.name}
+                  >
                     {category.name}
                   </Typography>
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ width: '10%' }}>
                   <Tooltip
                     title={
-                      categoryTypeTooltips[category.type] || "Category Type"
+                      categoryTypeTooltips[category.type] || 'Category Type'
                     }
                     arrow
                     placement="top"
@@ -530,35 +727,38 @@ const CategoryManagementPage: React.FC = () => {
                       size="small"
                       color={
                         category.type === CategoryTypeValues.MEDIUM
-                          ? "primary"
-                          : "secondary"
+                          ? 'primary'
+                          : 'secondary'
                       }
-                      sx={{ textTransform: "capitalize", fontWeight: "medium" }}
+                      sx={{ textTransform: 'capitalize', fontWeight: 'medium' }}
                     />
                   </Tooltip>
                 </TableCell>
                 <TableCell
                   sx={{
-                    maxWidth: 200,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
+                    width: '45%',
+                    paddingRight: 2,
                   }}
                 >
-                  <Tooltip
-                    title={category.description || ""}
-                    placement="top-start"
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      lineHeight: 1.4,
+                      wordWrap: 'break-word',
+                      whiteSpace: 'normal',
+                    }}
+                    title={category.description || ''}
                   >
-                    <span>{category.description || "N/A"}</span>
-                  </Tooltip>
+                    {category.description || 'N/A'}
+                  </Typography>
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" sx={{ width: '10%' }}>
                   {category.example_images.length > 0 ? (
                     <Box
                       sx={{
-                        display: "flex",
+                        display: 'flex',
                         gap: 0.5,
-                        justifyContent: "center",
+                        justifyContent: 'center',
                       }}
                     >
                       {category.example_images.slice(0, 2).map(
@@ -585,7 +785,10 @@ const CategoryManagementPage: React.FC = () => {
                             sx={{
                               width: 32,
                               height: 32,
-                              bgcolor: "action.hover",
+                              bgcolor: 'primary.main',
+                              color: 'primary.contrastText',
+                              fontSize: '0.75rem',
+                              fontWeight: 'bold',
                             }}
                           >
                             +{category.example_images.length - 2}
@@ -599,34 +802,16 @@ const CategoryManagementPage: React.FC = () => {
                     </Typography>
                   )}
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" sx={{ width: '8%' }}>
                   {category.posts_count ?? 0}
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" sx={{ width: '8%' }}>
                   {category.blogs_count ?? 0}
                 </TableCell>
-                <TableCell>
-                  {format(new Date(category.created_at), "PP")}
-                </TableCell>
-                <TableCell align="center">
-                  <Tooltip title="Edit Category">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleOpenEditDialog(category)}
-                      color="primary"
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Delete Category">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleOpenDeleteDialog(category.id)}
-                      color="error"
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
+                <TableCell sx={{ width: '12%' }}>
+                  <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+                    {format(new Date(category.created_at), 'PP')}
+                  </Typography>
                 </TableCell>
               </TableRow>
             ))}
@@ -634,11 +819,11 @@ const CategoryManagementPage: React.FC = () => {
             {filteredCategories.length === 0 && (
               <TableRow>
                 {/* Adjust colSpan based on the number of columns (including checkbox) */}
-                <TableCell colSpan={9} align="center">
+                <TableCell colSpan={8} align="center">
                   <Typography color="textSecondary">
                     {search
-                      ? "No categories match your search."
-                      : "No categories found."}
+                      ? 'No categories match your search.'
+                      : 'No categories found.'}
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -654,7 +839,7 @@ const CategoryManagementPage: React.FC = () => {
         fullWidth
       >
         <DialogTitle>
-          {editingCategory ? "Edit Category" : "Add New Category"}
+          {editingCategory ? 'Edit Category' : 'Add New Category'}
         </DialogTitle>
         <DialogContent>
           <TextField
@@ -665,7 +850,7 @@ const CategoryManagementPage: React.FC = () => {
             type="text"
             fullWidth
             variant="outlined"
-            value={categoryFormData.name || ""}
+            value={categoryFormData.name || ''}
             onChange={handleInputChange}
             required
             sx={{ mb: 2 }}
@@ -680,10 +865,10 @@ const CategoryManagementPage: React.FC = () => {
             rows={3}
             required
             variant="outlined"
-            value={categoryFormData.description || ""}
+            value={categoryFormData.description || ''}
             onChange={handleInputChange}
             inputProps={{ maxLength: DESCRIPTION_MAX_LENGTH }}
-            helperText={`${(categoryFormData.description || "").length}/${DESCRIPTION_MAX_LENGTH}`}
+            helperText={`${(categoryFormData.description || '').length}/${DESCRIPTION_MAX_LENGTH}`}
             sx={{ mb: 2 }}
           />
           <FormControl fullWidth margin="dense" sx={{ mb: 2 }}>
@@ -701,7 +886,7 @@ const CategoryManagementPage: React.FC = () => {
                   arrow
                   placement="right"
                 >
-                  <Box width={"100%"}>Attribute</Box>
+                  <Box width={'100%'}>Attribute</Box>
                 </Tooltip>
               </MenuItem>
 
@@ -711,7 +896,7 @@ const CategoryManagementPage: React.FC = () => {
                   arrow
                   placement="right"
                 >
-                  <Box width={"100%"}>Medium</Box>
+                  <Box width={'100%'}>Medium</Box>
                 </Tooltip>
               </MenuItem>
             </Select>
@@ -720,14 +905,14 @@ const CategoryManagementPage: React.FC = () => {
           <Typography variant="subtitle2" gutterBottom sx={{ mt: 1 }}>
             Example Images (Max {MAX_IMAGES})
           </Typography>
-          <Grid container spacing={1} sx={{ mb: 2 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
             {(categoryFormData.example_images || []).map((imgUrl, index) => (
-              <Grid key={index}>
-                <Box sx={{ position: "relative", width: 80, height: 80 }}>
+              <Box key={index}>
+                <Box sx={{ position: 'relative', width: 80, height: 80 }}>
                   <Avatar
                     src={imgUrl}
                     variant="rounded"
-                    sx={{ width: "100%", height: "100%" }}
+                    sx={{ width: '100%', height: '100%' }}
                   >
                     <ImageIcon />
                   </Avatar>
@@ -735,32 +920,32 @@ const CategoryManagementPage: React.FC = () => {
                     size="small"
                     onClick={() => handleImageRemove(index)}
                     sx={{
-                      position: "absolute",
+                      position: 'absolute',
                       top: -5,
                       right: -5,
-                      backgroundColor: "rgba(255,255,255,0.7)",
-                      "&:hover": { backgroundColor: "rgba(255,255,255,0.9)" },
+                      backgroundColor: 'rgba(255,255,255,0.7)',
+                      '&:hover': { backgroundColor: 'rgba(255,255,255,0.9)' },
                       p: 0.2,
                     }}
                   >
                     <CloseIcon fontSize="small" color="error" />
                   </IconButton>
                 </Box>
-              </Grid>
+              </Box>
             ))}
             {(categoryFormData.example_images || []).length < MAX_IMAGES && (
-              <Grid>
+              <Box>
                 <Button
                   variant="outlined"
                   component="label"
                   sx={{
                     width: 80,
                     height: 80,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderColor: "divider",
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderColor: 'divider',
                   }}
                 >
                   <ImageIcon />
@@ -772,11 +957,11 @@ const CategoryManagementPage: React.FC = () => {
                     onChange={handleImageAdd}
                   />
                 </Button>
-              </Grid>
+              </Box>
             )}
-          </Grid>
+          </Box>
         </DialogContent>
-        <DialogActions sx={{ p: "0 24px 16px" }}>
+        <DialogActions sx={{ p: '0 24px 16px' }}>
           <Button
             onClick={handleCloseFormDialog}
             color="inherit"
@@ -793,9 +978,9 @@ const CategoryManagementPage: React.FC = () => {
             {formSubmitting ? (
               <CircularProgress size={24} color="inherit" />
             ) : editingCategory ? (
-              "Save Changes"
+              'Save Changes'
             ) : (
-              "Add Category"
+              'Add Category'
             )}
           </Button>
         </DialogActions>
@@ -807,7 +992,7 @@ const CategoryManagementPage: React.FC = () => {
         <DialogContent>
           <DialogContentText>
             Are you sure you want to delete the category "
-            {categories.find((c) => c.id === deletingCategoryId)?.name || ""}"?
+            {categories.find((c) => c.id === deletingCategoryId)?.name || ''}"?
             This action cannot be undone.
           </DialogContentText>
         </DialogContent>
@@ -828,11 +1013,50 @@ const CategoryManagementPage: React.FC = () => {
             {formSubmitting ? (
               <CircularProgress size={24} color="inherit" />
             ) : (
-              "Delete"
+              'Delete'
             )}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Context Menu for Right Click */}
+      <Menu
+        open={contextMenu !== null}
+        onClose={handleCloseContextMenu}
+        anchorReference="anchorPosition"
+        anchorPosition={
+          contextMenu !== null
+            ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+            : undefined
+        }
+      >
+        <MenuItem
+          onClick={() => {
+            if (contextMenu) {
+              const category = categories.find(
+                (c) => c.id === contextMenu.categoryId,
+              );
+              if (category) handleOpenEditDialog(category);
+            }
+            handleCloseContextMenu();
+          }}
+        >
+          <EditIcon fontSize="small" sx={{ mr: 1 }} />
+          Edit Category
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (contextMenu) {
+              handleOpenDeleteDialog(contextMenu.categoryId);
+            }
+            handleCloseContextMenu();
+          }}
+          sx={{ color: 'error.main' }}
+        >
+          <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
+          Delete Category
+        </MenuItem>
+      </Menu>
     </Paper>
   );
 };

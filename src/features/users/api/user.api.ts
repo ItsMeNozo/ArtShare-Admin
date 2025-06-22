@@ -1,13 +1,18 @@
-import axios, { AxiosError } from "axios";
-import { User, UserFormData } from "../../../types/user";
-import api from "../../../api/baseApi";
+import axios, { AxiosError } from 'axios';
+import { User, UserFormData } from '../../../types/user';
+// TODO: Add back when backend supports status filtering
+// import { UserStatus } from "../../../constants/user";
+// import { UserRoleType } from "../../../constants/roles"; // TODO: Uncomment when backend supports role filtering
+import api from '../../../api/baseApi';
 
 export interface FetchUsersParams {
   page?: number;
   limit?: number;
   sortBy?: string;
-  sortOrder?: "asc" | "desc";
+  sortOrder?: 'asc' | 'desc';
   search?: string;
+  // status?: UserStatus; // TODO: Add when backend supports status filtering
+  // role?: UserRoleType; // TODO: Add when backend supports role filtering
 }
 
 export interface PaginatedUsersApiResponse {
@@ -23,7 +28,7 @@ const getApiErrorMessage = (error: AxiosError | any): string => {
 
     if (axiosError.response?.data?.message) {
       return Array.isArray(axiosError.response.data.message)
-        ? axiosError.response.data.message.join(", ")
+        ? axiosError.response.data.message.join(', ')
         : axiosError.response.data.message;
     }
     if (axiosError.response?.data?.error) {
@@ -36,7 +41,7 @@ const getApiErrorMessage = (error: AxiosError | any): string => {
     );
   }
 
-  return error.message || "An unknown error occurred";
+  return error.message || 'An unknown error occurred';
 };
 
 export const fetchUsers = async (
@@ -45,19 +50,19 @@ export const fetchUsers = async (
   try {
     // Pass params to the GET request, Axios will serialize them as query string
     const response = await api.get<PaginatedUsersApiResponse>(
-      "/admin/users/all",
+      '/admin/users/all',
       { params },
     );
     return response.data;
   } catch (error) {
-    console.error("API fetchUsers error:", error);
+    console.error('API fetchUsers error:', error);
     throw new Error(getApiErrorMessage(error)); // Rethrow with formatted message
   }
 };
 
 export const createUser = async (userData: UserFormData): Promise<User> => {
   try {
-    const response = await api.post<User>("/admin/users/create", userData);
+    const response = await api.post<User>('/admin/users/create', userData);
     return response.data;
   } catch (error) {
     throw new Error(getApiErrorMessage(error));
@@ -66,7 +71,7 @@ export const createUser = async (userData: UserFormData): Promise<User> => {
 
 export const updateUser = async (
   userId: string,
-  userData: Omit<UserFormData, "id" | "password">,
+  userData: Omit<UserFormData, 'id' | 'password'>,
 ): Promise<User> => {
   const payload = {
     username: userData.username,
@@ -76,6 +81,7 @@ export const updateUser = async (
     bio: userData.bio,
     birthday: userData.birthday,
     roles: userData.roles,
+    status: userData.status,
   };
   try {
     const response = await api.patch<User>(`/admin/users/${userId}`, payload);
@@ -101,7 +107,7 @@ export const deleteMultipleUsers = async (
 ): Promise<{ count: number }> => {
   try {
     const response = await api.delete<{ count: number }>(
-      "/admin/users/multiple",
+      '/admin/users/multiple',
       {
         data: { userIds },
       },

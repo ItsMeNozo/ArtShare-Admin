@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEvent, useRef } from "react";
+import React, { useState, useEffect, ChangeEvent, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -15,14 +15,13 @@ import {
   FormControl,
   Select,
   MenuItem,
-  Checkbox,
   ListItemText,
   OutlinedInput,
   SelectChangeEvent,
   ChipProps,
   Snackbar,
-} from "@mui/material";
-import MuiAlert, { AlertProps, AlertColor } from "@mui/material/Alert";
+} from '@mui/material';
+import MuiAlert, { AlertProps, AlertColor } from '@mui/material/Alert';
 import {
   Close as CloseIcon,
   Edit as EditIcon,
@@ -36,14 +35,19 @@ import {
   Description as DescriptionIcon,
   SupervisedUserCircle as SupervisedUserCircleIcon,
   Cancel as CancelIcon,
-} from "@mui/icons-material";
-import { User, UserFormData } from "../../../types/user";
-import { PaidAccessLevel } from "../../../constants/plan";
-import { SemanticSubscriptionStatus, SubscriptionStatusInfo } from "../types";
-import { USER_ROLES, UserRoleType } from "../../../constants/roles";
-import { useUserOperations } from "../hooks/useUserOperations";
-import { signUp } from "../../auth/api/auth-api";
-import api from "../../../api/baseApi";
+  PowerSettingsNew as StatusIcon,
+  Block as BlockIcon,
+  CheckCircle as UnsuspendIcon,
+} from '@mui/icons-material';
+import { User, UserFormData } from '../../../types/user';
+import { PaidAccessLevel } from '../../../constants/plan';
+import { SemanticSubscriptionStatus, SubscriptionStatusInfo } from '../types';
+import { USER_ROLES, UserRoleType } from '../../../constants/roles';
+import { useUserOperations } from '../hooks/useUserOperations';
+import { signUp } from '../../auth/api/auth-api';
+import api from '../../../api/baseApi';
+import { UserStatus } from '../../../constants/user';
+import { getPrimaryRole } from '../utils/userTable.utils';
 
 interface UserEditViewDialogProps {
   open: boolean;
@@ -57,10 +61,11 @@ interface UserEditViewDialogProps {
   getSubscriptionStatusInfo: (user: User | null) => SubscriptionStatusInfo;
   getChipColorFromSemanticStatus: (
     status: SemanticSubscriptionStatus,
-  ) => ChipProps["color"];
+  ) => ChipProps['color'];
 }
 
 const AVAILABLE_ROLES_FOR_SELECT: UserRoleType[] = Object.values(USER_ROLES);
+const AVAILABLE_STATUSES: UserStatus[] = Object.values(UserStatus);
 
 const SnackbarAlert = React.forwardRef<HTMLDivElement, AlertProps>(
   function SnackbarAlert(props, ref) {
@@ -74,27 +79,29 @@ const getInitialDialogFormData = (
 ): UserFormData => {
   if (isCreating || !user) {
     return {
-      username: "",
-      email: "",
-      fullName: "",
-      profilePictureUrl: "",
-      bio: "",
+      username: '',
+      email: '',
+      fullName: '',
+      profilePictureUrl: '',
+      bio: '',
       birthday: undefined,
-      roles: ["USER"],
-      password: "",
+      roles: ['USER'],
+      password: '',
+      status: UserStatus.ACTIVE,
     };
   }
   return {
     username: user.username,
     email: user.email,
-    fullName: user.fullName || "",
-    profilePictureUrl: user.profilePictureUrl || "",
-    bio: user.bio || "",
+    fullName: user.fullName || '',
+    profilePictureUrl: user.profilePictureUrl || '',
+    bio: user.bio || '',
     birthday: user.birthday
-      ? (new Date(user.birthday).toISOString().split("T")[0] as any)
+      ? (new Date(user.birthday).toISOString().split('T')[0] as any)
       : undefined,
-    roles: user.roles.map((ur) => ur),
-    password: "",
+    roles: [getPrimaryRole(user.roles)],
+    password: '',
+    status: user.status || UserStatus.ACTIVE,
   };
 };
 
@@ -106,7 +113,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
   onSave,
   getSubscriptionStatusInfo: getStatusInfoProp,
 }) => {
-  const { loadUsers } = useUserOperations();
+  const { loadUsers, updateUser } = useUserOperations();
   const [isEditing, setIsEditing] = useState(isCreatingNewUser);
   const [formData, setFormData] = useState<UserFormData>(
     getInitialDialogFormData(initialUser, isCreatingNewUser),
@@ -118,8 +125,8 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("info");
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('info');
 
   const [closeDialogAfterSnackbar, setCloseDialogAfterSnackbar] =
     useState(false);
@@ -144,7 +151,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
     _?: React.SyntheticEvent | Event,
     reason?: string,
   ) => {
-    if (reason === "clickaway") {
+    if (reason === 'clickaway') {
       return;
     }
     setSnackbarOpen(false);
@@ -162,18 +169,13 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleRolesChange = (
-    event: SelectChangeEvent<typeof formData.roles>,
-  ) => {
+  const handleRolesChange = (event: SelectChangeEvent<string>) => {
     const {
       target: { value },
     } = event;
     setFormData((prev) => ({
       ...prev,
-      roles:
-        typeof value === "string"
-          ? (value.split(",") as Array<"ADMIN" | "USER">)
-          : (value as Array<"ADMIN" | "USER">),
+      roles: [value as UserRoleType], // Store as single-item array
     }));
   };
 
@@ -184,13 +186,23 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
     setIsEditing(!isEditing);
   };
 
+  const handleStatusChange = (event: SelectChangeEvent<UserStatus>) => {
+    const {
+      target: { value },
+    } = event;
+    setFormData((prev) => ({
+      ...prev,
+      status: value as UserStatus,
+    }));
+  };
+
   const handleSave = async () => {
     if (!formData.username || !formData.email) {
-      showNotification("Username and Email are required.", "error");
+      showNotification('Username and Email are required.', 'error');
       return;
     }
     if (isCreatingNewUser && !formData.password) {
-      showNotification("Password is required for new users.", "error");
+      showNotification('Password is required for new users.', 'error');
       return;
     }
 
@@ -203,7 +215,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
         if (!formData.email || !formData.password) {
           setSaving(false);
           throw new Error(
-            "Email and password are required to create a new user.",
+            'Email and password are required to create a new user.',
           );
         }
 
@@ -217,7 +229,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
           createdFirebaseAuthUser.id || (createdFirebaseAuthUser as any).uid;
         if (!userIdForBackend) {
           throw new Error(
-            "Failed to initialize the new user account properly. Please try again or contact support.",
+            'Failed to initialize the new user account properly. Please try again or contact support.',
           );
         }
 
@@ -243,13 +255,13 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
         if (!userForDisplay?.id) {
           setSaving(false);
           throw new Error(
-            "Cannot update user: essential identifying information is missing. Please refresh and try again, or contact support.",
+            'Cannot update user: essential identifying information is missing. Please refresh and try again, or contact support.',
           );
         }
         createdBackendUserResponse = await onSave(formData, userForDisplay.id);
       }
 
-      const successMessage = `User ${isCreatingNewUser ? "created" : "updated"} successfully.`;
+      const successMessage = `User ${isCreatingNewUser ? 'created' : 'updated'} successfully.`;
 
       await loadUsers();
 
@@ -260,39 +272,39 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
         setIsEditing(false);
       }
 
-      showNotification(successMessage, "success");
+      showNotification(successMessage, 'success');
       setCloseDialogAfterSnackbar(true);
     } catch (error) {
       let messageToShow: string;
 
       if (
         error &&
-        typeof error === "object" &&
-        "code" in error &&
-        typeof error.code === "string"
+        typeof error === 'object' &&
+        'code' in error &&
+        typeof error.code === 'string'
       ) {
         const errorCode = error.code as string;
 
         switch (errorCode) {
-          case "auth/email-already-in-use":
+          case 'auth/email-already-in-use':
             messageToShow =
-              "This email address is already registered. Please use a different email or try logging in.";
+              'This email address is already registered. Please use a different email or try logging in.';
             break;
-          case "auth/invalid-email":
+          case 'auth/invalid-email':
             messageToShow =
-              "The email address provided is not valid. Please check and try again.";
+              'The email address provided is not valid. Please check and try again.';
             break;
-          case "auth/weak-password":
+          case 'auth/weak-password':
             messageToShow =
-              "The password is too weak. Please choose a stronger password (e.g., at least 6 characters).";
+              'The password is too weak. Please choose a stronger password (e.g., at least 6 characters).';
             break;
-          case "auth/operation-not-allowed":
+          case 'auth/operation-not-allowed':
             messageToShow =
-              "User creation with email and password is not currently enabled. Please contact support.";
+              'User creation with email and password is not currently enabled. Please contact support.';
             break;
 
           default:
-            if ("message" in error && typeof error.message === "string") {
+            if ('message' in error && typeof error.message === 'string') {
               messageToShow = error.message;
             } else {
               messageToShow = `An authentication error occurred (Code: ${errorCode}). Please try again or contact support.`;
@@ -303,10 +315,10 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
         messageToShow = error.message;
       } else {
         messageToShow =
-          "An unexpected error occurred. Please try again. If the problem persists, contact support.";
+          'An unexpected error occurred. Please try again. If the problem persists, contact support.';
       }
 
-      showNotification(messageToShow, "error");
+      showNotification(messageToShow, 'error');
     } finally {
       setSaving(false);
     }
@@ -328,7 +340,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
 
   const triggerAvatarUpload = () => fileInputRef.current?.click();
   const removeAvatar = () => {
-    setFormData((prev) => ({ ...prev, profilePictureUrl: "" }));
+    setFormData((prev) => ({ ...prev, profilePictureUrl: '' }));
   };
 
   const currentData = isEditing
@@ -340,22 +352,38 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
   const renderField = (
     label: string,
     id: keyof UserFormData,
-    type: string = "text",
+    type: string = 'text',
     icon?: React.ReactElement,
     multiline: boolean = false,
     readOnlyOverride?: boolean,
   ) => {
-    const value = (currentData[id] as string) || "";
+    const value = (currentData[id] as string) || '';
 
     if (!isEditing || readOnlyOverride) {
+      const capitalizeFirstLetter = (str: string) => {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+      };
+
+      let displayValue: string;
+
+      if (id === 'roles') {
+        const primaryRole = getPrimaryRole(currentData.roles as UserRoleType[]);
+        displayValue = capitalizeFirstLetter(primaryRole);
+      } else if (id === 'status') {
+        displayValue = capitalizeFirstLetter(currentData.status);
+      } else {
+        displayValue = value || '-';
+      }
+
       return (
-        <Grid size={{ xs: 12 }} key={id + "_view"}>
+        <Grid size={{ xs: 12 }} key={id + '_view'}>
           <Typography
             variant="caption"
             component="div"
             sx={{
-              display: "block",
-              color: "text.secondary",
+              display: 'block',
+              color: 'text.secondary',
               fontWeight: 500,
             }}
           >
@@ -366,9 +394,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
             component="div"
             className="break-words min-h-[24px]"
           >
-            {id === "roles"
-              ? (currentData.roles as string[]).join(", ")
-              : value || "-"}
+            {displayValue}
           </Typography>
         </Grid>
       );
@@ -378,7 +404,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
         container
         direction="column"
         spacing={0.5}
-        key={id + "_custom_field"}
+        key={id + '_custom_field'}
         size={{ xs: 12 }}
       >
         <Grid size={{ xs: 12 }}>
@@ -387,8 +413,8 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
             component="label"
             htmlFor={id}
             sx={{
-              display: "block",
-              color: "text.secondary",
+              display: 'block',
+              color: 'text.secondary',
               fontWeight: 500,
             }}
           >
@@ -411,8 +437,8 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                 <Box
                   sx={{
                     mr: 1,
-                    color: "action.active",
-                    alignSelf: multiline ? "flex-start" : "",
+                    color: 'action.active',
+                    alignSelf: multiline ? 'flex-start' : '',
                   }}
                 >
                   {icon}
@@ -420,9 +446,9 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
               ) : null,
             }}
             required={
-              id === "username" ||
-              id === "email" ||
-              (isCreatingNewUser && id === "password")
+              id === 'username' ||
+              id === 'email' ||
+              (isCreatingNewUser && id === 'password')
             }
           />
         </Grid>
@@ -433,6 +459,76 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
   const handleDirectClose = () => {
     setCloseDialogAfterSnackbar(false);
     onClose();
+  };
+
+  // Suspend handler
+  const handleSuspendUser = async () => {
+    if (!initialUser?.id || isCreatingNewUser) return;
+
+    try {
+      // Check if user is already suspended
+      if (initialUser.status === UserStatus.SUSPENDED) {
+        showNotification('User is already suspended.', 'warning');
+        return;
+      }
+
+      // Update user status to SUSPENDED
+      const userData = {
+        username: initialUser.username,
+        email: initialUser.email,
+        fullName: initialUser.fullName,
+        profilePictureUrl: initialUser.profilePictureUrl,
+        bio: initialUser.bio,
+        birthday: initialUser.birthday,
+        roles: initialUser.roles,
+        status: UserStatus.SUSPENDED,
+      };
+
+      const updatedUser = await updateUser(initialUser.id, userData);
+      if (updatedUser) {
+        showNotification('User suspended successfully.', 'success');
+        // Update the dialog's form data to reflect the change
+        setFormData((prev) => ({ ...prev, status: UserStatus.SUSPENDED }));
+      }
+    } catch (err) {
+      console.error('Suspend user failed:', err);
+      showNotification('Failed to suspend user.', 'error');
+    }
+  };
+
+  // Unsuspend handler
+  const handleUnsuspendUser = async () => {
+    if (!initialUser?.id || isCreatingNewUser) return;
+
+    try {
+      // Check if user is not suspended
+      if (initialUser.status !== UserStatus.SUSPENDED) {
+        showNotification('User is not suspended.', 'warning');
+        return;
+      }
+
+      // Update user status to ACTIVE
+      const userData = {
+        username: initialUser.username,
+        email: initialUser.email,
+        fullName: initialUser.fullName,
+        profilePictureUrl: initialUser.profilePictureUrl,
+        bio: initialUser.bio,
+        birthday: initialUser.birthday,
+        roles: initialUser.roles,
+        status: UserStatus.ACTIVE,
+      };
+
+      const updatedUser = await updateUser(initialUser.id, userData);
+      if (updatedUser) {
+        showNotification('User unsuspended successfully.', 'success');
+        // Update the dialog's form data to reflect the change
+        setFormData((prev) => ({ ...prev, status: UserStatus.ACTIVE }));
+      }
+    } catch (err) {
+      console.error('Unsuspend user failed:', err);
+      showNotification('Failed to unsuspend user.', 'error');
+    }
   };
 
   return (
@@ -447,25 +543,25 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
       >
         <DialogTitle
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             borderBottom: 1,
-            borderColor: "divider",
+            borderColor: 'divider',
             pb: 1.5,
           }}
         >
-          {isCreatingNewUser ? "Create new user" : "User details"}
+          {isCreatingNewUser ? 'Create new user' : 'User details'}
           <Box>
             {!isCreatingNewUser && (
               <Button
                 onClick={handleEditToggle}
                 startIcon={isEditing ? <CancelIcon /> : <EditIcon />}
-                variant={isEditing ? "outlined" : "contained"}
-                color={isEditing ? "inherit" : "primary"}
+                variant={isEditing ? 'outlined' : 'contained'}
+                color={isEditing ? 'inherit' : 'primary'}
                 sx={{ mr: 1 }}
               >
-                {isEditing ? "Cancel Edit" : "Edit User"}
+                {isEditing ? 'Cancel Edit' : 'Edit User'}
               </Button>
             )}
             {isEditing && (
@@ -483,11 +579,37 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                 disabled={saving}
               >
                 {saving
-                  ? "Saving..."
+                  ? 'Saving...'
                   : isCreatingNewUser
-                    ? "Create User"
-                    : "Save Changes"}
+                    ? 'Create User'
+                    : 'Save Changes'}
               </Button>
+            )}
+            {/* Suspend/Unsuspend buttons - only show when not creating and not editing */}
+            {!isCreatingNewUser && !isEditing && initialUser && (
+              <>
+                {initialUser.status === UserStatus.SUSPENDED ? (
+                  <Button
+                    onClick={handleUnsuspendUser}
+                    startIcon={<UnsuspendIcon />}
+                    variant="outlined"
+                    color="success"
+                    sx={{ ml: 1 }}
+                  >
+                    Unsuspend
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleSuspendUser}
+                    startIcon={<BlockIcon />}
+                    variant="outlined"
+                    color="warning"
+                    sx={{ ml: 1 }}
+                  >
+                    Suspend
+                  </Button>
+                )}
+              </>
             )}
             {/* IconButton close should also use handleDirectClose */}
             <IconButton onClick={handleDirectClose} sx={{ ml: 1 }}>
@@ -508,14 +630,14 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
             <Grid container spacing={0}>
               {/* Left Panel */}
               <Grid
-                size={{ xs: 12, md: 4 }}
+                size={{ xs: 12, lg: 4 }}
                 sx={{
                   p: 3,
                   bgcolor: (theme) =>
-                    theme.palette.mode === "dark" ? "grey.800" : "grey.100",
-                  borderRight: { md: "1px solid" },
-                  borderColor: "divider",
-                  borderBottom: { xs: "1px solid", md: "none" },
+                    theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
+                  borderRight: { md: '1px solid' },
+                  borderColor: 'divider',
+                  borderBottom: { xs: '1px solid', md: 'none' },
                 }}
               >
                 <Box
@@ -529,19 +651,19 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                       src={
                         (currentData.profilePictureUrl as string) || undefined
                       }
-                      alt={(currentData.username as string) || "User"}
+                      alt={(currentData.username as string) || 'User'}
                       sx={{
                         width: 150,
                         height: 150,
-                        fontSize: "4rem",
-                        border: "3px solid white",
+                        fontSize: '4rem',
+                        border: '3px solid white',
                         boxShadow: 3,
                       }}
                     >
                       {(
                         currentData.username?.[0] ||
                         displayUser.username?.[0] ||
-                        ""
+                        ''
                       )?.toUpperCase()}
                     </Avatar>
                     {isEditing && (
@@ -549,15 +671,15 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                         size="small"
                         onClick={triggerAvatarUpload}
                         sx={{
-                          position: "absolute",
+                          position: 'absolute',
                           bottom: 5,
                           right: 5,
-                          bgcolor: "background.paper",
-                          "&:hover": {
+                          bgcolor: 'background.paper',
+                          '&:hover': {
                             bgcolor: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? "grey.700"
-                                : "grey.200",
+                              theme.palette.mode === 'dark'
+                                ? 'grey.700'
+                                : 'grey.200',
                           },
                         }}
                       >
@@ -570,20 +692,20 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                     accept="image/*"
                     ref={fileInputRef}
                     onChange={handleAvatarFileChange}
-                    style={{ display: "none" }}
+                    style={{ display: 'none' }}
                   />
                   {isEditing && currentData.profilePictureUrl && (
                     <Button
                       size="small"
                       onClick={removeAvatar}
                       color="error"
-                      sx={{ textTransform: "none", mb: 1 }}
+                      sx={{ textTransform: 'none', mb: 1 }}
                     >
                       Remove Avatar
                     </Button>
                   )}
 
-                  <Typography variant="body1" fontStyle={"italic"}>
+                  <Typography variant="body1" fontStyle={'italic'}>
                     {isEditing || isCreatingNewUser
                       ? currentData.email
                       : displayUser.email}
@@ -596,7 +718,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                       <Typography
                         variant="subtitle2"
                         gutterBottom
-                        sx={{ color: "text.secondary" }}
+                        sx={{ color: 'text.secondary' }}
                       >
                         ACCOUNT INFO
                       </Typography>
@@ -620,23 +742,23 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                         )}
                         <Typography variant="body2">
                           <strong>Followers: </strong>
-                          {displayUser.followersCount ?? "0"}
+                          {displayUser.followersCount ?? '0'}
                         </Typography>
                         <Typography variant="body2">
                           <strong>Following: </strong>
-                          {displayUser.followingsCount ?? "0"}
+                          {displayUser.followingsCount ?? '0'}
                         </Typography>
                       </div>
                     </Grid>
 
                     {displayUser.roles &&
-                      !displayUser.roles.some((r) => r === "ADMIN") && (
+                      getPrimaryRole(displayUser.roles) !== 'ADMIN' && (
                         <Grid size={{ xs: 6, md: 12 }}>
                           <Typography
                             variant="subtitle2"
                             gutterBottom
                             sx={{
-                              color: "text.secondary",
+                              color: 'text.secondary',
                               mt: { xs: 0, md: 1 },
                             }}
                           >
@@ -652,48 +774,47 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                                   <strong>Expires: </strong>
                                   {displayUser.userAccess.planId ===
                                   PaidAccessLevel.FREE
-                                    ? "N/A"
+                                    ? 'N/A'
                                     : displayUser.userAccess.expiresAt
                                       ? new Date(
                                           displayUser.userAccess.expiresAt,
                                         ).toLocaleDateString()
-                                      : "N/A"}
+                                      : 'N/A'}
                                 </Typography>
                                 <Typography variant="body2">
                                   <strong>Will cancel at period end: </strong>
                                   {displayUser.userAccess.cancelAtPeriodEnd
-                                    ? "Yes"
-                                    : "No"}
+                                    ? 'Yes'
+                                    : 'No'}
                                 </Typography>
-                                {initialUser?.roles.some(
-                                  (r) => r === "ADMIN",
-                                ) && (
+                                {getPrimaryRole(initialUser?.roles) ===
+                                  'ADMIN' && (
                                   <>
                                     <Typography
                                       variant="body2"
                                       sx={{
                                         mt: 0.5,
-                                        fontSize: "0.8rem",
-                                        color: "text.secondary",
+                                        fontSize: '0.8rem',
+                                        color: 'text.secondary',
                                       }}
                                     >
                                       Stripe Customer ID:
                                       {displayUser.stripeCustomerId ||
                                         displayUser.userAccess
                                           ?.stripeCustomerId ||
-                                        "N/A"}
+                                        'N/A'}
                                     </Typography>
                                     <Typography
                                       variant="body2"
                                       sx={{
                                         mt: 0.5,
-                                        fontSize: "0.8rem",
-                                        color: "text.secondary",
+                                        fontSize: '0.8rem',
+                                        color: 'text.secondary',
                                       }}
                                     >
                                       Stripe Subscription ID:
                                       {displayUser.userAccess
-                                        ?.stripeSubscriptionId || "N/A"}
+                                        ?.stripeSubscriptionId || 'N/A'}
                                     </Typography>
                                   </>
                                 )}
@@ -706,14 +827,14 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                 )}
               </Grid>
               {/* Right Panel (Form) */}
-              <Grid size={{ xs: 12, md: 8 }} sx={{ p: 3, minHeight: "620px" }}>
+              <Grid size={{ xs: 12, md: 8 }} sx={{ p: 3, minHeight: '720px' }}>
                 {!isCreatingNewUser && (
                   <Typography
                     variant="h6"
                     gutterBottom={isEditing ? true : false}
                     sx={{
                       borderBottom: 1,
-                      borderColor: "divider",
+                      borderColor: 'divider',
                       pb: 1,
                       mb: 2,
                     }}
@@ -723,62 +844,54 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                 )}
 
                 <Grid container spacing={isEditing ? 2 : 3}>
-                  {renderField("Username", "username", "text", <PersonIcon />)}
+                  {renderField('Username', 'username', 'text', <PersonIcon />)}
                   {isCreatingNewUser &&
-                    renderField("Email", "email", "email", <EmailIcon />)}
+                    renderField('Email', 'email', 'email', <EmailIcon />)}
                   {isCreatingNewUser &&
                     renderField(
-                      "Password",
-                      "password",
-                      "password",
+                      'Password',
+                      'password',
+                      'password',
                       <VpnKeyIcon />,
                     )}
                   {renderField(
-                    "Full Name",
-                    "fullName",
-                    "text",
+                    'Full Name',
+                    'fullName',
+                    'text',
                     <AssignmentIndIcon />,
                   )}
-                  {renderField("Birthday", "birthday", "date", <CakeIcon />)}
-                  {renderField("Bio", "bio", "text", <DescriptionIcon />, true)}
+                  {renderField('Birthday', 'birthday', 'date', <CakeIcon />)}
+                  {renderField('Bio', 'bio', 'text', <DescriptionIcon />, true)}
                   {isEditing && (
                     <Grid size={{ xs: 12 }}>
                       <Typography
                         variant="caption"
                         component="label"
-                        htmlFor={"roles-select-input"}
+                        htmlFor={'roles-select-input'}
                         sx={{
-                          display: "block",
-                          color: "text.secondary",
+                          display: 'block',
+                          color: 'text.secondary',
                           fontWeight: 500,
                           mb: 0.5,
                         }}
                       >
-                        {"Roles"}
+                        {'Role'}
                       </Typography>
                       <FormControl fullWidth>
                         <Select
-                          multiple
                           name="roles"
-                          value={formData.roles}
+                          value={formData.roles[0] || 'USER'}
                           onChange={handleRolesChange}
-                          input={<OutlinedInput id="roles-select-input" />}
-                          renderValue={(selected: UserRoleType[]) =>
-                            selected.join(", ")
-                          }
                           displayEmpty
                           startAdornment={
                             <SupervisedUserCircleIcon
                               color="action"
-                              sx={{ ml: 1, mr: 1, pointerEvents: "none" }}
+                              sx={{ ml: 1, mr: 1, pointerEvents: 'none' }}
                             />
                           }
                         >
                           {AVAILABLE_ROLES_FOR_SELECT.map((roleName) => (
                             <MenuItem key={roleName} value={roleName}>
-                              <Checkbox
-                                checked={formData.roles.indexOf(roleName) > -1}
-                              />
                               <ListItemText primary={roleName} />
                             </MenuItem>
                           ))}
@@ -786,15 +899,63 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                       </FormControl>
                     </Grid>
                   )}
-                  {!isEditing &&
-                    renderField(
-                      "Roles",
-                      "roles",
-                      "text",
-                      <SupervisedUserCircleIcon />,
-                      false,
-                      true,
-                    )}
+                  {isEditing && (
+                    <Grid size={{ xs: 12 }}>
+                      <Typography
+                        variant="caption"
+                        component="label"
+                        htmlFor="status-select-input"
+                        sx={{
+                          display: 'block',
+                          color: 'text.secondary',
+                          fontWeight: 500,
+                          mb: 0.5,
+                        }}
+                      >
+                        {'Status'}
+                      </Typography>
+                      <FormControl fullWidth>
+                        <Select
+                          name="status"
+                          value={formData.status}
+                          onChange={handleStatusChange}
+                          input={<OutlinedInput id="status-select-input" />}
+                          startAdornment={
+                            <StatusIcon
+                              color="action"
+                              sx={{ ml: 1, mr: 1, pointerEvents: 'none' }}
+                            />
+                          }
+                        >
+                          {AVAILABLE_STATUSES.map((statusName) => (
+                            <MenuItem key={statusName} value={statusName}>
+                              <ListItemText primary={statusName} />
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  )}
+                  {!isEditing && (
+                    <>
+                      {renderField(
+                        'Roles',
+                        'roles',
+                        'text',
+                        <SupervisedUserCircleIcon />,
+                        false,
+                        true,
+                      )}
+                      {renderField(
+                        'Status',
+                        'status',
+                        'text',
+                        <StatusIcon />,
+                        false,
+                        true,
+                      )}
+                    </>
+                  )}
                 </Grid>
               </Grid>
             </Grid>
@@ -805,12 +966,12 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <SnackbarAlert
           onClose={handleSnackbarClose}
           severity={snackbarSeverity}
-          sx={{ width: "100%" }}
+          sx={{ width: '100%' }}
         >
           {snackbarMessage}
         </SnackbarAlert>

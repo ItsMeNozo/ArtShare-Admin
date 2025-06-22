@@ -1,5 +1,7 @@
-import { useState, useCallback, useEffect } from "react";
-import { User, UserFormData } from "../../../types/user";
+import { useState, useCallback, useEffect } from 'react';
+import { User, UserFormData } from '../../../types/user';
+import { UserStatus } from '../../../constants/user';
+import { UserRoleType } from '../../../constants/roles';
 import {
   fetchUsers as apiFetchUsers,
   FetchUsersParams,
@@ -8,9 +10,24 @@ import {
   updateUser as apiUpdateUser,
   deleteUser as apiSingleDeleteUser,
   deleteMultipleUsers as apiBulkDeleteUsers,
-} from "../api/user.api";
-import { useDebounce } from "./useDebounce";
-import { UserSortableKeys } from "../types";
+} from '../api/user.api';
+import { useDebounce } from './useDebounce';
+import { UserSortableKeys } from '../types';
+import { getPrimaryRole } from '../utils/userTable.utils';
+
+/**
+ * Hook for managing user operations and filtering.
+ *
+ * Backend Filter Support:
+ * - ✅ search: Full text search across user fields
+ * - ✅ sortBy/sortOrder: Server-side sorting
+ * - ✅ page/limit: Pagination
+ * - ❌ status: Client-side only until backend supports it
+ * - ❌ role: Client-side only until backend supports it
+ *
+ * Note: Status and role filters are applied client-side after fetching data.
+ * This may impact pagination accuracy and performance with large datasets.
+ */
 
 export interface UserOperations {
   users: User[];
@@ -20,14 +37,16 @@ export interface UserOperations {
   currentPage: number;
   rowsPerPage: number;
   searchTerm: string;
-  order: "asc" | "desc";
+  statusFilter: UserStatus | 'ALL';
+  roleFilter: UserRoleType | 'ALL';
+  order: 'asc' | 'desc';
   orderBy: UserSortableKeys;
 
   loadUsers: () => Promise<void>;
   createUser: (formData: UserFormData) => Promise<User | undefined>;
   updateUser: (
     userId: string,
-    formData: Omit<UserFormData, "id" | "password">,
+    formData: Omit<UserFormData, 'id' | 'password'>,
   ) => Promise<User | undefined>;
   deleteUser: (userId: string) => Promise<boolean>;
   bulkDeleteUsers: (
@@ -39,6 +58,8 @@ export interface UserOperations {
   handleChangePage: (newPage: number) => void;
   handleChangeRowsPerPage: (newRowsPerPage: number) => void;
   handleSearchChange: (newSearchTerm: string) => void;
+  handleStatusFilterChange: (newStatusFilter: UserStatus | 'ALL') => void;
+  handleRoleFilterChange: (newRoleFilter: UserRoleType | 'ALL') => void;
   handleSortRequest: (property: UserSortableKeys) => void;
 }
 
@@ -50,9 +71,11 @@ export const useUserOperations = (): UserOperations => {
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [order, setOrder] = useState<"asc" | "desc">("desc");
-  const [orderBy, setOrderBy] = useState<UserSortableKeys>("createdAt");
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<UserStatus | 'ALL'>('ALL');
+  const [roleFilter, setRoleFilter] = useState<UserRoleType | 'ALL'>('ALL');
+  const [order, setOrder] = useState<'asc' | 'desc'>('desc');
+  const [orderBy, setOrderBy] = useState<UserSortableKeys>('createdAt');
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -63,26 +86,57 @@ export const useUserOperations = (): UserOperations => {
     setLoading(true);
     setError(null);
     try {
+      // Note: Backend doesn't support role filtering yet, so we only send supported parameters
       const params: FetchUsersParams = {
         page: currentPage + 1,
         limit: rowsPerPage,
         sortBy: orderBy,
         sortOrder: order,
         search: debouncedSearchTerm || undefined,
+        // status: statusFilter !== "ALL" ? statusFilter : undefined, // TODO: Uncomment when backend supports status filtering
+        // role: roleFilter !== "ALL" ? roleFilter : undefined, // TODO: Uncomment when backend supports role filtering
       };
+
       const response: PaginatedUsersApiResponse = await apiFetchUsers(params);
-      setUsers(response.data);
-      setTotalUsers(response.total);
+
+      // Apply client-side filtering for status and role until backend supports them
+      let filteredUsers = response.data;
+
+      // Client-side status filtering
+      if (statusFilter !== 'ALL') {
+        filteredUsers = filteredUsers.filter(
+          (user) => user.status === statusFilter,
+        );
+      }
+
+      // Client-side role filtering
+      if (roleFilter !== 'ALL') {
+        filteredUsers = filteredUsers.filter((user) => {
+          const primaryRole = getPrimaryRole(user.roles);
+          return primaryRole === roleFilter;
+        });
+      }
+
+      setUsers(filteredUsers);
+      setTotalUsers(response.total); // Keep original total for now, will be fixed when backend supports role filtering
     } catch (err: any) {
-      const message = err.message || "Failed to fetch users.";
+      const message = err.message || 'Failed to fetch users.';
       setError(message);
-      console.error("loadUsers error:", err);
+      console.error('loadUsers error:', err);
       setUsers([]);
       setTotalUsers(0);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, rowsPerPage, debouncedSearchTerm, order, orderBy]);
+  }, [
+    currentPage,
+    rowsPerPage,
+    debouncedSearchTerm,
+    statusFilter,
+    roleFilter,
+    order,
+    orderBy,
+  ]);
 
   useEffect(() => {
     loadUsers();
@@ -98,9 +152,9 @@ export const useUserOperations = (): UserOperations => {
       await loadUsers();
       return newUser;
     } catch (err: any) {
-      const message = err.message || "Failed to create user.";
+      const message = err.message || 'Failed to create user.';
       setError(message);
-      console.error("createUser error:", err);
+      console.error('createUser error:', err);
       return undefined;
     } finally {
       setLoading(false);
@@ -109,7 +163,7 @@ export const useUserOperations = (): UserOperations => {
 
   const updateUser = async (
     userId: string,
-    formData: Omit<UserFormData, "id" | "password">,
+    formData: Omit<UserFormData, 'id' | 'password'>,
   ): Promise<User | undefined> => {
     setLoading(true);
     setError(null);
@@ -118,9 +172,9 @@ export const useUserOperations = (): UserOperations => {
       await loadUsers();
       return updatedUser;
     } catch (err: any) {
-      const message = err.message || "Failed to update user.";
+      const message = err.message || 'Failed to update user.';
       setError(message);
-      console.error("updateUser error:", err);
+      console.error('updateUser error:', err);
 
       throw new Error(message);
     } finally {
@@ -137,9 +191,9 @@ export const useUserOperations = (): UserOperations => {
       await loadUsers();
       return true;
     } catch (err: any) {
-      const message = err.message || "Failed to delete user.";
+      const message = err.message || 'Failed to delete user.';
       setError(message);
-      console.error("deleteUser error:", err);
+      console.error('deleteUser error:', err);
       return false;
     } finally {
       setLoading(false);
@@ -170,7 +224,7 @@ export const useUserOperations = (): UserOperations => {
     } catch (err: any) {
       const message = err.message || `Failed to delete some or all users.`;
       setError(message);
-      console.error("bulkDeleteUsers error:", err);
+      console.error('bulkDeleteUsers error:', err);
       await loadUsers();
       return { successCount: 0, failCount: userIds.length };
     } finally {
@@ -192,10 +246,20 @@ export const useUserOperations = (): UserOperations => {
     setCurrentPage(0);
   };
 
+  const handleStatusFilterChange = (newStatusFilter: UserStatus | 'ALL') => {
+    setStatusFilter(newStatusFilter);
+    setCurrentPage(0);
+  };
+
+  const handleRoleFilterChange = (newRoleFilter: UserRoleType | 'ALL') => {
+    setRoleFilter(newRoleFilter);
+    setCurrentPage(0);
+  };
+
   const handleSortRequest = useCallback(
     (property: UserSortableKeys) => {
-      const isAsc = orderBy === property && order === "asc";
-      setOrder(isAsc ? "desc" : "asc");
+      const isAsc = orderBy === property && order === 'asc';
+      setOrder(isAsc ? 'desc' : 'asc');
       setOrderBy(property);
       setCurrentPage(0);
     },
@@ -210,6 +274,8 @@ export const useUserOperations = (): UserOperations => {
     currentPage,
     rowsPerPage,
     searchTerm,
+    statusFilter,
+    roleFilter,
     order,
     orderBy,
     loadUsers,
@@ -222,6 +288,8 @@ export const useUserOperations = (): UserOperations => {
     handleChangePage,
     handleChangeRowsPerPage,
     handleSearchChange,
+    handleStatusFilterChange,
+    handleRoleFilterChange,
     handleSortRequest,
   };
 };

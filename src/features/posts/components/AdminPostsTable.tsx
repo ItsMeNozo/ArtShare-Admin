@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -11,66 +11,65 @@ import {
   TableSortLabel,
   CircularProgress,
   Typography,
-  Paper,
-} from "@mui/material";
+} from '@mui/material';
 
-import { AdminPostListItemDto } from "../api/post.api";
-import { CustomHeadCell, SortableFields } from "../types/adminPosts.types";
-import AdminPostTableRow from "./AdminPostTableRow";
+import { AdminPostListItemDto } from '../api/post.api';
+import { CustomHeadCell, SortableFields } from '../types/adminPosts.types';
+import AdminPostTableRow from './AdminPostTableRow';
 
 const headCells: ReadonlyArray<CustomHeadCell> = [
   {
-    id: "select",
-    label: "",
+    id: 'select',
+    label: '',
     numeric: false,
     sortable: false,
     minWidth: 40,
     maxWidth: 50,
-    align: "center",
+    align: 'center',
     disablePadding: true,
   },
   {
-    id: "id",
-    label: "ID",
+    id: 'id',
+    label: 'ID',
     numeric: false,
     sortable: false,
     minWidth: 60,
     maxWidth: 80,
-    align: "center",
+    align: 'center',
   },
   {
-    id: "title",
-    label: "Title",
+    id: 'title',
+    label: 'Title',
     numeric: false,
     sortable: true,
     minWidth: 250,
-    cellMaxWidth: "400px",
+    cellMaxWidth: '400px',
     truncate: true,
   },
   {
-    id: "user",
-    label: "Author",
+    id: 'user',
+    label: 'Author',
     numeric: false,
     sortable: true,
     minWidth: 180,
-    cellMaxWidth: "250px",
+    cellMaxWidth: '250px',
     truncate: true,
   },
   {
-    id: "created_at",
-    label: "Created At",
+    id: 'created_at',
+    label: 'Created At',
     numeric: false,
     sortable: true,
     minWidth: 160,
   },
   {
-    id: "actions",
-    label: "Actions",
+    id: 'actions',
+    label: 'Actions',
     numeric: false,
     sortable: false,
     minWidth: 80,
     maxWidth: 100,
-    align: "center",
+    align: 'center',
   },
 ];
 
@@ -82,7 +81,7 @@ interface AdminPostsTableProps {
   page: number;
   rowsPerPage: number;
   orderBy: SortableFields;
-  order: "asc" | "desc";
+  order: 'asc' | 'desc';
   numSelected: number;
   postIdsOnPage: number[];
   debouncedSearchTerm: string;
@@ -128,18 +127,18 @@ const AdminPostsTable: React.FC<AdminPostsTableProps> = ({
 }) => {
   const cellConfigs = useMemo(
     () => ({
-      selectCellConfig: headCells.find((hc) => hc.id === "select")!,
-      idCellConfig: headCells.find((hc) => hc.id === "id")!,
-      titleCellConfig: headCells.find((hc) => hc.id === "title")!,
-      userCellConfig: headCells.find((hc) => hc.id === "user")!,
-      createdAtCellConfig: headCells.find((hc) => hc.id === "created_at")!,
-      actionsCellConfig: headCells.find((hc) => hc.id === "actions")!,
+      selectCellConfig: headCells.find((hc) => hc.id === 'select')!,
+      idCellConfig: headCells.find((hc) => hc.id === 'id')!,
+      titleCellConfig: headCells.find((hc) => hc.id === 'title')!,
+      userCellConfig: headCells.find((hc) => hc.id === 'user')!,
+      createdAtCellConfig: headCells.find((hc) => hc.id === 'created_at')!,
+      actionsCellConfig: headCells.find((hc) => hc.id === 'actions')!,
     }),
     [],
   );
 
   return (
-    <Paper elevation={2}>
+    <>
       <TableContainer>
         <Table stickyHeader aria-label="admin posts table" size="small">
           <TableHead>
@@ -148,19 +147,19 @@ const AdminPostsTable: React.FC<AdminPostsTableProps> = ({
                 <TableCell
                   key={headCell.id}
                   align={
-                    headCell.align || (headCell.numeric ? "right" : "left")
+                    headCell.align || (headCell.numeric ? 'right' : 'left')
                   }
-                  padding={headCell.disablePadding ? "none" : "normal"}
+                  padding={headCell.disablePadding ? 'none' : 'normal'}
                   style={{
                     minWidth: headCell.minWidth,
                     maxWidth: headCell.maxWidth || headCell.cellMaxWidth,
-                    fontWeight: "bold",
+                    fontWeight: 'bold',
                   }}
                   sortDirection={
                     orderBy === headCell.id && headCell.sortable ? order : false
                   }
                 >
-                  {headCell.id === "select" ? (
+                  {headCell.id === 'select' ? (
                     <Checkbox
                       color="primary"
                       indeterminate={
@@ -172,13 +171,13 @@ const AdminPostsTable: React.FC<AdminPostsTableProps> = ({
                         numSelected > 0
                       }
                       onChange={(e) => onSelectAllClick(e, postIdsOnPage)}
-                      inputProps={{ "aria-label": "select all posts" }}
+                      inputProps={{ 'aria-label': 'select all posts' }}
                       disabled={posts.length === 0}
                     />
                   ) : headCell.sortable ? (
                     <TableSortLabel
                       active={orderBy === headCell.id}
-                      direction={orderBy === headCell.id ? order : "asc"}
+                      direction={orderBy === headCell.id ? order : 'asc'}
                       onClick={() =>
                         onRequestSort(headCell.id as SortableFields)
                       }
@@ -213,8 +212,8 @@ const AdminPostsTable: React.FC<AdminPostsTableProps> = ({
                 >
                   <Typography>
                     {debouncedSearchTerm
-                      ? "No posts found matching your search."
-                      : "No posts available."}
+                      ? 'No posts found matching your search.'
+                      : 'No posts available.'}
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -245,7 +244,7 @@ const AdminPostsTable: React.FC<AdminPostsTableProps> = ({
         onPageChange={onPageChange}
         onRowsPerPageChange={onRowsPerPageChange}
       />
-    </Paper>
+    </>
   );
 };
 
