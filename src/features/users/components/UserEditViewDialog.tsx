@@ -15,7 +15,6 @@ import {
   FormControl,
   Select,
   MenuItem,
-  Checkbox,
   ListItemText,
   OutlinedInput,
   SelectChangeEvent,
@@ -37,6 +36,8 @@ import {
   SupervisedUserCircle as SupervisedUserCircleIcon,
   Cancel as CancelIcon,
   PowerSettingsNew as StatusIcon,
+  Block as BlockIcon,
+  CheckCircle as UnsuspendIcon,
 } from "@mui/icons-material";
 import { User, UserFormData } from "../../../types/user";
 import { PaidAccessLevel } from "../../../constants/plan";
@@ -46,6 +47,7 @@ import { useUserOperations } from "../hooks/useUserOperations";
 import { signUp } from "../../auth/api/auth-api";
 import api from "../../../api/baseApi";
 import { UserStatus } from "../../../constants/user";
+import { getPrimaryRole } from "../utils/userTable.utils";
 
 interface UserEditViewDialogProps {
   open: boolean;
@@ -97,7 +99,7 @@ const getInitialDialogFormData = (
     birthday: user.birthday
       ? (new Date(user.birthday).toISOString().split("T")[0] as any)
       : undefined,
-    roles: user.roles.map((ur) => ur),
+    roles: [getPrimaryRole(user.roles)],
     password: "",
     status: user.status || UserStatus.ACTIVE,
   };
@@ -111,7 +113,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
   onSave,
   getSubscriptionStatusInfo: getStatusInfoProp,
 }) => {
-  const { loadUsers } = useUserOperations();
+  const { loadUsers, updateUser } = useUserOperations();
   const [isEditing, setIsEditing] = useState(isCreatingNewUser);
   const [formData, setFormData] = useState<UserFormData>(
     getInitialDialogFormData(initialUser, isCreatingNewUser),
@@ -167,18 +169,13 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleRolesChange = (
-    event: SelectChangeEvent<typeof formData.roles>,
-  ) => {
+  const handleRolesChange = (event: SelectChangeEvent<string>) => {
     const {
       target: { value },
     } = event;
     setFormData((prev) => ({
       ...prev,
-      roles:
-        typeof value === "string"
-          ? (value.split(",") as Array<"ADMIN" | "USER">)
-          : (value as Array<"ADMIN" | "USER">),
+      roles: [value as UserRoleType], // Store as single-item array
     }));
   };
 
@@ -371,9 +368,8 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
       let displayValue: string;
 
       if (id === "roles") {
-        displayValue = (currentData.roles as string[])
-          .map(capitalizeFirstLetter)
-          .join(", ");
+        const primaryRole = getPrimaryRole(currentData.roles as UserRoleType[]);
+        displayValue = capitalizeFirstLetter(primaryRole);
       } else if (id === "status") {
         displayValue = capitalizeFirstLetter(currentData.status);
       } else {
@@ -465,6 +461,76 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
     onClose();
   };
 
+  // Suspend handler
+  const handleSuspendUser = async () => {
+    if (!initialUser?.id || isCreatingNewUser) return;
+
+    try {
+      // Check if user is already suspended
+      if (initialUser.status === UserStatus.SUSPENDED) {
+        showNotification("User is already suspended.", "warning");
+        return;
+      }
+
+      // Update user status to SUSPENDED
+      const userData = {
+        username: initialUser.username,
+        email: initialUser.email,
+        fullName: initialUser.fullName,
+        profilePictureUrl: initialUser.profilePictureUrl,
+        bio: initialUser.bio,
+        birthday: initialUser.birthday,
+        roles: initialUser.roles,
+        status: UserStatus.SUSPENDED,
+      };
+
+      const updatedUser = await updateUser(initialUser.id, userData);
+      if (updatedUser) {
+        showNotification("User suspended successfully.", "success");
+        // Update the dialog's form data to reflect the change
+        setFormData((prev) => ({ ...prev, status: UserStatus.SUSPENDED }));
+      }
+    } catch (err) {
+      console.error("Suspend user failed:", err);
+      showNotification("Failed to suspend user.", "error");
+    }
+  };
+
+  // Unsuspend handler
+  const handleUnsuspendUser = async () => {
+    if (!initialUser?.id || isCreatingNewUser) return;
+
+    try {
+      // Check if user is not suspended
+      if (initialUser.status !== UserStatus.SUSPENDED) {
+        showNotification("User is not suspended.", "warning");
+        return;
+      }
+
+      // Update user status to ACTIVE
+      const userData = {
+        username: initialUser.username,
+        email: initialUser.email,
+        fullName: initialUser.fullName,
+        profilePictureUrl: initialUser.profilePictureUrl,
+        bio: initialUser.bio,
+        birthday: initialUser.birthday,
+        roles: initialUser.roles,
+        status: UserStatus.ACTIVE,
+      };
+
+      const updatedUser = await updateUser(initialUser.id, userData);
+      if (updatedUser) {
+        showNotification("User unsuspended successfully.", "success");
+        // Update the dialog's form data to reflect the change
+        setFormData((prev) => ({ ...prev, status: UserStatus.ACTIVE }));
+      }
+    } catch (err) {
+      console.error("Unsuspend user failed:", err);
+      showNotification("Failed to unsuspend user.", "error");
+    }
+  };
+
   return (
     <>
       {/* Use handleDirectClose for the Dialog's native close actions */}
@@ -518,6 +584,32 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                     ? "Create User"
                     : "Save Changes"}
               </Button>
+            )}
+            {/* Suspend/Unsuspend buttons - only show when not creating and not editing */}
+            {!isCreatingNewUser && !isEditing && initialUser && (
+              <>
+                {initialUser.status === UserStatus.SUSPENDED ? (
+                  <Button
+                    onClick={handleUnsuspendUser}
+                    startIcon={<UnsuspendIcon />}
+                    variant="outlined"
+                    color="success"
+                    sx={{ ml: 1 }}
+                  >
+                    Unsuspend
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleSuspendUser}
+                    startIcon={<BlockIcon />}
+                    variant="outlined"
+                    color="warning"
+                    sx={{ ml: 1 }}
+                  >
+                    Suspend
+                  </Button>
+                )}
+              </>
             )}
             {/* IconButton close should also use handleDirectClose */}
             <IconButton onClick={handleDirectClose} sx={{ ml: 1 }}>
@@ -660,7 +752,7 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                     </Grid>
 
                     {displayUser.roles &&
-                      !displayUser.roles.some((r) => r === "ADMIN") && (
+                      getPrimaryRole(displayUser.roles) !== "ADMIN" && (
                         <Grid size={{ xs: 6, md: 12 }}>
                           <Typography
                             variant="subtitle2"
@@ -695,9 +787,8 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                                     ? "Yes"
                                     : "No"}
                                 </Typography>
-                                {initialUser?.roles.some(
-                                  (r) => r === "ADMIN",
-                                ) && (
+                                {getPrimaryRole(initialUser?.roles) ===
+                                  "ADMIN" && (
                                   <>
                                     <Typography
                                       variant="body2"
@@ -784,18 +875,13 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                           mb: 0.5,
                         }}
                       >
-                        {"Roles"}
+                        {"Role"}
                       </Typography>
                       <FormControl fullWidth>
                         <Select
-                          multiple
                           name="roles"
-                          value={formData.roles}
+                          value={formData.roles[0] || "USER"}
                           onChange={handleRolesChange}
-                          input={<OutlinedInput id="roles-select-input" />}
-                          renderValue={(selected: UserRoleType[]) =>
-                            selected.join(", ")
-                          }
                           displayEmpty
                           startAdornment={
                             <SupervisedUserCircleIcon
@@ -806,9 +892,6 @@ export const UserEditViewDialog: React.FC<UserEditViewDialogProps> = ({
                         >
                           {AVAILABLE_ROLES_FOR_SELECT.map((roleName) => (
                             <MenuItem key={roleName} value={roleName}>
-                              <Checkbox
-                                checked={formData.roles.indexOf(roleName) > -1}
-                              />
                               <ListItemText primary={roleName} />
                             </MenuItem>
                           ))}

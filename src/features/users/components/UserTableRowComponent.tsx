@@ -17,6 +17,7 @@ import { HeadCell } from "../types";
 import {
   getPlanTierStyling,
   getStatusChipProps,
+  getPrimaryRole,
 } from "../utils/userTable.utils";
 
 interface DisplayUser extends User {
@@ -165,18 +166,19 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
             }}
           >
             {currentUser.roles && currentUser.roles.length > 0 ? (
-              currentUser.roles.map((role) => (
-                <Chip
-                  key={`${currentUser.id}_${role}`}
-                  label={role.toLowerCase()}
-                  size="small"
-                  color={role === "ADMIN" ? "secondary" : "default"}
-                  variant="outlined"
-                  sx={{
-                    textTransform: "capitalize",
-                  }}
-                />
-              ))
+              <Chip
+                label={getPrimaryRole(currentUser.roles).toLowerCase()}
+                size="small"
+                color={
+                  getPrimaryRole(currentUser.roles) === "ADMIN"
+                    ? "secondary"
+                    : "default"
+                }
+                variant="outlined"
+                sx={{
+                  textTransform: "capitalize",
+                }}
+              />
             ) : (
               <Typography variant="caption" color="textSecondary">
                 N/A

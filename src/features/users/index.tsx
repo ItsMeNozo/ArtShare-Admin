@@ -1,85 +1,87 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo } from "react";
 import {
-  Container,
-  Paper,
-  Table,
-  TableBody,
-  TableContainer,
-  TablePagination,
-  CircularProgress,
-  Alert,
   Box,
   Typography,
+  Paper,
+  useTheme,
+  Alert,
+  Snackbar,
+  AlertColor,
+  Table,
+  TableContainer,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Checkbox,
+  TablePagination,
+  Avatar,
+  Chip,
+  IconButton,
   Menu,
   MenuItem,
   Dialog,
-  DialogActions,
-  DialogContent,
   DialogTitle,
+  DialogContent,
+  DialogActions,
   Button,
-  useTheme,
-  TableRow,
-  TableCell,
-  Snackbar,
+  CircularProgress,
 } from "@mui/material";
-
-import MuiAlert, { AlertProps, AlertColor } from "@mui/material/Alert";
-import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
-import autoTable from "jspdf-autotable";
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Block as BlockIcon,
+  CheckCircle as UnsuspendIcon,
+  MoreVert as MoreVertIcon,
+} from "@mui/icons-material";
+import { useUserOperations } from "./hooks/useUserOperations";
+import { UserTableToolbar } from "./components/UserTableToolbar";
+import { UserEditViewDialog } from "./components/UserEditViewDialog";
 import jsPDF from "jspdf";
-
+import autoTable from "jspdf-autotable";
 import { User, UserFormData } from "../../types/user";
+import { UserStatus } from "../../constants/user";
+import { UserRoleType } from "../../constants/roles";
 import {
   getSubscriptionStatusInfo,
   getCurrentEffectivePlanNameForTable,
+  getStatusChipProps,
+  getPrimaryRole,
 } from "./utils/userTable.utils";
-import { defaultHeadCells } from "./constants/userTable.constants";
-
-import { UserEditViewDialog } from "./components/UserEditViewDialog";
-import { UserTableToolbar } from "./components/UserTableToolbar";
-import { UserTableHeadComponent } from "./components/UserTableHeadComponent";
-import { UserTableRowComponent } from "./components/UserTableRowComponent";
-
-import { useUserOperations, UserOperations } from "./hooks/useUserOperations";
-
-interface DisplayUser extends User {
-  currentPlan?: string;
-}
-
-const PageSnackbarAlert = React.forwardRef<HTMLDivElement, AlertProps>(
-  function PageSnackbarAlert(props, ref) {
-    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-  },
-);
+import { DisplayUser } from "./types";
 
 const UserManagementPage: React.FC = () => {
   const theme = useTheme();
+  // Use the UserOperations hook
   const {
     users,
     loading: crudLoading,
     error: crudError,
-
-    updateUser,
-    deleteUser,
-    bulkDeleteUsers,
-    clearError,
-    setErrorManually,
-
     totalUsers,
     currentPage,
     rowsPerPage,
     searchTerm,
-    order,
-    orderBy,
+    statusFilter,
+    roleFilter,
+    deleteUser,
+    bulkDeleteUsers,
+    clearError,
+    setErrorManually,
     handleChangePage,
     handleChangeRowsPerPage,
     handleSearchChange,
-    handleSortRequest,
-  }: UserOperations = useUserOperations();
+    handleStatusFilterChange,
+    handleRoleFilterChange,
+    updateUser,
+  } = useUserOperations();
 
+  // Local state for UI interactions
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const resetSelection = useCallback(() => setSelectedIds([]), []);
+  const [isUserDetailDialogOpen, setIsUserDetailDialogOpen] = useState(false);
+  const [userToEditView, setUserToEditView] = useState<User | null>(null);
+  const [isCreatingNewUserFlow, setIsCreatingNewUserFlow] = useState(false);
 
+  // Menu state
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<null | HTMLElement>(
     null,
   );
@@ -87,36 +89,96 @@ const UserManagementPage: React.FC = () => {
     null,
   );
 
-  const [userToEditView, setUserToEditView] = useState<User | null>(null);
-  const [isUserDetailDialogOpen, setIsUserDetailDialogOpen] =
-    useState<boolean>(false);
-  const [isCreatingNewUserFlow, setIsCreatingNewUserFlow] =
-    useState<boolean>(false);
+  // Dialog state
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [openBulkDeleteDialog, setOpenBulkDeleteDialog] = useState(false);
 
-  const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
-  const [openBulkDeleteDialog, setOpenBulkDeleteDialog] =
-    useState<boolean>(false);
-
+  // Snackbar state
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("info");
 
-  const showPageNotification = (message: string, severity: AlertColor) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
+  // Transform users to display format
+  const displayUsers: DisplayUser[] = useMemo(() => {
+    return users.map((user) => {
+      const statusInfo = getSubscriptionStatusInfo(user);
+      return {
+        ...user,
+        currentPlan: getCurrentEffectivePlanNameForTable(user, statusInfo),
+      };
+    });
+  }, [users]);
+
+  // CSV and PDF export data
+  const getDataForExport = () => {
+    return selectedIds.length > 0
+      ? displayUsers.filter((u) => selectedIds.includes(u.id))
+      : displayUsers;
   };
 
-  const handlePageSnackbarClose = (
-    _?: React.SyntheticEvent | Event,
-    reason?: string,
-  ) => {
-    if (reason === "clickaway") {
-      return;
+  const csvFormattedData = useMemo(() => {
+    const dataToExport = getDataForExport();
+    return dataToExport.map((user) => ({
+      Username: user.username,
+      FullName: user.fullName || "",
+      Email: user.email,
+      Role: getPrimaryRole(user.roles),
+      "Current Plan": user.currentPlan || "N/A",
+      "Joined Date": user.createdAt
+        ? new Date(user.createdAt).toLocaleDateString()
+        : "N/A",
+    }));
+  }, [displayUsers, selectedIds]);
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF("landscape");
+    const dataToExport = getDataForExport();
+    const pdfData = dataToExport.map((user) => [
+      user.username ?? "",
+      user.fullName ?? "",
+      user.email ?? "",
+      getPrimaryRole(user.roles),
+      user.currentPlan ?? "N/A",
+      user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A",
+    ]);
+    autoTable(doc, {
+      head: [
+        [
+          "Username",
+          "Full Name",
+          "Email",
+          "Role",
+          "Current Plan",
+          "Joined Date",
+        ],
+      ],
+      body: pdfData,
+    });
+    doc.save("users-page.pdf");
+  };
+
+  // Selection helpers
+  const resetSelection = () => setSelectedIds([]);
+
+  // Handle row selection
+  const handleRowSelect = (userId: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId],
+    );
+  };
+
+  // Handle select all
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setSelectedIds(displayUsers.map((user) => user.id));
+    } else {
+      setSelectedIds([]);
     }
-    setSnackbarOpen(false);
   };
 
+  // Menu handlers
   const handleOpenUserMenu = (
     event: React.MouseEvent<HTMLElement>,
     user: User,
@@ -127,8 +189,10 @@ const UserManagementPage: React.FC = () => {
 
   const handleCloseUserMenu = () => {
     setUserMenuAnchorEl(null);
+    setSelectedUserForMenu(null);
   };
 
+  // Dialog handlers
   const handleOpenUserDetailDialog = (
     user: User | null,
     isCreating: boolean = false,
@@ -144,10 +208,10 @@ const UserManagementPage: React.FC = () => {
     setTimeout(() => {
       setUserToEditView(null);
       setIsCreatingNewUserFlow(false);
-      setSelectedUserForMenu(null);
     }, 150);
   };
 
+  // User save handler
   const handleSaveUserFromDialog = async (
     dataForBackend: UserFormData,
     userIdToUpdate?: string,
@@ -155,11 +219,10 @@ const UserManagementPage: React.FC = () => {
     clearError();
 
     if (!userIdToUpdate) {
-      setErrorManually(
-        "User ID is missing for update operation initiated from dialog.",
-      );
+      setErrorManually("User ID is missing for update operation.");
       throw new Error("User ID is required for update.");
     }
+
     if (!updateUser) {
       setErrorManually("Update function not available.");
       throw new Error("Update user function from hook is not available.");
@@ -177,10 +240,9 @@ const UserManagementPage: React.FC = () => {
           "Failed to update user (operation returned undefined).",
         );
       }
-
       return updatedUser;
     } catch (error) {
-      console.error("Error in handleSaveUserFromDialog on page:", error);
+      console.error("Error in handleSaveUserFromDialog:", error);
       if (error instanceof Error) {
         setErrorManually(error.message);
       } else {
@@ -190,422 +252,386 @@ const UserManagementPage: React.FC = () => {
     }
   };
 
-  const handleOpenDeleteConfirmDialog = (userFromMenu?: User) => {
-    const userToDelete = userFromMenu || selectedUserForMenu;
-    if (userToDelete) {
-      setSelectedUserForMenu(userToDelete);
-      setOpenDeleteDialog(true);
-    }
+  // Delete handlers
+  const handleOpenDeleteDialog = () => {
+    setOpenDeleteDialog(true);
     handleCloseUserMenu();
   };
 
   const handleDeleteUser = async () => {
-    if (!selectedUserForMenu || !selectedUserForMenu.id) {
-      showPageNotification(
-        "Cannot delete user: User data is missing.",
-        "error",
-      );
-      setOpenDeleteDialog(false);
-      setSelectedUserForMenu(null);
-      return;
-    }
-    clearError();
-    const userName = selectedUserForMenu.username;
+    if (!selectedUserForMenu?.id) return;
+
     try {
-      await deleteUser(selectedUserForMenu.id);
-      showPageNotification(
-        `User "${userName}" deleted successfully.`,
-        "success",
-      );
+      const success = await deleteUser(selectedUserForMenu.id);
+      if (success) {
+        showPageNotification("User deleted successfully.", "success");
+      }
     } catch (err) {
-      console.error("Delete user failed from page:", err);
+      showPageNotification("Failed to delete user.", "error");
     } finally {
       setOpenDeleteDialog(false);
       setSelectedUserForMenu(null);
     }
   };
 
-  const handleInitiateBulkDelete = () => {
-    if (selectedIds.length > 0) {
-      setOpenBulkDeleteDialog(true);
-    } else {
-      showPageNotification("No users selected for bulk deletion.", "info");
-    }
-  };
-
-  const executeBulkDelete = async () => {
+  // Bulk delete handler
+  const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
-    const count = selectedIds.length;
-    clearError();
+
     try {
-      await bulkDeleteUsers(selectedIds);
-      showPageNotification(`${count} user(s) deleted successfully.`, "success");
+      const result = await bulkDeleteUsers(selectedIds);
+      showPageNotification(
+        `${result.successCount} user(s) deleted successfully.`,
+        "success",
+      );
       resetSelection();
     } catch (err) {
-      console.error("Bulk delete failed from page:", err);
+      console.error("Bulk delete failed:", err);
+      showPageNotification("Failed to delete users.", "error");
     } finally {
       setOpenBulkDeleteDialog(false);
     }
   };
 
-  const displayUsers: DisplayUser[] = useMemo(() => {
-    return users.map((user) => {
-      const statusInfo = getSubscriptionStatusInfo(user);
-      return {
-        ...user,
-        currentPlan: getCurrentEffectivePlanNameForTable(user, statusInfo),
+  // Suspend handler
+  const handleSuspendUser = async () => {
+    if (!selectedUserForMenu?.id) return;
+
+    try {
+      const currentUser = selectedUserForMenu;
+
+      // Check if user is already suspended
+      if (currentUser.status === UserStatus.SUSPENDED) {
+        showPageNotification("User is already suspended.", "warning");
+        handleCloseUserMenu();
+        return;
+      }
+
+      // Update user status to SUSPENDED
+      const userData = {
+        username: currentUser.username,
+        email: currentUser.email,
+        fullName: currentUser.fullName,
+        profilePictureUrl: currentUser.profilePictureUrl,
+        bio: currentUser.bio,
+        birthday: currentUser.birthday,
+        roles: currentUser.roles,
+        status: UserStatus.SUSPENDED,
       };
-    });
-  }, [users]);
 
-  const getDataForExport = useCallback(() => {
-    return selectedIds.length > 0
-      ? displayUsers.filter((u) => selectedIds.includes(u.id))
-      : displayUsers;
-  }, [displayUsers, selectedIds]);
-
-  const csvFormattedData = useMemo(() => {
-    const dataToExport = getDataForExport();
-    return dataToExport.map((user) => ({
-      Username: user.username,
-      FullName: user.fullName || "",
-      Email: user.email,
-      Roles:
-        user.roles
-          ?.map((r: any) => (typeof r === "string" ? r : r.name))
-          .join(" | ") || "",
-      "Current Plan": user.currentPlan || "N/A",
-      "Joined Date": user.createdAt
-        ? new Date(user.createdAt).toLocaleDateString()
-        : "N/A",
-    }));
-  }, [getDataForExport]);
-
-  const handleExportPDF = () => {
-    const doc = new jsPDF("landscape");
-    const dataToExport = getDataForExport();
-    const pdfData = dataToExport.map((user) => [
-      user.username ?? "",
-      user.fullName ?? "",
-      user.email ?? "",
-      user.roles
-        ?.map((r: any) => (typeof r === "string" ? r : r.name))
-        .join(", ") || "",
-      user.currentPlan ?? "N/A",
-      user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A",
-    ]);
-    autoTable(doc, {
-      head: [
-        [
-          "Username",
-          "Full Name",
-          "Email",
-          "Roles",
-          "Current Plan",
-          "Joined Date",
-        ],
-      ],
-      body: pdfData,
-    });
-    doc.save("users-page.pdf");
-  };
-
-  const handleRowCheckboxClick = (
-    _: React.ChangeEvent<HTMLInputElement>,
-    id: string,
-  ) => {
-    const selectedIndex = selectedIds.indexOf(id);
-    let newSelected: string[] = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selectedIds, id);
-    } else {
-      newSelected = selectedIds.filter((selectedId) => selectedId !== id);
+      await updateUser(currentUser.id, userData);
+      showPageNotification("User suspended successfully.", "success");
+    } catch (err) {
+      console.error("Suspend user failed:", err);
+      showPageNotification("Failed to suspend user.", "error");
+    } finally {
+      handleCloseUserMenu();
     }
-
-    setSelectedIds(newSelected);
   };
 
-  const handleSelectAllClickOnPage = (
-    event: React.ChangeEvent<HTMLInputElement>,
+  // Unsuspend handler
+  const handleUnsuspendUser = async () => {
+    if (!selectedUserForMenu?.id) return;
+
+    try {
+      const currentUser = selectedUserForMenu;
+
+      // Check if user is not suspended
+      if (currentUser.status !== UserStatus.SUSPENDED) {
+        showPageNotification("User is not suspended.", "warning");
+        handleCloseUserMenu();
+        return;
+      }
+
+      // Update user status to ACTIVE
+      const userData = {
+        username: currentUser.username,
+        email: currentUser.email,
+        fullName: currentUser.fullName,
+        profilePictureUrl: currentUser.profilePictureUrl,
+        bio: currentUser.bio,
+        birthday: currentUser.birthday,
+        roles: currentUser.roles,
+        status: UserStatus.ACTIVE,
+      };
+
+      await updateUser(currentUser.id, userData);
+      showPageNotification("User unsuspended successfully.", "success");
+    } catch (err) {
+      console.error("Unsuspend user failed:", err);
+      showPageNotification("Failed to unsuspend user.", "error");
+    } finally {
+      handleCloseUserMenu();
+    }
+  };
+
+  // Notification helpers
+  const showPageNotification = (message: string, severity: AlertColor) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
+  const handlePageSnackbarClose = (
+    _?: React.SyntheticEvent | Event,
+    reason?: string,
   ) => {
-    const currentVisibleUserIds = displayUsers.map((u) => u.id);
-    if (event.target.checked) {
-      const idsToAdd = currentVisibleUserIds.filter(
-        (id) => !selectedIds.includes(id),
-      );
-      setSelectedIds([...selectedIds, ...idsToAdd]);
+    if (reason === "clickaway") {
       return;
     }
-
-    setSelectedIds(
-      selectedIds.filter((id) => !currentVisibleUserIds.includes(id)),
-    );
+    setSnackbarOpen(false);
   };
 
-  if (crudLoading && users.length === 0 && !searchTerm && !crudError) {
-    return (
+  return (
+    <Paper
+      sx={{
+        p: 3,
+        m: 2,
+        backgroundColor:
+          theme.palette.mode === "dark"
+            ? theme.palette.background.paper
+            : "#ffffff",
+      }}
+    >
       <Box
         sx={{
           display: "flex",
+          justifyContent: "space-between",
           alignItems: "center",
-          justifyContent: "center",
-          height: "calc(100vh - 120px)",
+          flexWrap: "wrap",
+          gap: 2,
         }}
-      >
-        <CircularProgress />
-        <Typography sx={{ ml: 2 }}>Loading users...</Typography>
-      </Box>
-    );
-  }
+      ></Box>{" "}
+      <UserTableToolbar
+        searchTerm={searchTerm}
+        onSearchChange={(event) => handleSearchChange(event.target.value)}
+        statusFilter={statusFilter}
+        onStatusFilterChange={(event) =>
+          handleStatusFilterChange(event.target.value as UserStatus | "ALL")
+        }
+        roleFilter={roleFilter}
+        onRoleFilterChange={(event) =>
+          handleRoleFilterChange(event.target.value as UserRoleType | "ALL")
+        }
+        onAddUser={() => handleOpenUserDetailDialog(null, true)}
+        selectedIdsCount={selectedIds.length}
+        onBulkDelete={() => setOpenBulkDeleteDialog(true)}
+        onDeselectAll={resetSelection}
+        onExportPDF={handleExportPDF}
+        csvFormattedData={csvFormattedData}
+        theme={theme}
+      />
+      {crudError && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
+          {crudError}
+        </Alert>
+      )}
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  indeterminate={
+                    selectedIds.length > 0 &&
+                    selectedIds.length < displayUsers.length
+                  }
+                  checked={
+                    displayUsers.length > 0 &&
+                    selectedIds.length === displayUsers.length
+                  }
+                  onChange={handleSelectAll}
+                />
+              </TableCell>
+              <TableCell>Avatar</TableCell>
+              <TableCell>Username</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Full Name</TableCell>
+              <TableCell>Role</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Current Plan</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {crudLoading ? (
+              <TableRow>
+                <TableCell colSpan={9} align="center" sx={{ py: 5 }}>
+                  <CircularProgress />
+                </TableCell>
+              </TableRow>
+            ) : displayUsers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} align="center" sx={{ py: 5 }}>
+                  <Typography variant="subtitle1">
+                    {searchTerm
+                      ? "No users match your search criteria."
+                      : "No users available."}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              displayUsers.map((user) => {
+                const isSelected = selectedIds.includes(user.id);
+                const statusChipProps = getStatusChipProps(user.status);
 
-  return (
-    <>
-      <Container
-        maxWidth="xl"
-        sx={{ px: { xs: 1, md: 4 }, py: { xs: 2, md: 4 } }}
-      >
-        <Paper
-          sx={{
-            p: { xs: 1.5, sm: 2, md: 3 },
-            m: { xs: 0.5, sm: 1, md: 2 },
-            backgroundColor: theme.palette.background.paper,
-          }}
-        >
-          <UserTableToolbar
-            searchTerm={searchTerm}
-            onSearchChange={(event) => handleSearchChange(event.target.value)}
-            onAddUser={() => handleOpenUserDetailDialog(null, true)}
-            selectedIdsCount={selectedIds.length}
-            onBulkDelete={handleInitiateBulkDelete}
-            onDeselectAll={resetSelection}
-            onExportPDF={handleExportPDF}
-            csvFormattedData={csvFormattedData}
-            theme={theme}
-          />
-
-          {/* General error display from useUserOperations hook */}
-          {crudError && (
-            <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
-              {crudError}
-            </Alert>
-          )}
-
-          {/* Inline loading indicator for table updates/searches */}
-          {crudLoading && (users.length > 0 || searchTerm) && (
-            <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
-              <CircularProgress size={24} />
-              <Typography variant="body2" sx={{ ml: 1 }}>
-                Loading...
-              </Typography>
-            </Box>
-          )}
-
-          <TableContainer sx={{ boxShadow: "none" }}>
-            <Table sx={{ minWidth: 750 }} aria-label="user management table">
-              <UserTableHeadComponent
-                headCells={defaultHeadCells}
-                order={order}
-                orderBy={orderBy}
-                onRequestSort={(_event, property) =>
-                  handleSortRequest(property)
-                }
-                onSelectAllClick={handleSelectAllClickOnPage}
-                numSelected={
-                  selectedIds.filter((id) =>
-                    displayUsers.some((u) => u.id === id),
-                  ).length
-                }
-                rowCount={displayUsers.length}
-              />
-              <TableBody>
-                {!crudLoading && displayUsers.length === 0 && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={defaultHeadCells.length + 2}
-                      align="center"
-                      sx={{ py: 5 }}
-                    >
-                      <Typography variant="subtitle1">
-                        {totalUsers > 0 && searchTerm
-                          ? "No users match your search criteria."
-                          : "No users found."}
-                      </Typography>
+                return (
+                  <TableRow key={user.id} selected={isSelected}>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={isSelected}
+                        onChange={() => handleRowSelect(user.id)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Avatar src={user.profilePictureUrl || undefined}>
+                        {user.username.charAt(0).toUpperCase()}
+                      </Avatar>
+                    </TableCell>
+                    <TableCell>{user.username}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.fullName || "-"}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={getPrimaryRole(user.roles)}
+                        size="small"
+                        color={
+                          getPrimaryRole(user.roles) === "ADMIN"
+                            ? "secondary"
+                            : "default"
+                        }
+                        sx={{ mr: 0.5 }}
+                      />
+                    </TableCell>{" "}
+                    <TableCell>
+                      <Chip
+                        label={statusChipProps.label}
+                        color={statusChipProps.color}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>{user.currentPlan}</TableCell>
+                    <TableCell>
+                      <IconButton
+                        onClick={(event) => handleOpenUserMenu(event, user)}
+                        size="small"
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
-                )}
-                {!crudLoading &&
-                  displayUsers.map((user) => (
-                    <UserTableRowComponent
-                      key={user.id}
-                      user={user}
-                      isSelected={selectedIds.includes(user.id)}
-                      onCheckboxClick={(event) =>
-                        handleRowCheckboxClick(event, user.id)
-                      }
-                      onMenuOpen={(event) => handleOpenUserMenu(event, user)}
-                      headCells={defaultHeadCells}
-                    />
-                  ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25, 50, 100]}
-            component="div"
-            count={totalUsers}
-            rowsPerPage={rowsPerPage}
-            page={currentPage}
-            onPageChange={(_event, newPage) => handleChangePage(newPage)}
-            onRowsPerPageChange={(event) =>
-              handleChangeRowsPerPage(parseInt(event.target.value, 10))
-            }
-            sx={{ mt: 2, borderTop: `1px solid ${theme.palette.divider}` }}
-          />
-        </Paper>
-
-        {isUserDetailDialogOpen && (
-          <UserEditViewDialog
-            open={isUserDetailDialogOpen}
-            onClose={handleCloseUserDetailDialog}
-            user={userToEditView}
-            isCreatingNewUser={isCreatingNewUserFlow}
-            onSave={handleSaveUserFromDialog}
-            getSubscriptionStatusInfo={getSubscriptionStatusInfo}
-            getChipColorFromSemanticStatus={() => "default"}
-          />
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        component="div"
+        count={totalUsers}
+        rowsPerPage={rowsPerPage}
+        page={currentPage}
+        onPageChange={(_, newPage) => handleChangePage(newPage)}
+        onRowsPerPageChange={(event) =>
+          handleChangeRowsPerPage(Number(event.target.value))
+        }
+        rowsPerPageOptions={[5, 10, 25, 50]}
+        sx={{ mt: 2, borderTop: `1px solid ${theme.palette.divider}` }}
+      />
+      {/* User Menu */}
+      <Menu
+        anchorEl={userMenuAnchorEl}
+        open={Boolean(userMenuAnchorEl)}
+        onClose={handleCloseUserMenu}
+      >
+        <MenuItem
+          onClick={() => handleOpenUserDetailDialog(selectedUserForMenu, false)}
+        >
+          <EditIcon fontSize="small" sx={{ mr: 1 }} />
+          Edit
+        </MenuItem>
+        {/* Conditional Suspend/Unsuspend based on current status */}
+        {selectedUserForMenu?.status === UserStatus.SUSPENDED ? (
+          <MenuItem
+            onClick={handleUnsuspendUser}
+            sx={{ color: "success.main" }}
+          >
+            <UnsuspendIcon fontSize="small" sx={{ mr: 1 }} />
+            Unsuspend User
+          </MenuItem>
+        ) : (
+          <MenuItem onClick={handleSuspendUser} sx={{ color: "warning.main" }}>
+            <BlockIcon fontSize="small" sx={{ mr: 1 }} />
+            Suspend User
+          </MenuItem>
         )}
-
-        <Menu
-          anchorEl={userMenuAnchorEl}
-          open={Boolean(userMenuAnchorEl)}
-          onClose={handleCloseUserMenu}
-          transformOrigin={{ horizontal: "right", vertical: "top" }}
-          anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-        >
-          <MenuItem
-            onClick={() => {
-              if (selectedUserForMenu) {
-                handleOpenUserDetailDialog(selectedUserForMenu, false);
-              }
-            }}
-          >
-            <EditIcon fontSize="small" sx={{ mr: 1 }} /> View / Edit
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              handleOpenDeleteConfirmDialog();
-            }}
-            sx={{ color: "error.main" }}
-          >
-            <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Delete
-          </MenuItem>
-        </Menu>
-
-        {/* Delete Confirmation Dialog */}
-        <Dialog
-          open={openDeleteDialog}
-          onClose={() => {
-            if (crudLoading) return;
-            setOpenDeleteDialog(false);
-            setSelectedUserForMenu(null);
-          }}
-          maxWidth="xs"
-        >
-          <DialogTitle>
-            <Typography variant="h6">Confirm Deletion</Typography>
-          </DialogTitle>
-          <DialogContent>
-            <Typography>
-              Are you sure you want to delete user "
-              {selectedUserForMenu?.username || "this user"}"? This action
-              cannot be undone.
-            </Typography>
-          </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
-            <Button
-              onClick={() => {
-                setOpenDeleteDialog(false);
-                setSelectedUserForMenu(null);
-              }}
-              color="inherit"
-              disabled={crudLoading && Boolean(selectedUserForMenu)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleDeleteUser}
-              color="error"
-              variant="contained"
-              disabled={crudLoading && Boolean(selectedUserForMenu)}
-            >
-              {crudLoading && Boolean(selectedUserForMenu) ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : (
-                "Delete"
-              )}
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Bulk Delete Confirmation Dialog */}
-        <Dialog
-          open={openBulkDeleteDialog}
-          onClose={() => {
-            if (crudLoading) return;
-            setOpenBulkDeleteDialog(false);
-          }}
-          maxWidth="xs"
-        >
-          <DialogTitle>
-            <Typography variant="h6">Confirm Bulk Deletion</Typography>
-          </DialogTitle>
-          <DialogContent>
-            <Typography>
-              Are you sure you want to delete {selectedIds.length} selected
-              user(s)? This action cannot be undone.
-            </Typography>
-          </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
-            <Button
-              onClick={() => setOpenBulkDeleteDialog(false)}
-              color="inherit"
-              disabled={crudLoading && selectedIds.length > 0}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={executeBulkDelete}
-              color="error"
-              variant="contained"
-              disabled={crudLoading && selectedIds.length > 0}
-            >
-              {crudLoading && selectedIds.length > 0 ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : (
-                "Delete Selected"
-              )}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Container>
-
-      {/* Page-level Snackbar for notifications like delete success/failure */}
+        <MenuItem onClick={handleOpenDeleteDialog} sx={{ color: "error.main" }}>
+          <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
+          Delete
+        </MenuItem>
+      </Menu>
+      {/* Delete Dialog */}
+      <Dialog
+        open={openDeleteDialog}
+        onClose={() => setOpenDeleteDialog(false)}
+      >
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          Are you sure you want to delete user "{selectedUserForMenu?.username}
+          "? This action cannot be undone.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
+          <Button onClick={handleDeleteUser} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Bulk Delete Dialog */}
+      <Dialog
+        open={openBulkDeleteDialog}
+        onClose={() => setOpenBulkDeleteDialog(false)}
+      >
+        <DialogTitle>Confirm Bulk Deletion</DialogTitle>
+        <DialogContent>
+          Are you sure you want to delete {selectedIds.length} selected user(s)?
+          This action cannot be undone.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenBulkDeleteDialog(false)}>Cancel</Button>
+          <Button onClick={handleBulkDelete} color="error" variant="contained">
+            Delete Selected
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* User Edit Dialog */}
+      {isUserDetailDialogOpen && (
+        <UserEditViewDialog
+          open={isUserDetailDialogOpen}
+          onClose={handleCloseUserDetailDialog}
+          user={userToEditView}
+          isCreatingNewUser={isCreatingNewUserFlow}
+          onSave={handleSaveUserFromDialog}
+          getSubscriptionStatusInfo={getSubscriptionStatusInfo}
+          getChipColorFromSemanticStatus={() => "default"}
+        />
+      )}
+      {/* Snackbar */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={handlePageSnackbarClose}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <PageSnackbarAlert
+        <Alert
           onClose={handlePageSnackbarClose}
           severity={snackbarSeverity}
           sx={{ width: "100%" }}
         >
           {snackbarMessage}
-        </PageSnackbarAlert>
+        </Alert>
       </Snackbar>
-    </>
+    </Paper>
   );
 };
 
