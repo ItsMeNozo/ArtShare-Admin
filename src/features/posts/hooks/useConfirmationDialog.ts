@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
 interface ConfirmationDialogState {
   open: boolean;
@@ -20,8 +20,8 @@ export interface UseConfirmationDialogReturn {
 export function useConfirmationDialog(): UseConfirmationDialogReturn {
   const [dialogState, setDialogState] = useState<ConfirmationDialogState>({
     open: false,
-    title: '',
-    message: '',
+    title: "",
+    message: "",
     onConfirmAction: null,
   });
 

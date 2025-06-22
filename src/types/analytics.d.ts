@@ -90,4 +90,4 @@ export interface TimeSeriesData {
   data: TimePoint[];
 }
 
-export type PopularCategorySortBy = 'postCount' | 'engagement';
+export type PopularCategorySortBy = "postCount" | "engagement";

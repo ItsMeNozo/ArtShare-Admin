@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Box,
   Typography,
@@ -11,15 +11,15 @@ import {
   IconButton,
   InputAdornment,
   CircularProgress,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Delete as DeleteIcon,
   UndoOutlined as UndoOutlinedIcon,
   MoreVertOutlined as MoreVertOutlinedIcon,
   FileDownloadOutlined as FileDownloadOutlinedIcon,
   Search as SearchIcon,
-} from '@mui/icons-material';
-import { CSVLink } from 'react-csv';
+} from "@mui/icons-material";
+import { CSVLink } from "react-csv";
 
 export interface PostTableToolbarProps {
   searchTerm: string;
@@ -56,10 +56,10 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
   };
 
   const csvHeaders = [
-    { label: 'ID', key: 'ID' },
-    { label: 'Title', key: 'Title' },
-    { label: 'Author', key: 'Author' },
-    { label: 'Created At', key: 'CreatedAt' },
+    { label: "ID", key: "ID" },
+    { label: "Title", key: "Title" },
+    { label: "Author", key: "Author" },
+    { label: "Created At", key: "CreatedAt" },
   ];
 
   const numSelected = selectedPostsCount;
@@ -69,10 +69,10 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
       {/* Top section: Title (optional) on left, Search Bar and other primary actions on right */}
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
           gap: 2,
           mb: numSelected > 0 ? 2 : 3,
           px: { xs: 1, sm: 0 },
@@ -90,8 +90,8 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
         {/* Right side: Search Bar */}
         <Box
           sx={{
-            display: 'flex',
-            alignItems: 'center',
+            display: "flex",
+            alignItems: "center",
             gap: 1,
           }}
         >
@@ -102,18 +102,18 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
             value={searchTerm}
             onChange={onSearchChange}
             sx={{
-              minWidth: { xs: '100%', sm: 200, md: 250 },
+              minWidth: { xs: "100%", sm: 200, md: 250 },
               maxWidth: { sm: 400 },
               backgroundColor:
-                theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                theme.palette.mode === "dark" ? "grey.800" : "grey.50",
               borderRadius: 1,
-              '& .MuiOutlinedInput-root': {
-                fontSize: '0.9rem',
-                '& fieldset': {
+              "& .MuiOutlinedInput-root": {
+                fontSize: "0.9rem",
+                "& fieldset": {
                   borderColor:
-                    theme.palette.mode === 'dark' ? 'grey.700' : 'grey.300',
+                    theme.palette.mode === "dark" ? "grey.700" : "grey.300",
                 },
-                '&:hover fieldset': {
+                "&:hover fieldset": {
                   borderColor: theme.palette.primary.main,
                 },
               },
@@ -123,7 +123,7 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
                 <InputAdornment position="start">
                   <SearchIcon
                     fontSize="small"
-                    sx={{ color: 'text.secondary' }}
+                    sx={{ color: "text.secondary" }}
                   />
                 </InputAdornment>
               ),
@@ -145,10 +145,10 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
             backgroundColor: theme.palette.action.selected,
 
             color: theme.palette.getContrastText(theme.palette.action.selected),
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
             gap: 2,
           }}
         >
@@ -176,7 +176,7 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
               variant="contained"
               onClick={onBulkDelete}
               size="small"
-              sx={{ textTransform: 'none' }}
+              sx={{ textTransform: "none" }}
               disabled={isActionLoading}
             >
               Delete Selected
@@ -187,11 +187,11 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
               variant="outlined"
               size="small"
               sx={{
-                textTransform: 'none',
+                textTransform: "none",
 
                 borderColor: theme.palette.divider,
                 color: theme.palette.text.primary,
-                '&:hover': {
+                "&:hover": {
                   backgroundColor: theme.palette.action.hover,
                 },
               }}
@@ -202,10 +202,10 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
             <IconButton
               onClick={handleMoreMenuOpen}
               size="small"
-              sx={{ color: 'inherit' }}
-              aria-controls={Boolean(moreAnchor) ? 'export-menu' : undefined}
+              sx={{ color: "inherit" }}
+              aria-controls={Boolean(moreAnchor) ? "export-menu" : undefined}
               aria-haspopup="true"
-              aria-expanded={Boolean(moreAnchor) ? 'true' : undefined}
+              aria-expanded={Boolean(moreAnchor) ? "true" : undefined}
               aria-label="More actions including export"
               disabled={isActionLoading}
             >
@@ -216,9 +216,9 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
               anchorEl={moreAnchor}
               open={Boolean(moreAnchor)}
               onClose={handleMoreMenuClose}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-              MenuListProps={{ 'aria-labelledby': 'export-button' }}
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
+              MenuListProps={{ "aria-labelledby": "export-button" }}
             >
               <MenuItem
                 onClick={() => {
@@ -230,11 +230,11 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
                   headers={csvHeaders}
                   filename="admin-posts.csv"
                   style={{
-                    textDecoration: 'none',
-                    color: 'inherit',
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
+                    textDecoration: "none",
+                    color: "inherit",
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
                   }}
                   target="_blank"
                 >

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Box,
   Paper,
@@ -10,12 +10,12 @@ import {
   Card,
   CardContent,
   useTheme,
-} from '@mui/material';
-import { useAuth } from '../../context/AuthContext';
-import PersonIcon from '@mui/icons-material/Person';
-import EmailIcon from '@mui/icons-material/Email';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+} from "@mui/material";
+import { useAuth } from "../../context/AuthContext";
+import PersonIcon from "@mui/icons-material/Person";
+import EmailIcon from "@mui/icons-material/Email";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 
 const ProfilePage: React.FC = () => {
   const theme = useTheme();
@@ -28,9 +28,9 @@ const ProfilePage: React.FC = () => {
           p: 3,
           m: 2,
           backgroundColor:
-            theme.palette.mode === 'dark'
+            theme.palette.mode === "dark"
               ? theme.palette.background.paper
-              : '#ffffff',
+              : "#ffffff",
         }}
       >
         <Typography variant="h5" component="h1" fontWeight="bold">
@@ -44,10 +44,10 @@ const ProfilePage: React.FC = () => {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -57,14 +57,14 @@ const ProfilePage: React.FC = () => {
         p: 3,
         m: 2,
         backgroundColor:
-          theme.palette.mode === 'dark'
+          theme.palette.mode === "dark"
             ? theme.palette.background.paper
-            : '#ffffff',
+            : "#ffffff",
       }}
     >
       <Typography variant="h5" component="h1" fontWeight="bold" sx={{ mb: 3 }}>
         Profile Information
-      </Typography>{' '}
+      </Typography>{" "}
       <Grid container spacing={3}>
         {/* Profile Header */}
         <Grid size={{ xs: 12 }}>
@@ -72,15 +72,15 @@ const ProfilePage: React.FC = () => {
             sx={{
               p: 3,
               backgroundColor:
-                theme.palette.mode === 'dark'
+                theme.palette.mode === "dark"
                   ? theme.palette.grey[800]
                   : theme.palette.grey[50],
             }}
           >
             <Box
               sx={{
-                display: 'flex',
-                alignItems: 'center',
+                display: "flex",
+                alignItems: "center",
                 gap: 3,
               }}
             >
@@ -89,29 +89,29 @@ const ProfilePage: React.FC = () => {
                 sx={{
                   width: 80,
                   height: 80,
-                  bgcolor: 'primary.main',
-                  fontSize: '2rem',
+                  bgcolor: "primary.main",
+                  fontSize: "2rem",
                 }}
               >
-                {user.username ? user.username.charAt(0).toUpperCase() : 'A'}
+                {user.username ? user.username.charAt(0).toUpperCase() : "A"}
               </Avatar>
               <Box>
                 <Typography variant="h4" component="h2" sx={{ mb: 1 }}>
-                  {user.fullName || user.username || 'Admin User'}
+                  {user.fullName || user.username || "Admin User"}
                 </Typography>
                 <Typography
                   variant="subtitle1"
                   color="text.secondary"
                   sx={{ mb: 2 }}
                 >
-                  @{user.username || 'admin'}
+                  @{user.username || "admin"}
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                   {user.roles?.map((role) => (
                     <Chip
                       key={role}
                       label={role}
-                      color={role === 'ADMIN' ? 'secondary' : 'default'}
+                      color={role === "ADMIN" ? "secondary" : "default"}
                       icon={<AdminPanelSettingsIcon />}
                       size="small"
                     />
@@ -130,20 +130,20 @@ const ProfilePage: React.FC = () => {
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <PersonIcon sx={{ mr: 2, color: 'text.secondary' }} />
+              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                <PersonIcon sx={{ mr: 2, color: "text.secondary" }} />
                 <Box>
                   <Typography variant="body2" color="text.secondary">
                     Full Name
                   </Typography>
                   <Typography variant="body1">
-                    {user.fullName || 'Not provided'}
+                    {user.fullName || "Not provided"}
                   </Typography>
                 </Box>
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <EmailIcon sx={{ mr: 2, color: 'text.secondary' }} />
+              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                <EmailIcon sx={{ mr: 2, color: "text.secondary" }} />
                 <Box>
                   <Typography variant="body2" color="text.secondary">
                     Email Address
@@ -153,8 +153,8 @@ const ProfilePage: React.FC = () => {
               </Box>
 
               {user.birthday && (
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <CalendarTodayIcon sx={{ mr: 2, color: 'text.secondary' }} />
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <CalendarTodayIcon sx={{ mr: 2, color: "text.secondary" }} />
                   <Box>
                     <Typography variant="body2" color="text.secondary">
                       Birthday
@@ -167,7 +167,7 @@ const ProfilePage: React.FC = () => {
               )}
             </CardContent>
           </Card>
-        </Grid>{' '}
+        </Grid>{" "}
         {/* Account Details */}
         <Grid size={{ xs: 12, md: 6 }}>
           <Card>
@@ -181,7 +181,7 @@ const ProfilePage: React.FC = () => {
                 <Typography variant="body2" color="text.secondary">
                   User ID
                 </Typography>
-                <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
+                <Typography variant="body1" sx={{ fontFamily: "monospace" }}>
                   {user.id}
                 </Typography>
               </Box>
@@ -214,7 +214,7 @@ const ProfilePage: React.FC = () => {
               </Box>
             </CardContent>
           </Card>
-        </Grid>{' '}
+        </Grid>{" "}
         {/* Bio Section (if available) */}
         {user.bio && (
           <Grid size={{ xs: 12 }}>
@@ -228,7 +228,7 @@ const ProfilePage: React.FC = () => {
               </CardContent>
             </Card>
           </Grid>
-        )}{' '}
+        )}{" "}
         {/* Statistics (if available) */}
         {(user.followersCount !== undefined ||
           user.followingsCount !== undefined) && (
@@ -242,7 +242,7 @@ const ProfilePage: React.FC = () => {
                 <Grid container spacing={2}>
                   {user.followersCount !== undefined && (
                     <Grid size={{ xs: 6, sm: 3 }}>
-                      <Box sx={{ textAlign: 'center' }}>
+                      <Box sx={{ textAlign: "center" }}>
                         <Typography variant="h4" color="primary">
                           {user.followersCount}
                         </Typography>
@@ -254,7 +254,7 @@ const ProfilePage: React.FC = () => {
                   )}
                   {user.followingsCount !== undefined && (
                     <Grid size={{ xs: 6, sm: 3 }}>
-                      <Box sx={{ textAlign: 'center' }}>
+                      <Box sx={{ textAlign: "center" }}>
                         <Typography variant="h4" color="primary">
                           {user.followingsCount}
                         </Typography>

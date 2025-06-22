@@ -695,26 +695,25 @@ const CategoryManagementPage: React.FC = () => {
               label="Type"
               onChange={handleInputChange}
             >
-                <MenuItem value={CategoryTypeValues.ATTRIBUTE} selected>
-                  <Tooltip
-                    title={categoryTypeTooltips[CategoryTypeValues.ATTRIBUTE]}
-                    arrow
-                    placement="right"
-                  >
-                    <Box width={'100%'}>Attribute</Box>
-                  </Tooltip>
-                </MenuItem>
+              <MenuItem value={CategoryTypeValues.ATTRIBUTE} selected>
+                <Tooltip
+                  title={categoryTypeTooltips[CategoryTypeValues.ATTRIBUTE]}
+                  arrow
+                  placement="right"
+                >
+                  <Box width={"100%"}>Attribute</Box>
+                </Tooltip>
+              </MenuItem>
 
-              
-                <MenuItem value={CategoryTypeValues.MEDIUM}>
-                  <Tooltip
-                    title={categoryTypeTooltips[CategoryTypeValues.MEDIUM]}
-                    arrow
-                    placement="right"
-                  >
-                      <Box width={'100%'}>Medium</Box>
-                  </Tooltip>
-                </MenuItem>
+              <MenuItem value={CategoryTypeValues.MEDIUM}>
+                <Tooltip
+                  title={categoryTypeTooltips[CategoryTypeValues.MEDIUM]}
+                  arrow
+                  placement="right"
+                >
+                  <Box width={"100%"}>Medium</Box>
+                </Tooltip>
+              </MenuItem>
             </Select>
           </FormControl>
 
