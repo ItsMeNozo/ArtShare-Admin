@@ -1,4 +1,4 @@
-name: ARTSHARE FE USER CI/CD Pipeline
+name: ARTSHARE ADMIN CI/CD Pipeline
 
 on:
   push:
@@ -17,12 +17,10 @@ env:
   VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
   VITE_BE_URL: ${{ secrets.VITE_BE_URL }}
   VITE_S3_BUCKET_URL: ${{ secrets.VITE_S3_BUCKET_URL }}
-  
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,7 +36,7 @@ jobs:
       - name: Build the app
         run: npm run build
 
-  test:
+  test-and-quality:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -51,33 +49,33 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        
-      - name: Upload coverage to Qlty
-        uses: qltysh/qlty-action/coverage@v1
-        with:
-          files: coverage/lcov.info
-        env:
-          QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+
+      - name: Install Qlty CLI
+        uses: qltysh/qlty-action/install@main
+      
+      - name: Run Qlty quality checks (Critical Issues Only)
+        run: |
+          qlty check --all --fail-level high
 
   # deploy:
   #   runs-on: ubuntu-latest
-  #   needs: test
+  #   needs: [build, test-and-quality]
   #   if: success()
   #   steps:
   #     - name: Checkout code
-  #       uses: actions/checkout@v3
-
+  #       uses: actions/checkout@v4
+  #
   #     - name: Set up Node.js
-  #       uses: actions/setup-node@v3
+  #       uses: actions/setup-node@v4
   #       with:
   #         node-version: '22'
-
+  #
   #     - name: Install dependencies
   #       run: npm install
-
+  #
   #     - name: Build the app
   #       run: npm run build
-
+  #
   #     - name: Vercel CLI - Deploy
   #       uses: amondnet/vercel-action@v21
   #       with:
