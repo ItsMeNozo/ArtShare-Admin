@@ -53,9 +53,16 @@ jobs:
       - name: Install Qlty CLI
         uses: qltysh/qlty-action/install@main
       
-      - name: Run Qlty quality checks (Critical Issues Only)
+      - name: Run Comprehensive Code Quality Analysis
         run: |
+          echo "🔍 Running linting and security checks..."
           qlty check --all --fail-level high
+          
+          echo "🧬 Scanning for code smells like duplication (FAIL ON ISSUES)..."
+          qlty smells --all --fail-level medium
+          
+          echo "📊 Reviewing quality metrics (top 10 most complex)..."
+          qlty metrics --all --max-depth=2 --sort complexity --limit 10
 
   # deploy:
   #   runs-on: ubuntu-latest
