@@ -18,9 +18,9 @@ export interface PaginatedUsersApiResponse {
   limit: number;
 }
 
-const getApiErrorMessage = (error: AxiosError | any): string => {
+const getApiErrorMessage = (error: any): string => {
   if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<any>;
+    const axiosError = error;
 
     if (axiosError.response?.data?.message) {
       return Array.isArray(axiosError.response.data.message)

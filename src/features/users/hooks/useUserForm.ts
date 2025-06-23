@@ -6,6 +6,13 @@ import { useUpdateUserMutation } from "./useUserQueries";
 import { signUp, updateUserPassword } from "../../auth/api/auth-api";
 import api from "../../../api/baseApi";
 
+interface UseUserFormProps {
+  initialUser: User | null;
+  isCreatingNewUser: boolean;
+  onSuccess: (message: string) => void;
+  onError: (message: string) => void;
+}
+
 const getInitialDialogFormData = (
   user: User | null,
   isCreating: boolean,
@@ -26,9 +33,9 @@ const getInitialDialogFormData = (
   return {
     username: user.username,
     email: user.email,
-    fullName: user.fullName || "",
-    profilePictureUrl: user.profilePictureUrl || "",
-    bio: user.bio || "",
+    fullName: user.fullName ?? "",
+    profilePictureUrl: user.profilePictureUrl ?? "",
+    bio: user.bio ?? "",
     birthday: user.birthday
       ? (new Date(user.birthday).toISOString().split("T")[0] as any)
       : undefined,
@@ -61,12 +68,24 @@ const validationSchema = (isCreating: boolean) =>
       .required("Status is required"),
   });
 
-interface UseUserFormProps {
-  initialUser: User | null;
-  isCreatingNewUser: boolean;
-  onSuccess: (message: string) => void;
-  onError: (message: string) => void;
-}
+const getErrorMessage = (error: any): string => {
+  if (error?.code) {
+    switch (error.code) {
+      case "auth/email-already-in-use":
+        return "This email is already registered.";
+      case "auth/invalid-email":
+        return "The email address is not valid.";
+      case "auth/weak-password":
+        return "The password is too weak.";
+      default:
+        return error.message;
+    }
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return "An unexpected error occurred. Please try again.";
+};
 
 export const useUserForm = ({
   initialUser,
@@ -76,86 +95,76 @@ export const useUserForm = ({
 }: UseUserFormProps) => {
   const updateUserMutation = useUpdateUserMutation();
 
+  const executeCreateUser = async (values: UserFormData) => {
+    if (!values.email || !values.password) {
+      throw new Error("Email and password are required for new users.");
+    }
+
+    const { newUser } = await signUp(
+      values.email,
+      values.password,
+      values.username,
+    );
+    const userIdForBackend = newUser.id || (newUser as any).uid;
+    if (!userIdForBackend) {
+      throw new Error("Failed to get ID from the new Firebase user.");
+    }
+
+    const { password, ...createUserData } = values;
+    await updateUserMutation.mutateAsync({
+      userId: userIdForBackend,
+      formData: createUserData,
+    });
+
+    return newUser;
+  };
+
+  const executeUpdateUser = async (values: UserFormData, user: User) => {
+    if (!user?.id) {
+      throw new Error("Cannot update user: User ID is missing.");
+    }
+
+    if (values.password) {
+      await updateUserPassword(values.password);
+    }
+
+    const { password, ...updateUserData } = values;
+    await updateUserMutation.mutateAsync({
+      userId: user.id,
+      formData: updateUserData,
+    });
+  };
+
+  const rollbackFirebaseUser = async (firebaseUser: any) => {
+    console.error("Backend operation failed. Rolling back Firebase user...");
+    try {
+      const userId = firebaseUser.id || (firebaseUser as any).uid;
+      await api.delete(`/admin/users/${userId}`);
+    } catch (rollbackError) {
+      console.error(
+        "CRITICAL: FAILED to roll back Firebase user. Manual cleanup required for user ID:",
+        firebaseUser.id,
+        rollbackError,
+      );
+    }
+  };
+
   const handleFormSubmit = async (values: UserFormData) => {
     let createdFirebaseAuthUser = null;
     try {
       if (isCreatingNewUser) {
-        if (!values.email || !values.password) {
-          throw new Error("Email and password are required.");
-        }
-
-        const firebaseResponse = await signUp(
-          values.email,
-          values.password,
-          values.username,
-        );
-        createdFirebaseAuthUser = firebaseResponse.newUser;
-        const userIdForBackend =
-          createdFirebaseAuthUser.id || (createdFirebaseAuthUser as any).uid;
-        if (!userIdForBackend)
-          throw new Error("Failed to get ID from new Firebase user.");
-
-        const { password, ...createUserData } = values;
-
-        await updateUserMutation.mutateAsync({
-          userId: userIdForBackend,
-          formData: createUserData,
-        });
+        createdFirebaseAuthUser = await executeCreateUser(values);
       } else {
-        if (!initialUser?.id)
-          throw new Error("Cannot update user: ID is missing.");
-
-        if (values.password) {
-          await updateUserPassword(values.password);
-        }
-
-        const { password, ...updateUserData } = values;
-
-        await updateUserMutation.mutateAsync({
-          userId: initialUser.id,
-          formData: updateUserData,
-        });
+        await executeUpdateUser(values, initialUser!);
       }
       onSuccess(
         `User ${isCreatingNewUser ? "created" : "updated"} successfully.`,
       );
     } catch (error: any) {
-      if (isCreatingNewUser && createdFirebaseAuthUser) {
-        console.error(
-          "Backend user creation failed. Attempting to roll back Firebase user...",
-        );
-        try {
-          const userId =
-            createdFirebaseAuthUser.id || (createdFirebaseAuthUser as any).uid;
-          await api.delete(`/admin/users/${userId}`);
-        } catch (rollbackError) {
-          console.error(
-            "CRITICAL: FAILED to roll back Firebase user. Manual cleanup required.",
-            rollbackError,
-          );
-        }
+      if (createdFirebaseAuthUser) {
+        await rollbackFirebaseUser(createdFirebaseAuthUser);
       }
-
-      let messageToShow = "An unexpected error occurred. Please try again.";
-      if (error?.code) {
-        switch (error.code) {
-          case "auth/email-already-in-use":
-            messageToShow = "This email is already registered.";
-            break;
-          case "auth/invalid-email":
-            messageToShow = "The email address is not valid.";
-            break;
-          case "auth/weak-password":
-            messageToShow = "The password is too weak.";
-            break;
-          default:
-            messageToShow = error.message;
-            break;
-        }
-      } else if (error instanceof Error) {
-        messageToShow = error.message;
-      }
-      onError(messageToShow);
+      onError(getErrorMessage(error));
     }
   };
 

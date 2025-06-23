@@ -65,9 +65,9 @@ export const useUserTableControls = () => {
 
   return {
     users: data?.data || [],
-    totalUsers: data?.total || 0,
+    totalUsers: data?.total ?? 0,
     loading: isLoading || isPlaceholderData,
-    error: isError ? (error as Error).message : null,
+    error: isError ? error.message : null,
     currentPage,
     rowsPerPage,
     searchTerm,

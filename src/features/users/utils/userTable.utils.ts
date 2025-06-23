@@ -123,7 +123,7 @@ export const getPlanTierStyling = (
   }
   const statusInfo = getSubscriptionStatusInfo(user);
   let baseColor: string;
-  let determinedVariant: "filled" | "outlined" = "filled";
+  let determinedVariant: "filled" | "outlined";
 
   if (statusInfo.semantic === "admin_na") {
     baseColor = PLAN_TIER_CUSTOM_COLORS.ADMIN_NA;
