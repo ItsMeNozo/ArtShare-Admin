@@ -9,31 +9,28 @@ import {
   useTheme,
 } from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
-import { HeadCell, Order, UserSortableKeys } from "../types";
+import { HeadCell } from "../../types";
 
-interface UserTableHeadComponentProps<T = any> {
-  headCells: ReadonlyArray<HeadCell<T>>;
-  order: Order;
-  orderBy: UserSortableKeys;
-  onRequestSort: (
-    event: React.MouseEvent<unknown>,
-    property: UserSortableKeys,
-  ) => void;
-  onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  numSelected: number;
-  rowCount: number;
+import { useUserData } from "../../context/UserDataContext";
+import { useUserInterface } from "../../context/UserInterfaceContext";
+
+interface UserTableHeadComponentProps {
+  headCells: ReadonlyArray<HeadCell<any>>;
 }
 
 export const UserTableHeadComponent: React.FC<UserTableHeadComponentProps> = ({
   headCells,
-  order,
-  orderBy,
-  onRequestSort,
-  onSelectAllClick,
-  numSelected,
-  rowCount,
 }) => {
   const theme = useTheme();
+
+  const { displayUsers, tableControls } = useUserData();
+  const { order, orderBy, handleSortRequest } = tableControls;
+  const { selectedIds, handleSelectAllClickOnPage } = useUserInterface();
+  const userIdsOnPage = displayUsers.map((u) => u.id);
+  const rowCount = displayUsers.length;
+  const numSelected = selectedIds.filter((id) =>
+    userIdsOnPage.includes(id),
+  ).length;
 
   return (
     <TableHead
@@ -50,7 +47,9 @@ export const UserTableHeadComponent: React.FC<UserTableHeadComponentProps> = ({
             color="primary"
             indeterminate={numSelected > 0 && numSelected < rowCount}
             checked={rowCount > 0 && numSelected === rowCount}
-            onChange={(event) => onSelectAllClick(event)}
+            onChange={(event) =>
+              handleSelectAllClickOnPage(event, userIdsOnPage)
+            }
             disabled={rowCount === 0}
           />
         </TableCell>
@@ -73,10 +72,10 @@ export const UserTableHeadComponent: React.FC<UserTableHeadComponentProps> = ({
               <TableSortLabel
                 active={orderBy === headCell.id}
                 direction={orderBy === headCell.id ? order : "asc"}
-                onClick={(event) => onRequestSort(event, headCell.id)}
+                onClick={() => handleSortRequest(headCell.id)}
               >
                 {headCell.label}
-                {orderBy === (headCell.id as UserSortableKeys) ? (
+                {orderBy === headCell.id ? (
                   <Box component="span" sx={visuallyHidden}>
                     {order === "desc"
                       ? "sorted descending"

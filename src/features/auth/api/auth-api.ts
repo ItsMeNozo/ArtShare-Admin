@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   createUserWithEmailAndPassword,
+  updatePassword,
 } from "firebase/auth";
 import axios from "axios";
 import api from "../../../api/baseApi";
@@ -103,3 +104,11 @@ export async function verifyToken(): Promise<boolean> {
 
   return data.valid;
 }
+
+export const updateUserPassword = async (password: string) => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("No user is signed in to update the password.");
+  }
+  await updatePassword(user, password);
+};

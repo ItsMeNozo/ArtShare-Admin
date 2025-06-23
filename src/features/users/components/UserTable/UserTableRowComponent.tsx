@@ -12,13 +12,13 @@ import {
   Tooltip,
 } from "@mui/material";
 import { MoreVert as MoreVertIcon } from "@mui/icons-material";
-import { User } from "../../../types/user";
-import { HeadCell } from "../types";
+import { User } from "../../../../types/user";
+import { HeadCell } from "../../types";
 import {
   getPlanTierStyling,
   getStatusChipProps,
-  getPrimaryRole,
-} from "../utils/userTable.utils";
+} from "../../utils/userTable.utils";
+import { useUserInterface } from "../../context/UserInterfaceContext";
 
 interface DisplayUser extends User {
   currentPlan?: string;
@@ -26,12 +26,6 @@ interface DisplayUser extends User {
 
 interface UserTableRowComponentProps {
   user: DisplayUser;
-  isSelected: boolean;
-  onCheckboxClick: (
-    event: React.ChangeEvent<HTMLInputElement>,
-    id: string,
-  ) => void;
-  onMenuOpen: (event: React.MouseEvent<HTMLElement>, user: DisplayUser) => void;
   headCells: ReadonlyArray<
     HeadCell<DisplayUser> & {
       truncate?: boolean;
@@ -43,12 +37,12 @@ interface UserTableRowComponentProps {
 
 export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
   user,
-  isSelected,
-  onCheckboxClick,
-  onMenuOpen,
   headCells,
 }) => {
   const theme = useTheme();
+  const { selectedIds, handleRowCheckboxClick, handleOpenUserMenu } =
+    useUserInterface();
+  const isSelected = selectedIds.includes(user.id);
 
   const getCellContent = (
     headCell: HeadCell<DisplayUser> & {
@@ -70,7 +64,6 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
       : "150px";
 
     if (typeof contentString === "string" && contentString.length > 0) {
-      // Prioritize explicit headCell config for truncation/wrapping
       if (headCell.truncate) {
         return (
           <Tooltip title={contentString} placement="bottom-start">
@@ -120,7 +113,6 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
                 {currentUser.username}
               </Typography>
             </Tooltip>
-            {/* Show email below username on small screens IF email column is hidden */}
             {!headCells.some(
               (hc) =>
                 hc.id === "email" && hc.className?.includes("md:table-cell"),
@@ -166,19 +158,16 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
             }}
           >
             {currentUser.roles && currentUser.roles.length > 0 ? (
-              <Chip
-                label={getPrimaryRole(currentUser.roles).toLowerCase()}
-                size="small"
-                color={
-                  getPrimaryRole(currentUser.roles) === "ADMIN"
-                    ? "secondary"
-                    : "default"
-                }
-                variant="outlined"
-                sx={{
-                  textTransform: "capitalize",
-                }}
-              />
+              currentUser.roles.map((role) => (
+                <Chip
+                  key={`${currentUser.id}_${role}`}
+                  label={role.toLowerCase()}
+                  size="small"
+                  color={role === "ADMIN" ? "secondary" : "default"}
+                  variant="outlined"
+                  sx={{ textTransform: "capitalize" }}
+                />
+              ))
             ) : (
               <Typography variant="caption" color="textSecondary">
                 N/A
@@ -194,9 +183,7 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
             size="small"
             color={color}
             variant="outlined"
-            sx={{
-              textTransform: "capitalize",
-            }}
+            sx={{ textTransform: "capitalize" }}
           />
         );
       }
@@ -217,7 +204,7 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
           <IconButton
             size="small"
             onClick={(e) => {
-              onMenuOpen(e, currentUser);
+              handleOpenUserMenu(e, currentUser);
             }}
             aria-label={`actions for ${currentUser.username}`}
           >
@@ -232,9 +219,7 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
             </Typography>
           );
         }
-        // Default to simple string for other unhandled cases, possibly with a generic truncation
         if (contentString.length > 30 && !headCell.wrap) {
-          // Generic truncation for long unconfigured strings
           return (
             <Tooltip title={contentString} placement="bottom-start">
               <Typography variant="body2" noWrap sx={{ maxWidth: "200px" }}>
@@ -260,7 +245,7 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
         <Checkbox
           color="primary"
           checked={isSelected}
-          onChange={(event) => onCheckboxClick(event, user.id)}
+          onChange={() => handleRowCheckboxClick(user.id)}
           inputProps={{ "aria-labelledby": `user-table-checkbox-${user.id}` }}
         />
       </TableCell>
@@ -271,13 +256,11 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
           align={headCell.align || (headCell.numeric ? "right" : "left")}
           sx={{
             minWidth: headCell.minWidth,
-
             display: headCell.className?.includes("md:table-cell")
               ? { xs: "none", md: "table-cell" }
               : headCell.className?.includes("xs:table-cell")
                 ? { xs: "table-cell", md: "none" }
                 : undefined,
-
             ...((headCell.id === "avatar" ||
               headCell.id === "actions" ||
               headCell.id === "currentPlan" ||
