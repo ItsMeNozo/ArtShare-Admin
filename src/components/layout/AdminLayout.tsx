@@ -33,7 +33,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import GroupIcon from "@mui/icons-material/Group"; // For User Management
 import ArticleIcon from "@mui/icons-material/Article"; // For Post Management
-import CommentIcon from "@mui/icons-material/Comment"; // For Comment Management
+
 import ReportIcon from "@mui/icons-material/Report"; // For Report Management
 import CategoryIcon from "@mui/icons-material/Category"; // For Category Management
 import BarChartIcon from "@mui/icons-material/BarChart"; // For Statistics
@@ -176,13 +176,6 @@ const AdminLayout: React.FC = () => {
       text: "Post Management",
       icon: <ArticleIcon />,
       path: "/posts",
-      section: "MANAGEMENT",
-      badge: undefined,
-    },
-    {
-      text: "Comment Management",
-      icon: <CommentIcon />,
-      path: "/comments",
       section: "MANAGEMENT",
       badge: undefined,
     },
