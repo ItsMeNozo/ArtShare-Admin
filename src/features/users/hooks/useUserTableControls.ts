@@ -9,6 +9,8 @@ export const useUserTableControls = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [orderBy, setOrderBy] = useState<UserSortableKeys>("createdAt");
+  const [role, setRole] = useState<string>("");
+  const [status, setStatus] = useState<string>("");
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -23,6 +25,16 @@ export const useUserTableControls = () => {
 
   const handleSearchChange = (newSearchTerm: string) => {
     setSearchTerm(newSearchTerm);
+    setCurrentPage(0);
+  };
+
+  const handleRoleChange = (newRole: string) => {
+    setRole(newRole);
+    setCurrentPage(0);
+  };
+
+  const handleStatusChange = (newStatus: string) => {
+    setStatus(newStatus);
     setCurrentPage(0);
   };
 
@@ -42,23 +54,32 @@ export const useUserTableControls = () => {
     sortBy: orderBy,
     sortOrder: order,
     search: debouncedSearchTerm || undefined,
+    filter: JSON.stringify({
+      roles: role ? [role] : undefined,
+      status: status || undefined,
+    }),
   };
 
-  const { data, isLoading, isError, error } = useUsersQuery(queryParams);
+  const { data, isLoading, isPlaceholderData, isError, error } =
+    useUsersQuery(queryParams);
 
   return {
     users: data?.data || [],
     totalUsers: data?.total || 0,
-    loading: isLoading,
+    loading: isLoading || isPlaceholderData,
     error: isError ? (error as Error).message : null,
     currentPage,
     rowsPerPage,
     searchTerm,
     order,
     orderBy,
+    role,
+    status,
     handleChangePage,
     handleChangeRowsPerPage,
     handleSearchChange,
     handleSortRequest,
+    handleRoleChange,
+    handleStatusChange,
   };
 };

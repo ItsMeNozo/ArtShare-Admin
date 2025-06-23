@@ -21,6 +21,11 @@ import autoTable from "jspdf-autotable";
 
 import { useUserInterface } from "../../context/UserInterfaceContext";
 import { useUserData } from "../../context/UserDataContext";
+import {
+  AVAILABLE_ROLES_FOR_SELECT,
+  AVAILABLE_STATUSES,
+} from "../../constants/constant";
+import { toTitleCase } from "../../../../utils/common";
 
 export const UserTableToolbar: React.FC = () => {
   const theme = useTheme();
@@ -110,6 +115,41 @@ export const UserTableToolbar: React.FC = () => {
           User Management
         </Typography>
         <Box sx={{ display: "flex", gap: 1, alignItems: "center", ml: "auto" }}>
+          <TextField
+            select
+            size="small"
+            label="Role"
+            value={tableControls.role}
+            onChange={(e) => tableControls.handleRoleChange(e.target.value)}
+            sx={{ width: 120 }}
+          >
+            <MenuItem value="">
+              <em>All</em>
+            </MenuItem>
+            {AVAILABLE_ROLES_FOR_SELECT.map((role) => (
+              <MenuItem key={role} value={role}>
+                {toTitleCase(role)}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            select
+            size="small"
+            label="Status"
+            value={tableControls.status}
+            onChange={(e) => tableControls.handleStatusChange(e.target.value)}
+            sx={{ width: 120 }}
+          >
+            <MenuItem value="">
+              <em>All</em>
+            </MenuItem>
+            {AVAILABLE_STATUSES.map((status) => (
+              <MenuItem key={status} value={status}>
+                {toTitleCase(status)}
+              </MenuItem>
+            ))}
+          </TextField>
           <TextField
             size="small"
             variant="outlined"

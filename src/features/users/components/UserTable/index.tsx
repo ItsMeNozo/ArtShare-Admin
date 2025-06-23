@@ -5,8 +5,11 @@ import {
   TableContainer,
   Paper,
   TablePagination,
-  Box,
   CircularProgress,
+  TableRow,
+  TableCell,
+  Typography,
+  Box,
 } from "@mui/material";
 import { useUserData } from "../../context/UserDataContext";
 import { UserTableToolbar } from "./UserTableToolbar";
@@ -20,22 +23,52 @@ export const UserTable: React.FC = () => {
   return (
     <Paper sx={{ p: 3 }}>
       <UserTableToolbar />
-      {loading && (
-        <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
-          <CircularProgress />
-        </Box>
-      )}
+
       <TableContainer>
         <Table>
           <UserTableHeadComponent headCells={defaultHeadCells} />
+
           <TableBody>
-            {displayUsers.map((user) => (
-              <UserTableRowComponent
-                key={user.id}
-                user={user}
-                headCells={defaultHeadCells}
-              />
-            ))}
+            {loading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={defaultHeadCells.length + 1}
+                  sx={{ textAlign: "center", border: "none", py: 10 }}
+                >
+                  <CircularProgress />
+                </TableCell>
+              </TableRow>
+            ) : displayUsers.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={defaultHeadCells.length + 1}
+                  sx={{ textAlign: "center", border: "none", py: 10 }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 2,
+                      color: "text.secondary",
+                    }}
+                  >
+                    <Typography variant="h6">No users found</Typography>
+                    <Typography variant="body2">
+                      Try adjusting your search or filter criteria.
+                    </Typography>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ) : (
+              displayUsers.map((user) => (
+                <UserTableRowComponent
+                  key={user.id}
+                  user={user}
+                  headCells={defaultHeadCells}
+                />
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

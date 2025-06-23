@@ -1,8 +1,5 @@
 import axios, { AxiosError } from "axios";
 import { User, UserFormData } from "../../../types/user";
-// TODO: Add back when backend supports status filtering
-// import { UserStatus } from "../../../constants/user";
-// import { UserRoleType } from "../../../constants/roles"; // TODO: Uncomment when backend supports role filtering
 import api from "../../../api/baseApi";
 
 export interface FetchUsersParams {
@@ -11,8 +8,7 @@ export interface FetchUsersParams {
   sortBy?: string;
   sortOrder?: "asc" | "desc";
   search?: string;
-  // status?: UserStatus; // TODO: Add when backend supports status filtering
-  // role?: UserRoleType; // TODO: Add when backend supports role filtering
+  filter?: string;
 }
 
 export interface PaginatedUsersApiResponse {

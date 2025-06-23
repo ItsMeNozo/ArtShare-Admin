@@ -43,7 +43,7 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const { data, isLoading, error } = useGetAdminPosts({
+  const { data, isLoading, isPlaceholderData, error } = useGetAdminPosts({
     page: page + 1,
     pageSize: pageSize,
     sortBy: sortBy,
@@ -72,13 +72,13 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const handleSetCategoryId = (id: number | null) => {
     setCategoryId(id);
-    setPage(1);
+    setPage(0);
   };
 
   const value = {
     posts: data?.posts || [],
     totalPosts: data?.total || 0,
-    isLoading,
+    isLoading: isLoading || isPlaceholderData,
     error: error ? error.message : null,
     tableControls: {
       page,

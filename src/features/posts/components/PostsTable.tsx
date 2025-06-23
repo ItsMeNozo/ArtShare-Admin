@@ -12,15 +12,18 @@ import {
   CircularProgress,
   Typography,
   useTheme,
+  Box,
 } from "@mui/material";
 import AdminPostTableRow from "./PostTableRow";
 import { usePostsData } from "../context/PostsDataContext";
 import { usePostsUI } from "../context/PostsUIContext";
 import { SortableFields } from "../types/table.types";
 import { headCells } from "../constants/postsTable.constants";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 
 export const PostsTable: React.FC = () => {
   const theme = useTheme();
+
   const { posts, totalPosts, isLoading, error, tableControls } = usePostsData();
   const { selected, handleSelectAllClick } = usePostsUI();
 
@@ -102,43 +105,60 @@ export const PostsTable: React.FC = () => {
             </TableRow>
           </TableHead>
 
-          {/* ==================== Table Body ==================== */}
+          {/* ==================== Table Body (Refactored Logic) ==================== */}
           <TableBody>
             {isLoading ? (
               <TableRow>
                 <TableCell
                   colSpan={headCells.length}
-                  align="center"
-                  sx={{ py: 8 }}
+                  sx={{ border: "none", py: 10 }}
                 >
-                  <CircularProgress sx={{ mb: 1 }} />
-                  <Typography>Loading posts...</Typography>
+                  <Box sx={{ display: "flex", justifyContent: "center" }}>
+                    <CircularProgress />
+                  </Box>
                 </TableCell>
               </TableRow>
             ) : error ? (
               <TableRow>
                 <TableCell
                   colSpan={headCells.length}
-                  align="center"
-                  sx={{ py: 8 }}
+                  sx={{ border: "none", py: 10, textAlign: "center" }}
                 >
-                  <Typography color="error">
-                    Failed to load posts: {error}
-                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 2,
+                      color: "error.main",
+                    }}
+                  >
+                    <ErrorOutlineIcon sx={{ fontSize: 64 }} />
+                    <Typography variant="h6">Failed to load posts</Typography>
+                    <Typography variant="body2">{error}</Typography>
+                  </Box>
                 </TableCell>
               </TableRow>
             ) : posts.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={headCells.length}
-                  align="center"
-                  sx={{ py: 8 }}
+                  sx={{ border: "none", py: 10, textAlign: "center" }}
                 >
-                  <Typography>
-                    {tableControls.searchTerm
-                      ? "No posts found matching your search."
-                      : "No posts available."}
-                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 2,
+                      color: "text.secondary",
+                    }}
+                  >
+                    <Typography variant="h6">No posts found</Typography>
+                    <Typography variant="body2">
+                      Try adjusting your search or filter criteria.
+                    </Typography>
+                  </Box>
                 </TableCell>
               </TableRow>
             ) : (

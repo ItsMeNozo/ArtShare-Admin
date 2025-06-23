@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { Container, Box, CircularProgress, Typography } from "@mui/material";
+import { Container } from "@mui/material";
 import { UserDataProvider, useUserData } from "./context/UserDataContext";
 import {
   UserInterfaceProvider,
@@ -12,8 +12,7 @@ import { DeleteConfirmationDialog } from "./components/DeleteConfirmationDialog"
 import { PageNotifier } from "./components/PageNotifier";
 
 const UserManagementView: React.FC = () => {
-  const { displayUsers, loading, deleteUserMutation, bulkDeleteUsersMutation } =
-    useUserData();
+  const { deleteUserMutation, bulkDeleteUsersMutation } = useUserData();
   const {
     selectedIds,
     dialogs,
@@ -78,22 +77,6 @@ const UserManagementView: React.FC = () => {
     resetSelection,
     handleCloseBulkDeleteDialog,
   ]);
-
-  if (loading && displayUsers.length === 0) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "calc(100vh - 120px)",
-        }}
-      >
-        <CircularProgress />
-        <Typography sx={{ ml: 2 }}>Loading users...</Typography>
-      </Box>
-    );
-  }
 
   return (
     <>

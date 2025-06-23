@@ -142,7 +142,7 @@ const AdminPostsView: React.FC = () => {
         )}
 
         <PostTableToolbar
-          title="Posts Management"
+          title="Post Management"
           onBulkDelete={handleBulkDelete}
           isActionLoading={isActionLoading}
         />
