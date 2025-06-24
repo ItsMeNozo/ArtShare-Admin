@@ -255,6 +255,7 @@ export default function StatisticDashboardPage() {
           </Box>
 
           {/* Summary Tiles */}
+
           <Grid container spacing={3} mb={3}>
             <Grid size={{ xs: 6, sm: 4, md: 2 }}>
               <SummaryTile
