@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  createContext,
+  useContext,
+} from "react";
 import {
   Box,
   Container,
@@ -19,6 +25,8 @@ import {
   ImageListItem,
   ImageListItemBar,
   Badge,
+  IconButton,
+  useTheme,
 } from "@mui/material";
 import {
   AutoAwesome as AutoAwesomeIcon,
@@ -28,6 +36,8 @@ import {
   AspectRatio as AspectRatioIcon,
   Palette as PaletteIcon,
   ThumbUp as ThumbUpIcon,
+  LightMode as LightModeIcon,
+  DarkMode as DarkModeIcon,
 } from "@mui/icons-material";
 import {
   ResponsiveContainer,
@@ -39,17 +49,12 @@ import {
 import { format, subDays, isAfter, parseISO } from "date-fns";
 import api from "../../api/baseApi";
 
-/* -------------------- 1. Theme -------------------- */
-const theme = createTheme({
-  palette: {
-    mode: "light",
-    primary: { main: "#0062d2" },
-    background: { default: "#f0f4f9", paper: "#ffffff" },
-  },
-  shape: { borderRadius: 16 },
-  typography: { fontFamily: "Inter, sans-serif" },
+/* ----------  Color-mode context  ---------- */
+const ColorModeContext = createContext<{ toggleColorMode: () => void }>({
+  toggleColorMode: () => {},
 });
 
+/* ----------  Static chart colors  ---------- */
 const CHART_COLORS = [
   "#0062d2",
   "#29b6f6",
@@ -59,11 +64,10 @@ const CHART_COLORS = [
   "#ab47bc",
 ];
 
-/** @typedef {"all"|"last7"} TimeFilter */
-
-const useFilteredData = <T extends { [key: string]: any } = any>(
+/* ----------  Helpers  ---------- */
+const useFilteredData = <T extends Record<string, any>>(
   data: T[] | undefined,
-  filter: unknown,
+  filter: "all" | "last7",
   dateKey = "originalDate",
 ) =>
   useMemo(() => {
@@ -73,12 +77,14 @@ const useFilteredData = <T extends { [key: string]: any } = any>(
     return data.filter((d) => isAfter(d[dateKey], start));
   }, [data, filter, dateKey]);
 
-type TimeToggleProps = {
+/* ----------  Tiny reusable widgets  ---------- */
+const TimeToggle = ({
+  value,
+  onChange,
+}: {
   value: "all" | "last7";
-  onChange: (value: "all" | "last7") => void;
-};
-
-const TimeToggle = ({ value, onChange }: TimeToggleProps) => (
+  onChange: (v: "all" | "last7") => void;
+}) => (
   <ToggleButtonGroup
     size="small"
     value={value}
@@ -86,17 +92,19 @@ const TimeToggle = ({ value, onChange }: TimeToggleProps) => (
     onChange={(_, v) => v && onChange(v)}
   >
     <ToggleButton value="all">All</ToggleButton>
-    <ToggleButton value="last7">Last 7 Days</ToggleButton>
+    <ToggleButton value="last7">Last 7 Days</ToggleButton>
   </ToggleButtonGroup>
 );
 
-type SummaryTileProps = {
+const SummaryTile = ({
+  icon,
+  label,
+  value,
+}: {
   icon: React.ReactNode;
   label: string;
   value: number;
-};
-
-const SummaryTile = ({ icon, label, value }: SummaryTileProps) => (
+}) => (
   <Card sx={{ p: 3, textAlign: "center" }}>
     <Avatar sx={{ mb: 1, bgcolor: "primary.main", mx: "auto" }}>{icon}</Avatar>
     <Typography variant="h5" fontWeight={700}>
@@ -108,13 +116,15 @@ const SummaryTile = ({ icon, label, value }: SummaryTileProps) => (
   </Card>
 );
 
-type PieCardProps = {
+const PieCard = ({
+  title,
+  data,
+  colorOffset = 0,
+}: {
   title: string;
   data: { name: string; count: number }[];
   colorOffset?: number;
-};
-
-const PieCard = ({ title, data, colorOffset = 0 }: PieCardProps) => (
+}) => (
   <Card sx={{ height: "100%" }}>
     <CardHeader title={<Typography variant="subtitle1">{title}</Typography>} />
     <CardContent>
@@ -150,6 +160,7 @@ const PieCard = ({ title, data, colorOffset = 0 }: PieCardProps) => (
   </Card>
 );
 
+/* ----------  Types  ---------- */
 type AnalyticsData = {
   posts_by_ai?: { count: number }[];
   total_ai_images?: { count: number }[];
@@ -162,43 +173,53 @@ type AnalyticsData = {
     thumbnail_url: string;
     created_at: string;
     like_count: number;
-    [key: string]: any;
   }[];
   trending_prompts?: string[];
-  [key: string]: any;
 };
 
+/* ============================================================= */
+/*                         MAIN COMPONENT                        */
+/* ============================================================= */
 export default function StatisticDashboardPage() {
+  /* ----- theme mode state ----- */
+
+  const theme = useTheme();
+
+  /* ----- analytics state ----- */
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "last7">("all");
 
+  /* ----- fetch whenever filter changes ----- */
   useEffect(() => {
-    (async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        const { data } = await api.get("/statistics");
+        const daysQuery = filter === "last7" ? "?days=7" : "";
+        const { data } = await api.get(`/statistics${daysQuery}`);
         setAnalytics(data);
       } catch (e) {
         console.error(e);
       } finally {
         setLoading(false);
       }
-    })();
-  }, []);
+    };
+    fetchData();
+  }, [filter]);
 
+  /* ----- derive numbers ----- */
   const processed = useMemo(() => {
     if (!analytics) return {};
-    const now = new Date();
-    const nowStr = format(now, "yyyy-MM-dd");
-
-    const single = (key: string) => [
-      { count: analytics[key]?.[0]?.count || 0, date: nowStr },
-    ];
-
+    const single = (key: keyof AnalyticsData) => {
+      const item = analytics[key]?.[0];
+      return typeof item === "object" && item !== null && "count" in item
+        ? (item as { count: number }).count
+        : 0;
+    };
     return {
-      postsCount: single("posts_by_ai")[0].count,
-      imagesCount: single("total_ai_images")[0].count,
-      tokensCount: single("token_usage")[0].count,
+      postsCount: single("posts_by_ai"),
+      imagesCount: single("total_ai_images"),
+      tokensCount: analytics.token_usage?.[0]?.tokens || 0,
       styles:
         analytics.styles?.map((d) => ({ name: d.key, count: d.count })) || [],
       ratios:
@@ -208,10 +229,7 @@ export default function StatisticDashboardPage() {
         ...p,
         originalDate: parseISO(p.created_at),
       })),
-      prompts: (analytics.trending_prompts || []).map((t, i) => ({
-        prompt: t,
-        idx: i,
-      })),
+      prompts: (analytics.trending_prompts || []).slice(0, 5),
     };
   }, [analytics]);
 
@@ -219,6 +237,7 @@ export default function StatisticDashboardPage() {
     .sort((a, b) => b.like_count - a.like_count)
     .slice(0, 5);
 
+  /* ----- loading ----- */
   if (loading) {
     return (
       <Box
@@ -234,266 +253,243 @@ export default function StatisticDashboardPage() {
     );
   }
 
+  /* ---------- render ---------- */
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 6 }}>
-        <Container maxWidth="xl">
-          {/* Header */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 3,
-            }}
-          >
-            <Typography variant="h4" fontWeight={700}>
-              AI Statistics Dashboard
-            </Typography>
+      <PageContent
+        processed={processed}
+        filter={filter}
+        setFilter={setFilter}
+        topPostsFiltered={topPostsFiltered}
+      />
+    </ThemeProvider>
+  );
+}
+
+/* ----------  Page split into a child to access theme easily ---------- */
+function PageContent({
+  processed,
+  filter,
+  setFilter,
+  topPostsFiltered,
+}: {
+  processed: any;
+  filter: "all" | "last7";
+  setFilter: (v: "all" | "last7") => void;
+  topPostsFiltered: any[];
+}) {
+  const theme = useTheme();
+  const { toggleColorMode } = useContext(ColorModeContext);
+
+  return (
+    <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 6 }}>
+      <Container maxWidth="xl">
+        {/* Header */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
+        >
+          <Typography variant="h4" fontWeight={700}>
+            AI Statistics Dashboard
+          </Typography>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            {/* dark / light toggle */}
+            <IconButton onClick={toggleColorMode} color="inherit">
+              {theme.palette.mode === "dark" ? (
+                <LightModeIcon />
+              ) : (
+                <DarkModeIcon />
+              )}
+            </IconButton>
+
+            {/* time-range toggle */}
             <TimeToggle value={filter} onChange={setFilter} />
           </Box>
+        </Box>
 
-          {/* Summary Tiles */}
+        {/* Summary Tiles */}
+        <Grid container spacing={3} mb={3}>
+          <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+            <SummaryTile
+              icon={<AutoAwesomeIcon />}
+              label="AI Posts"
+              value={processed.postsCount}
+            />
+          </Grid>
+          <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+            <SummaryTile
+              icon={<AddPhotoAlternateIcon />}
+              label="AI Images"
+              value={processed.imagesCount}
+            />
+          </Grid>
+          <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+            <SummaryTile
+              icon={<TimelineIcon />}
+              label="Tokens"
+              value={processed.tokensCount}
+            />
+          </Grid>
+          <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+            <SummaryTile
+              icon={<FavoriteIcon />}
+              label="Total Likes"
+              value={
+                processed.topPosts?.reduce(
+                  (s: number, p: any) => s + p.like_count,
+                  0,
+                ) || 0
+              }
+            />
+          </Grid>
+          <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+            <SummaryTile
+              icon={<PaletteIcon />}
+              label="Styles"
+              value={(processed.styles ?? []).length}
+            />
+          </Grid>
+          <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+            <SummaryTile
+              icon={<AspectRatioIcon />}
+              label="Ratios"
+              value={(processed.ratios ?? []).length}
+            />
+          </Grid>
+        </Grid>
 
-          <Grid container spacing={3} mb={3}>
-            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-              <SummaryTile
-                icon={<AutoAwesomeIcon />}
-                label="AI Posts"
-                value={processed.postsCount}
-              />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-              <SummaryTile
-                icon={<AddPhotoAlternateIcon />}
-                label="AI Images"
-                value={processed.imagesCount}
-              />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-              <SummaryTile
-                icon={<TimelineIcon />}
-                label="Tokens"
-                value={processed.tokensCount}
-              />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-              <SummaryTile
-                icon={<FavoriteIcon />}
-                label="Total Likes"
-                value={
-                  processed.topPosts?.reduce((s, p) => s + p.like_count, 0) || 0
+        <Grid container spacing={3}>
+          {/* Left side */}
+          <Grid size={{ xs: 12, md: 8 }}>
+            <Card sx={{ mb: 3 }}>
+              <CardHeader
+                title={
+                  <Typography variant="subtitle1">
+                    Top 5 AI Posts ({filter === "last7" ? "7 Days" : "All-time"}
+                    )
+                  </Typography>
                 }
               />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-              <SummaryTile
-                icon={<PaletteIcon />}
-                label="Styles"
-                value={(processed.styles ?? []).length}
-              />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-              <SummaryTile
-                icon={<AspectRatioIcon />}
-                label="Ratios"
-                value={(processed.ratios ?? []).length}
-              />
-            </Grid>
-          </Grid>
-
-          <Grid container spacing={3}>
-            {/* Left – Top Posts & Prompts */}
-            <Grid size={{ xs: 12, md: 8 }}>
-              {/* Top Posts Gallery */}
-              <Card sx={{ mb: 3 }}>
-                <CardHeader
-                  title={
-                    <Typography variant="subtitle1">
-                      Top 5 AI Posts (
-                      {filter === "last7" ? "7 Days" : "All‑time"})
-                    </Typography>
-                  }
-                />
-                <CardContent>
-                  {topPostsFiltered.length > 0 ? (
-                    <ImageList
-                      cols={3}
-                      gap={20}
-                      sx={{
-                        m: 0,
-                        height: 350, // Increased height
-                        "& .MuiImageListItem-root": {
-                          position: "relative",
-                          borderRadius: 2,
-                          overflow: "hidden",
-                        },
-                        "& .MuiImageListItemBar-root": {
-                          position: "absolute",
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          background:
-                            "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 50%, rgba(0,0,0,0.3) 80%, rgba(0,0,0,0) 100%)",
-                          paddingRight: "65px !important", // More space for like button
-                          paddingLeft: "12px !important",
-                          paddingTop: "12px !important",
-                          paddingBottom: "12px !important",
-                          minHeight: "80px", // More height for text
-                          "& .MuiImageListItemBar-actionIcon": {
-                            position: "absolute",
-                            top: 8,
-                            right: 12,
-                          },
-                          "& .MuiImageListItemBar-titleWrap": {
-                            paddingRight: "65px !important",
-                            paddingLeft: "0 !important",
-                            paddingTop: "4px !important",
-                          },
-                        },
-                      }}
-                    >
-                      {topPostsFiltered.map((post) => (
-                        <ImageListItem
-                          key={post.id}
-                          sx={{
-                            position: "relative",
+              <CardContent>
+                {topPostsFiltered.length ? (
+                  <ImageList cols={3} gap={20} sx={{ m: 0, height: 350 }}>
+                    {topPostsFiltered.map((post) => (
+                      <ImageListItem key={post.id}>
+                        <img
+                          src={post.thumbnail_url}
+                          alt={post.title}
+                          loading="lazy"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
                           }}
-                        >
-                          <img
-                            src={post.thumbnail_url}
-                            alt={post.title}
-                            loading="lazy"
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                            }}
-                          />
-                          <ImageListItemBar
-                            title={
-                              <Tooltip title={post.title}>
-                                <Typography
-                                  variant="caption"
-                                  sx={{
-                                    color: "#fff",
-                                    fontSize: "0.8rem", // Slightly larger text
-                                    lineHeight: 1.4,
-                                    display: "-webkit-box",
-                                    WebkitLineClamp: 3, // Allow up to 3 lines
-                                    WebkitBoxOrient: "vertical",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    maxHeight: "3.6em", // Space for 3 lines
-                                    wordBreak: "break-word",
-                                    fontWeight: 500,
-                                  }}
-                                >
-                                  {post.title}
-                                </Typography>
-                              </Tooltip>
-                            }
-                            subtitle={
+                        />
+                        <ImageListItemBar
+                          title={
+                            <Tooltip title={post.title}>
                               <Typography
                                 variant="caption"
                                 sx={{
                                   color: "#fff",
-                                  fontSize: "0.7rem",
-                                  opacity: 0.9,
-                                  marginTop: "2px",
+                                  fontSize: "0.8rem",
+                                  lineHeight: 1.4,
+                                  display: "-webkit-box",
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: "vertical",
+                                  overflow: "hidden",
                                 }}
                               >
-                                {format(parseISO(post.created_at), "MMM d")}
+                                {post.title}
                               </Typography>
-                            }
-                            actionIcon={
-                              <Box sx={{ position: "relative" }}>
-                                <Badge
-                                  badgeContent={post.like_count}
-                                  showZero
-                                  sx={{
-                                    mr: 0.5,
-                                    "& .MuiBadge-badge": {
-                                      fontSize: "0.7rem", // Smaller badge text
-                                      minWidth: "20px",
-                                      height: "20px",
-                                      backgroundColor: "#ff1744",
-                                      color: "#fff",
-                                      fontWeight: "bold",
-                                      border: "1.5px solid #fff",
-                                      boxShadow: "0 1px 6px rgba(0,0,0,0.4)",
-                                      zIndex: 10,
-                                      transform:
-                                        "scale(1) translate(50%, -50%)",
-                                    },
-                                  }}
-                                >
-                                  <ThumbUpIcon
-                                    sx={{
-                                      color: "#fff",
-                                      fontSize: 18, // Smaller icon
-                                      filter:
-                                        "drop-shadow(1px 1px 3px rgba(0,0,0,0.8))",
-                                    }}
-                                  />
-                                </Badge>
-                              </Box>
-                            }
-                          />
-                        </ImageListItem>
-                      ))}
-                    </ImageList>
-                  ) : (
-                    <Box sx={{ textAlign: "center", py: 4 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        No posts found for the selected time period.
-                      </Typography>
-                    </Box>
-                  )}
-                </CardContent>
-              </Card>
+                            </Tooltip>
+                          }
+                          subtitle={
+                            <Typography
+                              variant="caption"
+                              sx={{ color: "#fff" }}
+                            >
+                              {format(parseISO(post.created_at), "MMM d")}
+                            </Typography>
+                          }
+                          actionIcon={
+                            <Badge
+                              badgeContent={post.like_count}
+                              sx={{
+                                mr: 1,
+                                "& .MuiBadge-badge": {
+                                  backgroundColor: "#ff1744",
+                                  color: "#fff",
+                                  border: "2px solid #fff",
+                                },
+                              }}
+                            >
+                              <ThumbUpIcon sx={{ color: "#fff" }} />
+                            </Badge>
+                          }
+                        />
+                      </ImageListItem>
+                    ))}
+                  </ImageList>
+                ) : (
+                  <Box sx={{ textAlign: "center", py: 4 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      No posts for this period.
+                    </Typography>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
 
-              {/* Trending Prompts List */}
-              <Card>
-                <CardHeader
-                  title={
-                    <Typography variant="subtitle1">
-                      Trending Prompts
+            {/* Trending prompts */}
+            <Card>
+              <CardHeader
+                title={
+                  <Typography variant="subtitle1">Trending Prompts</Typography>
+                }
+              />
+              <CardContent>
+                {processed.prompts.length ? (
+                  processed.prompts.map((p: string, i: number) => (
+                    <Typography key={i} variant="body2" gutterBottom>
+                      • {p}
                     </Typography>
-                  }
-                />
-                <CardContent>
-                  {(processed.prompts ?? []).slice(0, 5).map((p) => (
-                    <Typography key={p.idx} variant="body2" gutterBottom>
-                      • {p.prompt}
-                    </Typography>
-                  ))}
-                </CardContent>
-              </Card>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No data.
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Right side */}
+          <Grid
+            size={{ xs: 12, md: 4 }}
+            container
+            spacing={3}
+            direction="column"
+          >
+            <Grid size={{ xs: 12 }}>
+              <PieCard title="Usage by Style" data={processed.styles ?? []} />
             </Grid>
-
-            {/* Right – Pie Charts */}
-            <Grid
-              size={{ xs: 12, md: 4 }}
-              container
-              spacing={3}
-              direction="column"
-            >
-              <Grid size={{ xs: 12 }}>
-                <PieCard title="Usage by Style" data={processed.styles ?? []} />
-              </Grid>
-              <Grid size={{ xs: 12 }}>
-                <PieCard
-                  title="Usage by Aspect Ratio"
-                  data={processed.ratios || []}
-                  colorOffset={3}
-                />
-              </Grid>
+            <Grid size={{ xs: 12 }}>
+              <PieCard
+                title="Usage by Aspect Ratio"
+                data={processed.ratios ?? []}
+                colorOffset={3}
+              />
             </Grid>
           </Grid>
-        </Container>
-      </Box>
-    </ThemeProvider>
+        </Grid>
+      </Container>
+    </Box>
   );
 }
