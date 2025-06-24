@@ -30,19 +30,6 @@ import {
   Palette as PaletteIcon,
   ThumbUp as ThumbUpIcon,
 } from "@mui/icons-material";
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip as RechartsTooltip,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
-} from "recharts";
 import { format, subDays, isAfter, parseISO } from "date-fns";
 import { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
@@ -50,7 +37,7 @@ import api from "../../api/baseApi";
 import { StripeData } from "./statistics.types";
 import { StripeIncomeCard } from "./components/StripeIncomeCard";
 
-/* -------------------- 1. Theme & Constants -------------------- */
+/* -------------------- 1. Theme -------------------- */
 const theme = createTheme({
   palette: {
     mode: "light",
@@ -62,19 +49,8 @@ const theme = createTheme({
   typography: { fontFamily: "Inter, sans-serif" },
 });
 
-const CHART_COLORS = [
-  "#0062d2",
-  "#29b6f6",
-  "#66bb6a",
-  "#ffa726",
-  "#ef5350",
-  "#ab47bc",
-];
-const COLORS_POSTS = ["#66bb6a", "#ffa726", "#29b6f6", "#ef5350"];
-
 /* -------------------- 2. Type Definitions -------------------- */
 
-// Combined type for all fetched data
 type StatisticsData = {
   posts_by_ai?: { count: number }[];
   total_ai_images?: { count: number }[];
@@ -91,26 +67,10 @@ type StatisticsData = {
   trending_prompts?: string[];
 };
 
-type AnalyticsPlatformData = {
-  userStats?: { totalUsers: number; onboardedUsers: number };
-  postStats?: {
-    totalPosts: number;
-    publishedPosts: number;
-    draftPosts: number;
-    aiCreatedPosts: number;
-  };
-  usersOverTime?: { data: { date: string; count: number }[] };
-  postsOverTime?: { data: { date: string; count: number }[] };
-};
-
-type PieChartDataItem = { name: string; count: number };
-type CombinedTimePoint = { date: string; users?: number; posts?: number };
-
 /* -------------------- 3. Reusable Components -------------------- */
 
 /**
- * SummaryTile – now accepts an optional `to` prop. If provided, the card becomes clickable
- * and navigates to the given route using react‑router‑dom's useNavigate.
+ * SummaryTile – small stat card that can optionally navigate to a route when clicked.
  */
 const SummaryTile = ({
   icon,
@@ -136,11 +96,7 @@ const SummaryTile = ({
         textAlign: "center",
         height: "100%",
         cursor: to ? "pointer" : "default",
-        "&:hover": to
-          ? {
-              boxShadow: 6,
-            }
-          : undefined,
+        "&:hover": to ? { boxShadow: 6 } : undefined,
       }}
     >
       <Avatar sx={{ mb: 1, bgcolor: "primary.main", mx: "auto" }}>
@@ -156,189 +112,35 @@ const SummaryTile = ({
   );
 };
 
-/**
- * PieCard – chart card that can optionally navigate to a route when clicked.
- */
-const PieCard = ({
-  title,
-  data,
-  colors = CHART_COLORS,
-  colorOffset = 0,
-  to,
-}: {
-  title: string;
-  data: PieChartDataItem[];
-  colors?: string[];
-  colorOffset?: number;
-  to?: string;
-}) => {
-  const navigate = useNavigate();
-  const handleClick = () => {
-    if (to) navigate(to);
-  };
-
-  return (
-    <Card
-      onClick={handleClick}
-      sx={{
-        height: "100%",
-        cursor: to ? "pointer" : "default",
-        "&:hover": to ? { boxShadow: 6 } : undefined,
-      }}
-    >
-      <CardHeader
-        title={
-          <Typography variant="subtitle1" fontWeight={600}>
-            {title}
-          </Typography>
-        }
-      />
-      <CardContent>
-        <Box sx={{ height: 260 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <RechartsTooltip
-                formatter={(_, __, p) => [
-                  `${p.payload.count} items`,
-                  p.payload.name,
-                ]}
-              />
-              <Pie
-                innerRadius={60}
-                outerRadius={100}
-                data={data}
-                dataKey="count"
-                nameKey="name"
-                label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                paddingAngle={data.length > 1 ? 3 : 0}
-              >
-                {data.map((e, i) => (
-                  <Cell
-                    key={e.name}
-                    fill={colors[(i + colorOffset) % colors.length]}
-                  />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-        </Box>
-      </CardContent>
-    </Card>
-  );
-};
-
-const PlatformGrowthChart = ({
-  data,
-  onTimeChange,
-  timeValue,
-}: {
-  data: CombinedTimePoint[];
-  onTimeChange: (days: number) => void;
-  timeValue: number;
-}) => (
-  <Card>
-    <CardHeader
-      title={
-        <Typography variant="subtitle1" fontWeight={600}>
-          Platform Growth
-        </Typography>
-      }
-      action={
-        <ToggleButtonGroup
-          size="small"
-          value={timeValue}
-          exclusive
-          onChange={(_, v) => v && onTimeChange(v)}
-        >
-          <ToggleButton value={30}>30 Days</ToggleButton>
-          <ToggleButton value={90}>90 Days</ToggleButton>
-        </ToggleButtonGroup>
-      }
-    />
-    <CardContent>
-      <Box sx={{ height: 350 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="date"
-              tickFormatter={(str) => format(parseISO(str), "MMM d")}
-            />
-            <YAxis />
-            <RechartsTooltip />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey="users"
-              stroke={CHART_COLORS[0]}
-              name="New Users"
-            />
-            <Line
-              type="monotone"
-              dataKey="posts"
-              stroke={CHART_COLORS[1]}
-              name="New Posts"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </Box>
-    </CardContent>
-  </Card>
-);
-
 /* -------------------- 4. Main Dashboard Page -------------------- */
 
 export default function StatisticDashboardPage() {
-  // State for original statistics data
+  /* ----- State ----- */
   const [statisticsData, setStatisticsData] = useState<StatisticsData | null>(
     null,
   );
   const [statsFilter, setStatsFilter] = useState<"all" | "last7">("all");
-
-  // State for new analytics data
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsPlatformData>({});
-  const [timeSeriesDays, setTimeSeriesDays] = useState<number>(30);
-
-  // Combined loading and error states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [stripeData, setStripeData] = useState<StripeData | null>(null);
+
   const stripeDashboardUrl =
     import.meta.env.VITE_STRIPE_DASHBOARD_URL ||
     "https://dashboard.stripe.com/test/dashboard";
 
-  // --- Data Fetching ---
+  /* ----- Data Fetching ----- */
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
       setError(null);
       try {
-        // Fetch all data in parallel
-        const [
-          statsRes,
-          userStatsRes,
-          postStatsRes,
-          usersOverTimeRes,
-          postsOverTimeRes,
-          stripeData,
-        ] = await Promise.all([
+        const [statsRes, stripeRes] = await Promise.all([
           api.get("/statistics"),
-          api.get("/analytics/overall-user-stats"),
-          api.get("/analytics/overall-post-stats"),
-          api.get(`/analytics/users-over-time?days=${timeSeriesDays}`),
-          api.get(`/analytics/posts-over-time?days=${timeSeriesDays}`),
-          api.get(`/api/stripe/income-summary`),
+          api.get("/api/stripe/income-summary"),
         ]);
 
         setStatisticsData(statsRes.data);
-        setAnalyticsData({
-          userStats: userStatsRes.data,
-          postStats: postStatsRes.data,
-          usersOverTime: usersOverTimeRes.data,
-          postsOverTime: postsOverTimeRes.data,
-        });
-        setStripeData(stripeData.data);
+        setStripeData(stripeRes.data);
       } catch (err) {
         const axiosError = err as AxiosError;
         const errorMessage =
@@ -351,9 +153,9 @@ export default function StatisticDashboardPage() {
       }
     };
     fetchAllData();
-  }, [timeSeriesDays]); // Re-fetch when time series duration changes
+  }, []);
 
-  // --- Data Processing (Memoization) ---
+  /* ----- Data Processing ----- */
   const processedStats = useMemo(() => {
     if (!statisticsData) return {} as any;
     return {
@@ -372,10 +174,6 @@ export default function StatisticDashboardPage() {
         ...p,
         originalDate: parseISO(p.created_at),
       })),
-      prompts: (statisticsData.trending_prompts || []).map((t, i) => ({
-        prompt: t,
-        idx: i,
-      })),
     } as const;
   }, [statisticsData]);
 
@@ -384,17 +182,16 @@ export default function StatisticDashboardPage() {
     const data = processedStats.topPosts;
 
     if (statsFilter === "all") {
-      const filtered = data
+      return data
         .sort(
           (a: { like_count: number }, b: { like_count: number }) =>
             b.like_count - a.like_count,
         )
         .slice(0, 5);
-
-      return filtered;
     }
+
     const sevenDaysAgo = subDays(new Date(), 7);
-    const filtered = data
+    return data
       .filter((p: { originalDate: string | number | Date }) =>
         isAfter(p.originalDate, sevenDaysAgo),
       )
@@ -403,67 +200,9 @@ export default function StatisticDashboardPage() {
           b.like_count - a.like_count,
       )
       .slice(0, 5);
-
-    return filtered;
   }, [processedStats.topPosts, statsFilter]);
 
-  // New memoized data for new charts
-  const combinedGrowthChartData = useMemo((): CombinedTimePoint[] => {
-    const usersMap = new Map<string, number>();
-    analyticsData.usersOverTime?.data.forEach((p) =>
-      usersMap.set(p.date, p.count),
-    );
-    const postsMap = new Map<string, number>();
-    analyticsData.postsOverTime?.data.forEach((p) =>
-      postsMap.set(p.date, p.count),
-    );
-    const allDates = new Set([
-      ...(analyticsData.usersOverTime?.data.map((d) => d.date) || []),
-      ...(analyticsData.postsOverTime?.data.map((d) => d.date) || []),
-    ]);
-    const sortedDates = Array.from(allDates).sort(
-      (a, b) => new Date(a).getTime() - new Date(b).getTime(),
-    );
-    return sortedDates.map((date) => ({
-      date,
-      users: usersMap.get(date) ?? 0,
-      posts: postsMap.get(date) ?? 0,
-    }));
-  }, [analyticsData.usersOverTime, analyticsData.postsOverTime]);
-
-  const overallUserChartData = useMemo((): PieChartDataItem[] => {
-    if (!analyticsData.userStats) return [];
-    return [
-      { name: "Onboarded", count: analyticsData.userStats.onboardedUsers },
-      {
-        name: "Not Onboarded",
-        count:
-          analyticsData.userStats.totalUsers -
-          analyticsData.userStats.onboardedUsers,
-      },
-    ].filter((item) => item.count > 0);
-  }, [analyticsData.userStats]);
-
-  const overallPostChartData = useMemo(() => {
-    if (!analyticsData.postStats)
-      return { publishedVsDraft: [], aiVsHuman: [] } as any;
-    return {
-      publishedVsDraft: [
-        { name: "Published", count: analyticsData.postStats.publishedPosts },
-        { name: "Drafts", count: analyticsData.postStats.draftPosts },
-      ].filter((item) => item.count > 0),
-      aiVsHuman: [
-        { name: "AI Created", count: analyticsData.postStats.aiCreatedPosts },
-        {
-          name: "Human Created",
-          count:
-            analyticsData.postStats.totalPosts -
-            analyticsData.postStats.aiCreatedPosts,
-        },
-      ].filter((item) => item.count > 0),
-    } as const;
-  }, [analyticsData.postStats]);
-
+  /* ----- Render States ----- */
   if (loading) {
     return (
       <Box
@@ -487,11 +226,13 @@ export default function StatisticDashboardPage() {
     );
   }
 
+  /* ----- UI ----- */
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 6 }}>
         <Container maxWidth="xl">
+          {/* Header */}
           <Box
             sx={{
               display: "flex",
@@ -509,12 +250,12 @@ export default function StatisticDashboardPage() {
               exclusive
               onChange={(_, v) => v && setStatsFilter(v)}
             >
-              <ToggleButton value="all">All-time</ToggleButton>
+              <ToggleButton value="all">All‑time</ToggleButton>
               <ToggleButton value="last7">Last 7 Days</ToggleButton>
             </ToggleButtonGroup>
           </Box>
 
-          {/* --- SECTION 1: Summary & Top Content (Existing Layout) --- */}
+          {/* Summary & Top Content */}
           <Grid container spacing={3} mb={4}>
             {/* Summary Tiles */}
             <Grid size={{ xs: 6, sm: 4, md: 2 }}>
@@ -571,270 +312,161 @@ export default function StatisticDashboardPage() {
               />
             </Grid>
 
-            {/* Left Column */}
+            {/* Top 5 AI Posts */}
             <Grid size={{ xs: 12, lg: 8 }}>
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12 }}>
-                  <Card>
-                    <CardHeader
-                      title={
-                        <Typography variant="subtitle1" fontWeight={600}>
-                          Top 5 AI Posts (
-                          {statsFilter === "last7" ? "7 Days" : "All‑time"})
-                        </Typography>
-                      }
-                    />
-                    <CardContent>
-                      {topPostsFiltered.length > 0 ? (
-                        <ImageList
-                          cols={6}
-                          gap={12}
-                          sx={{
-                            height: 200,
-                            "& .MuiImageListItem-root": {
-                              position: "relative",
-                            },
-                            "& .MuiImageListItemBar-root": {
-                              position: "absolute",
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                            },
-                          }}
-                        >
-                          {topPostsFiltered.map(
-                            (post: {
-                              id: React.Key | null | undefined;
-                              thumbnail_url: string | undefined;
-                              title:
+              <Card>
+                <CardHeader
+                  title={
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      Top 5 AI Posts (
+                      {statsFilter === "last7" ? "7 Days" : "All‑time"})
+                    </Typography>
+                  }
+                />
+                <CardContent>
+                  {topPostsFiltered.length > 0 ? (
+                    <ImageList cols={6} gap={12} sx={{ height: 200 }}>
+                      {topPostsFiltered.map(
+                        (post: {
+                          id: React.Key | null | undefined;
+                          thumbnail_url: string | undefined;
+                          title:
+                            | string
+                            | number
+                            | bigint
+                            | boolean
+                            | React.ReactElement<
+                                unknown,
+                                string | React.JSXElementConstructor<any>
+                              >
+                            | Iterable<React.ReactNode>
+                            | Promise<
                                 | string
                                 | number
                                 | bigint
                                 | boolean
-                                | React.ReactElement<
-                                    unknown,
-                                    string | React.JSXElementConstructor<any>
-                                  >
-                                | Iterable<React.ReactNode>
-                                | Promise<
-                                    | string
-                                    | number
-                                    | bigint
-                                    | boolean
-                                    | React.ReactPortal
-                                    | React.ReactElement<
-                                        unknown,
-                                        | string
-                                        | React.JSXElementConstructor<any>
-                                      >
-                                    | Iterable<React.ReactNode>
-                                    | null
-                                    | undefined
-                                  >
-                                | null
-                                | undefined;
-                              created_at: string;
-                              like_count:
-                                | string
-                                | number
-                                | bigint
-                                | boolean
-                                | React.ReactElement<
-                                    unknown,
-                                    string | React.JSXElementConstructor<any>
-                                  >
-                                | Iterable<React.ReactNode>
                                 | React.ReactPortal
-                                | Promise<
-                                    | string
-                                    | number
-                                    | bigint
-                                    | boolean
-                                    | React.ReactPortal
-                                    | React.ReactElement<
-                                        unknown,
-                                        | string
-                                        | React.JSXElementConstructor<any>
-                                      >
-                                    | Iterable<React.ReactNode>
-                                    | null
-                                    | undefined
+                                | React.ReactElement<
+                                    unknown,
+                                    string | React.JSXElementConstructor<any>
                                   >
+                                | Iterable<React.ReactNode>
                                 | null
-                                | undefined;
-                            }) => {
-                              return (
-                                <ImageListItem
-                                  key={post.id}
+                                | undefined
+                              >
+                            | null
+                            | undefined;
+                          created_at: string;
+                          like_count:
+                            | string
+                            | number
+                            | bigint
+                            | boolean
+                            | React.ReactElement<
+                                unknown,
+                                string | React.JSXElementConstructor<any>
+                              >
+                            | Iterable<React.ReactNode>
+                            | React.ReactPortal
+                            | Promise<
+                                | string
+                                | number
+                                | bigint
+                                | boolean
+                                | React.ReactPortal
+                                | React.ReactElement<
+                                    unknown,
+                                    string | React.JSXElementConstructor<any>
+                                  >
+                                | Iterable<React.ReactNode>
+                                | null
+                                | undefined
+                              >
+                            | null
+                            | undefined;
+                        }) => (
+                          <ImageListItem
+                            key={post.id}
+                            sx={{
+                              borderRadius: 2,
+                              overflow: "hidden",
+                              position: "relative",
+                            }}
+                          >
+                            <img
+                              src={post.thumbnail_url}
+                              alt={
+                                typeof post.title === "string"
+                                  ? post.title
+                                  : (post.title?.toString?.() ?? "")
+                              }
+                              loading="lazy"
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
+                            />
+                            <ImageListItemBar
+                              title={
+                                <Tooltip title={post.title}>
+                                  <Typography
+                                    variant="caption"
+                                    noWrap
+                                    sx={{ color: "#fff" }}
+                                  >
+                                    {post.title}
+                                  </Typography>
+                                </Tooltip>
+                              }
+                              subtitle={
+                                <Typography
+                                  variant="caption"
+                                  sx={{ color: "#fff" }}
+                                >
+                                  {format(parseISO(post.created_at), "PP")}
+                                </Typography>
+                              }
+                              actionIcon={
+                                <Badge
+                                  badgeContent={post.like_count}
+                                  showZero
                                   sx={{
-                                    borderRadius: 2,
-                                    overflow: "hidden",
-                                    position: "relative",
-                                    "& .MuiImageListItemBar-root": {
-                                      background:
-                                        "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%)",
-                                      "& .MuiImageListItemBar-actionIcon": {
-                                        position: "absolute",
-                                        top: 8,
-                                        right: 8,
-                                      },
+                                    mr: 1,
+                                    "& .MuiBadge-badge": {
+                                      fontSize: "0.8rem",
+                                      minWidth: 24,
+                                      height: 24,
+                                      backgroundColor: "#ff1744",
+                                      color: "#fff",
+                                      fontWeight: "bold",
+                                      border: "2px solid #fff",
                                     },
                                   }}
                                 >
-                                  <img
-                                    src={post.thumbnail_url}
-                                    alt={
-                                      typeof post.title === "string"
-                                        ? post.title
-                                        : (post.title?.toString?.() ?? "")
-                                    }
-                                    loading="lazy"
-                                    style={{
-                                      width: "100%",
-                                      height: "100%",
-                                      objectFit: "cover",
-                                    }}
+                                  <ThumbUpIcon
+                                    sx={{ color: "#fff", fontSize: 24 }}
                                   />
-                                  <ImageListItemBar
-                                    title={
-                                      <Tooltip title={post.title}>
-                                        <Typography
-                                          variant="caption"
-                                          noWrap
-                                          sx={{ color: "#fff" }}
-                                        >
-                                          {post.title}
-                                        </Typography>
-                                      </Tooltip>
-                                    }
-                                    subtitle={
-                                      <Typography
-                                        variant="caption"
-                                        sx={{ color: "#fff" }}
-                                      >
-                                        {format(
-                                          parseISO(post.created_at),
-                                          "PP",
-                                        )}
-                                      </Typography>
-                                    }
-                                    actionIcon={
-                                      <Box sx={{ position: "relative" }}>
-                                        <Badge
-                                          badgeContent={post.like_count}
-                                          showZero
-                                          sx={{
-                                            mr: 1,
-                                            "& .MuiBadge-badge": {
-                                              fontSize: "0.8rem",
-                                              minWidth: "24px",
-                                              height: "24px",
-                                              backgroundColor: "#ff1744",
-                                              color: "#fff",
-                                              fontWeight: "bold",
-                                              border: "2px solid #fff",
-                                              boxShadow:
-                                                "0 2px 8px rgba(0,0,0,0.3)",
-                                              zIndex: 10,
-                                              transform:
-                                                "scale(1) translate(50%, -50%)",
-                                            },
-                                          }}
-                                        >
-                                          <ThumbUpIcon
-                                            sx={{
-                                              color: "#fff",
-                                              fontSize: 24,
-                                              filter:
-                                                "drop-shadow(2px 2px 4px rgba(0,0,0,0.8))",
-                                            }}
-                                          />
-                                        </Badge>
-                                      </Box>
-                                    }
-                                  />
-                                </ImageListItem>
-                              );
-                            },
-                          )}
-                        </ImageList>
-                      ) : (
-                        <Box sx={{ textAlign: "center", py: 4 }}>
-                          <Typography variant="body2" color="text.secondary">
-                            No posts found for the selected time period.
-                          </Typography>
-                        </Box>
+                                </Badge>
+                              }
+                            />
+                          </ImageListItem>
+                        ),
                       )}
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-            </Grid>
-
-            {/* Right Column */}
-            <Grid size={{ xs: 12, lg: 4 }}>
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12 }}>
-                  <PieCard
-                    title="Usage by Style"
-                    data={processedStats.styles ?? []}
-                    to="/categories"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <PieCard
-                    title="Usage by Aspect Ratio"
-                    data={processedStats.ratios ?? []}
-                    colorOffset={3}
-                    to="/posts"
-                  />
-                </Grid>
-              </Grid>
+                    </ImageList>
+                  ) : (
+                    <Box sx={{ textAlign: "center", py: 4 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        No posts found for the selected time period.
+                      </Typography>
+                    </Box>
+                  )}
+                </CardContent>
+              </Card>
             </Grid>
           </Grid>
 
-          {/* --- SECTION 2: Platform Growth (New) --- */}
-          <Box mb={4}>
-            <PlatformGrowthChart
-              data={combinedGrowthChartData}
-              onTimeChange={setTimeSeriesDays}
-              timeValue={timeSeriesDays}
-            />
-          </Box>
-
-          {/* --- SECTION 3: Overall Platform Stats (New) --- */}
-          <Box>
-            <Typography variant="h5" fontWeight={700} mb={2}>
-              Overall Platform Stats
-            </Typography>
-            <Grid container spacing={3}>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <PieCard
-                  title="User Onboarding Status"
-                  data={overallUserChartData}
-                  colors={CHART_COLORS}
-                  to="/users"
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <PieCard
-                  title="Posts: Published vs. Drafts"
-                  data={overallPostChartData.publishedVsDraft}
-                  colors={COLORS_POSTS}
-                  to="/posts"
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <PieCard
-                  title="Posts: AI vs. Human"
-                  data={overallPostChartData.aiVsHuman}
-                  colors={COLORS_POSTS}
-                  colorOffset={2}
-                  to="/posts"
-                />
-              </Grid>
-            </Grid>
-          </Box>
+          {/* Stripe Income */}
           {stripeData && (
             <StripeIncomeCard
               totalIncome={stripeData.totalIncome}
