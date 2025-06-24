@@ -20,6 +20,8 @@ import {
   ImageListItemBar,
   Badge,
   Alert,
+  Link,
+  Stack,
 } from "@mui/material";
 import {
   AutoAwesome as AutoAwesomeIcon,
@@ -29,6 +31,8 @@ import {
   AspectRatio as AspectRatioIcon,
   Palette as PaletteIcon,
   ThumbUp as ThumbUpIcon,
+  MonetizationOn as MonetizationOnIcon,
+  Article as ArticleIcon,
 } from "@mui/icons-material";
 import { format, subDays, isAfter, parseISO } from "date-fns";
 import { AxiosError } from "axios";
@@ -36,8 +40,9 @@ import { useNavigate } from "react-router-dom";
 import api from "../../api/baseApi";
 import { StripeData } from "./statistics.types";
 import { StripeIncomeCard } from "./components/StripeIncomeCard";
+import { useAuth } from "../../context/AuthContext";
 
-/* -------------------- 1. Theme -------------------- */
+/* ---------- Theme ---------- */
 const theme = createTheme({
   palette: {
     mode: "light",
@@ -49,14 +54,15 @@ const theme = createTheme({
   typography: { fontFamily: "Inter, sans-serif" },
 });
 
-/* -------------------- 2. Type Definitions -------------------- */
-
+/* ---------- Types ---------- */
 type StatisticsData = {
   posts_by_ai?: { count: number }[];
   total_ai_images?: { count: number }[];
-  token_usage?: { tokens: number }[];
+  token_usage?: { count: number }[]; // changed from { tokens: number }[] to { count: number }[]
   styles?: { key: string; count: number }[];
   aspectRatios?: { key: string; count: number }[];
+  total_blogs?: { count: number }[];
+  recent_3_reports?: { id: string; title: string; created_at: string }[];
   top_posts_by_ai?: {
     id: string;
     title: string;
@@ -64,14 +70,9 @@ type StatisticsData = {
     created_at: string;
     like_count: number;
   }[];
-  trending_prompts?: string[];
 };
 
-/* -------------------- 3. Reusable Components -------------------- */
-
-/**
- * SummaryTile – small stat card that can optionally navigate to a route when clicked.
- */
+/* ---------- Re-usable tile ---------- */
 const SummaryTile = ({
   icon,
   label,
@@ -80,17 +81,13 @@ const SummaryTile = ({
 }: {
   icon: React.ReactNode;
   label: string;
-  value: number;
+  value: number | string;
   to?: string;
 }) => {
   const navigate = useNavigate();
-  const handleClick = () => {
-    if (to) navigate(to);
-  };
-
   return (
     <Card
-      onClick={handleClick}
+      onClick={to ? () => navigate(to) : undefined}
       sx={{
         p: 3,
         textAlign: "center",
@@ -103,7 +100,7 @@ const SummaryTile = ({
         {icon}
       </Avatar>
       <Typography variant="h5" fontWeight={700}>
-        {value.toLocaleString()}
+        {typeof value === "number" ? value.toLocaleString() : value}
       </Typography>
       <Typography variant="caption" color="text.secondary">
         {label}
@@ -112,10 +109,9 @@ const SummaryTile = ({
   );
 };
 
-/* -------------------- 4. Main Dashboard Page -------------------- */
-
+/* ---------- Main component ---------- */
 export default function StatisticDashboardPage() {
-  /* ----- State ----- */
+  /* --- State --- */
   const [statisticsData, setStatisticsData] = useState<StatisticsData | null>(
     null,
   );
@@ -123,54 +119,59 @@ export default function StatisticDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stripeData, setStripeData] = useState<StripeData | null>(null);
+  const { user } = useAuth();
+  /* --- Admin name (replace with your auth logic) --- */
+  const adminName = "Admin"; // e.g. authContext.user?.fullName
 
   const stripeDashboardUrl =
     import.meta.env.VITE_STRIPE_DASHBOARD_URL ||
     "https://dashboard.stripe.com/test/dashboard";
 
-  /* ----- Data Fetching ----- */
+  /* --- Fetch --- */
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
       setError(null);
+      const daysQuery = statsFilter === "last7" ? "?days=7" : "";
       try {
         const [statsRes, stripeRes] = await Promise.all([
-          api.get("/statistics"),
-          api.get("/api/stripe/income-summary"),
+          api.get(`/statistics${daysQuery}`),
+          api.get(`/api/stripe/income-summary${daysQuery}`),
         ]);
-
         setStatisticsData(statsRes.data);
         setStripeData(stripeRes.data);
       } catch (err) {
         const axiosError = err as AxiosError;
-        const errorMessage =
+        setError(
           (axiosError.response?.data as any)?.message ||
-          axiosError.message ||
-          "An error occurred while fetching dashboard data.";
-        setError(errorMessage);
+            axiosError.message ||
+            "Error fetching dashboard data.",
+        );
       } finally {
         setLoading(false);
       }
     };
     fetchAllData();
-  }, []);
+  }, [statsFilter]);
 
-  /* ----- Data Processing ----- */
+  /* --- Derived --- */
   const processedStats = useMemo(() => {
     if (!statisticsData) return {} as any;
     return {
-      postsCount: statisticsData.posts_by_ai?.[0]?.count || 0,
-      imagesCount: statisticsData.total_ai_images?.[0]?.count || 0,
-      tokensCount: statisticsData.token_usage?.[0]?.tokens || 0,
+      postsCount: statisticsData.posts_by_ai?.[0]?.count ?? 0,
+      blogsCount: statisticsData.total_blogs?.[0]?.count ?? 0,
+      imagesCount: statisticsData.total_ai_images?.[0]?.count ?? 0,
+      tokensCount: statisticsData.token_usage?.[0]?.count ?? 0,
       styles:
-        statisticsData.styles?.map((d) => ({ name: d.key, count: d.count })) ||
+        statisticsData.styles?.map((d) => ({ name: d.key, count: d.count })) ??
         [],
       ratios:
         statisticsData.aspectRatios?.map((d) => ({
           name: d.key,
           count: d.count,
-        })) || [],
-      topPosts: (statisticsData.top_posts_by_ai || []).map((p) => ({
+        })) ?? [],
+      recentReports: statisticsData.recent_3_reports ?? [],
+      topPosts: (statisticsData.top_posts_by_ai ?? []).map((p) => ({
         ...p,
         originalDate: parseISO(p.created_at),
       })),
@@ -178,18 +179,10 @@ export default function StatisticDashboardPage() {
   }, [statisticsData]);
 
   const topPostsFiltered = useMemo(() => {
-    if (!processedStats.topPosts) return [];
-    const data = processedStats.topPosts;
-
+    const data = processedStats.topPosts ?? [];
     if (statsFilter === "all") {
-      return data
-        .sort(
-          (a: { like_count: number }, b: { like_count: number }) =>
-            b.like_count - a.like_count,
-        )
-        .slice(0, 5);
+      return [...data].sort((a, b) => b.like_count - a.like_count).slice(0, 5);
     }
-
     const sevenDaysAgo = subDays(new Date(), 7);
     return data
       .filter((p: { originalDate: string | number | Date }) =>
@@ -202,7 +195,7 @@ export default function StatisticDashboardPage() {
       .slice(0, 5);
   }, [processedStats.topPosts, statsFilter]);
 
-  /* ----- Render States ----- */
+  /* --- Loading / error --- */
   if (loading) {
     return (
       <Box
@@ -217,7 +210,6 @@ export default function StatisticDashboardPage() {
       </Box>
     );
   }
-
   if (error) {
     return (
       <Box sx={{ p: 4 }}>
@@ -226,19 +218,19 @@ export default function StatisticDashboardPage() {
     );
   }
 
-  /* ----- UI ----- */
+  /* ---------- UI ---------- */
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 6 }}>
         <Container maxWidth="xl">
-          {/* Header */}
+          {/* Header & filter */}
           <Box
             sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              mb: 3,
+              mb: 1,
             }}
           >
             <Typography variant="h4" fontWeight={700}>
@@ -250,27 +242,39 @@ export default function StatisticDashboardPage() {
               exclusive
               onChange={(_, v) => v && setStatsFilter(v)}
             >
-              <ToggleButton value="all">All‑time</ToggleButton>
+              <ToggleButton value="all">All-time</ToggleButton>
               <ToggleButton value="last7">Last 7 Days</ToggleButton>
             </ToggleButtonGroup>
           </Box>
 
-          {/* Summary & Top Content */}
+          {/* Greeting */}
+          <Typography variant="h6" mb={3}>
+            Welcome back, {user?.username}
+          </Typography>
+
+          {/* Summary tiles */}
           <Grid container spacing={3} mb={4}>
-            {/* Summary Tiles */}
             <Grid size={{ xs: 6, sm: 4, md: 2 }}>
               <SummaryTile
                 icon={<AutoAwesomeIcon />}
                 label="AI Posts"
-                value={processedStats.postsCount ?? 0}
+                value={processedStats.postsCount}
                 to="/posts"
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+              <SummaryTile
+                icon={<ArticleIcon />}
+                label="Blogs"
+                value={processedStats.blogsCount}
+                to="/blogs"
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 4, md: 2 }}>
               <SummaryTile
                 icon={<AddPhotoAlternateIcon />}
                 label="AI Images"
-                value={processedStats.imagesCount ?? 0}
+                value={processedStats.imagesCount}
                 to="/posts"
               />
             </Grid>
@@ -278,181 +282,206 @@ export default function StatisticDashboardPage() {
               <SummaryTile
                 icon={<TimelineIcon />}
                 label="Tokens Used"
-                value={processedStats.tokensCount ?? 0}
+                value={processedStats.tokensCount}
                 to="/ai"
               />
             </Grid>
-            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-              <SummaryTile
-                icon={<FavoriteIcon />}
-                label="Total Likes"
-                value={
-                  processedStats.topPosts?.reduce(
-                    (s: any, p: { like_count: any }) => s + p.like_count,
-                    0,
-                  ) || 0
-                }
-                to="/posts"
+            {/* Stripe income card */}
+            {stripeData && (
+              <StripeIncomeCard
+                totalIncome={stripeData.totalIncome}
+                period={stripeData.period}
+                currency={stripeData.currency}
+                dailyData={stripeData.dailyBreakdown}
+                stripeDashboardUrl={stripeDashboardUrl}
               />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-              <SummaryTile
-                icon={<PaletteIcon />}
-                label="Styles"
-                value={(processedStats.styles ?? []).length}
-                to="/categories"
-              />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-              <SummaryTile
-                icon={<AspectRatioIcon />}
-                label="Ratios"
-                value={(processedStats.ratios ?? []).length}
-                to="/posts"
-              />
-            </Grid>
+            )}
+          </Grid>
 
-            {/* Top 5 AI Posts */}
-            <Grid size={{ xs: 12, lg: 8 }}>
-              <Card>
+          {/* Reports & Top posts row */}
+          <Grid container spacing={3}>
+            {/* Recent reports */}
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Card sx={{ height: "100%" }}>
                 <CardHeader
                   title={
-                    <Typography variant="subtitle1" fontWeight={600}>
-                      Top 5 AI Posts (
-                      {statsFilter === "last7" ? "7 Days" : "All‑time"})
+                    <Typography fontWeight={600}>
+                      Recent reports to action
                     </Typography>
                   }
                 />
                 <CardContent>
+                  {processedStats.recentReports.length ? (
+                    <Stack spacing={2}>
+                      {processedStats.recentReports.map((r: any) => (
+                        <Link
+                          key={r.id}
+                          underline="none"
+                          href={`/reports/`}
+                          variant="body2"
+                          sx={{
+                            p: 2,
+                            border: "1px solid",
+                            borderColor: "divider",
+                            borderRadius: 2,
+                            display: "block",
+                            "&:hover": { bgcolor: "action.hover" },
+                          }}
+                        >
+                          {r.title}
+                        </Link>
+                      ))}
+                    </Stack>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No recent reports found.
+                    </Typography>
+                  )}
+
+                  <Box mt={2} textAlign="right">
+                    <Link href="/reports" underline="hover">
+                      See all
+                    </Link>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Top posts */}
+            <Grid size={{ xs: 12, md: 8 }}>
+              <Card sx={{ mb: 3 }}>
+                <CardHeader
+                  title={
+                    <Typography variant="subtitle1">Top 5 AI Posts</Typography>
+                  }
+                />
+                <CardContent>
                   {topPostsFiltered.length > 0 ? (
-                    <ImageList cols={6} gap={12} sx={{ height: 200 }}>
-                      {topPostsFiltered.map(
-                        (post: {
-                          id: React.Key | null | undefined;
-                          thumbnail_url: string | undefined;
-                          title:
-                            | string
-                            | number
-                            | bigint
-                            | boolean
-                            | React.ReactElement<
-                                unknown,
-                                string | React.JSXElementConstructor<any>
-                              >
-                            | Iterable<React.ReactNode>
-                            | Promise<
-                                | string
-                                | number
-                                | bigint
-                                | boolean
-                                | React.ReactPortal
-                                | React.ReactElement<
-                                    unknown,
-                                    string | React.JSXElementConstructor<any>
-                                  >
-                                | Iterable<React.ReactNode>
-                                | null
-                                | undefined
-                              >
-                            | null
-                            | undefined;
-                          created_at: string;
-                          like_count:
-                            | string
-                            | number
-                            | bigint
-                            | boolean
-                            | React.ReactElement<
-                                unknown,
-                                string | React.JSXElementConstructor<any>
-                              >
-                            | Iterable<React.ReactNode>
-                            | React.ReactPortal
-                            | Promise<
-                                | string
-                                | number
-                                | bigint
-                                | boolean
-                                | React.ReactPortal
-                                | React.ReactElement<
-                                    unknown,
-                                    string | React.JSXElementConstructor<any>
-                                  >
-                                | Iterable<React.ReactNode>
-                                | null
-                                | undefined
-                              >
-                            | null
-                            | undefined;
-                        }) => (
-                          <ImageListItem
-                            key={post.id}
-                            sx={{
-                              borderRadius: 2,
-                              overflow: "hidden",
-                              position: "relative",
+                    <ImageList
+                      cols={3}
+                      gap={20}
+                      sx={{
+                        m: 0,
+                        height: 350, // Increased height
+                        "& .MuiImageListItem-root": {
+                          position: "relative",
+                          borderRadius: 2,
+                          overflow: "hidden",
+                        },
+                        "& .MuiImageListItemBar-root": {
+                          position: "absolute",
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          background:
+                            "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 50%, rgba(0,0,0,0.3) 80%, rgba(0,0,0,0) 100%)",
+                          paddingRight: "65px !important", // More space for like button
+                          paddingLeft: "12px !important",
+                          paddingTop: "12px !important",
+                          paddingBottom: "12px !important",
+                          minHeight: "80px", // More height for text
+                          "& .MuiImageListItemBar-actionIcon": {
+                            position: "absolute",
+                            top: 8,
+                            right: 12,
+                          },
+                          "& .MuiImageListItemBar-titleWrap": {
+                            paddingRight: "65px !important",
+                            paddingLeft: "0 !important",
+                            paddingTop: "4px !important",
+                          },
+                        },
+                      }}
+                    >
+                      {topPostsFiltered.map((post: any) => (
+                        <ImageListItem
+                          key={post.id}
+                          sx={{
+                            position: "relative",
+                          }}
+                        >
+                          <img
+                            src={post.thumbnail_url}
+                            alt={post.title}
+                            loading="lazy"
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
                             }}
-                          >
-                            <img
-                              src={post.thumbnail_url}
-                              alt={
-                                typeof post.title === "string"
-                                  ? post.title
-                                  : (post.title?.toString?.() ?? "")
-                              }
-                              loading="lazy"
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                              }}
-                            />
-                            <ImageListItemBar
-                              title={
-                                <Tooltip title={post.title}>
-                                  <Typography
-                                    variant="caption"
-                                    noWrap
-                                    sx={{ color: "#fff" }}
-                                  >
-                                    {post.title}
-                                  </Typography>
-                                </Tooltip>
-                              }
-                              subtitle={
+                          />
+                          <ImageListItemBar
+                            title={
+                              <Tooltip title={post.title}>
                                 <Typography
                                   variant="caption"
-                                  sx={{ color: "#fff" }}
+                                  sx={{
+                                    color: "#fff",
+                                    fontSize: "0.8rem", // Slightly larger text
+                                    lineHeight: 1.4,
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 3, // Allow up to 3 lines
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    maxHeight: "3.6em", // Space for 3 lines
+                                    wordBreak: "break-word",
+                                    fontWeight: 500,
+                                  }}
                                 >
-                                  {format(parseISO(post.created_at), "PP")}
+                                  {post.title}
                                 </Typography>
-                              }
-                              actionIcon={
+                              </Tooltip>
+                            }
+                            subtitle={
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: "#fff",
+                                  fontSize: "0.7rem",
+                                  opacity: 0.9,
+                                  marginTop: "2px",
+                                }}
+                              >
+                                {format(parseISO(post.created_at), "MMM d")}
+                              </Typography>
+                            }
+                            actionIcon={
+                              <Box sx={{ position: "relative" }}>
                                 <Badge
                                   badgeContent={post.like_count}
                                   showZero
                                   sx={{
-                                    mr: 1,
+                                    mr: 0.5,
                                     "& .MuiBadge-badge": {
-                                      fontSize: "0.8rem",
-                                      minWidth: 24,
-                                      height: 24,
+                                      fontSize: "0.7rem", // Smaller badge text
+                                      minWidth: "20px",
+                                      height: "20px",
                                       backgroundColor: "#ff1744",
                                       color: "#fff",
                                       fontWeight: "bold",
-                                      border: "2px solid #fff",
+                                      border: "1.5px solid #fff",
+                                      boxShadow: "0 1px 6px rgba(0,0,0,0.4)",
+                                      zIndex: 10,
+                                      transform:
+                                        "scale(1) translate(50%, -50%)",
                                     },
                                   }}
                                 >
                                   <ThumbUpIcon
-                                    sx={{ color: "#fff", fontSize: 24 }}
+                                    sx={{
+                                      color: "#fff",
+                                      fontSize: 18, // Smaller icon
+                                      filter:
+                                        "drop-shadow(1px 1px 3px rgba(0,0,0,0.8))",
+                                    }}
                                   />
                                 </Badge>
-                              }
-                            />
-                          </ImageListItem>
-                        ),
-                      )}
+                              </Box>
+                            }
+                          />
+                        </ImageListItem>
+                      ))}
                     </ImageList>
                   ) : (
                     <Box sx={{ textAlign: "center", py: 4 }}>
@@ -465,17 +494,6 @@ export default function StatisticDashboardPage() {
               </Card>
             </Grid>
           </Grid>
-
-          {/* Stripe Income */}
-          {stripeData && (
-            <StripeIncomeCard
-              totalIncome={stripeData.totalIncome}
-              period={stripeData.period}
-              currency={stripeData.currency}
-              dailyData={stripeData.dailyBreakdown}
-              stripeDashboardUrl={stripeDashboardUrl}
-            />
-          )}
         </Container>
       </Box>
     </ThemeProvider>
