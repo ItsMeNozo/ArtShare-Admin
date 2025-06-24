@@ -1,8 +1,8 @@
 export enum PaidAccessLevel {
-  FREE = "free",
-  ARTIST_PRO = "artist_pro",
-  STUDIO = "studio",
-  ENTERPRISE = "enterprise",
+  FREE = "FREE",
+  ARTIST_PRO = "ARTIST_PRO",
+  STUDIO = "STUDIO",
+  ENTERPRISE = "ENTERPRISE",
 }
 
 export const PLAN_DISPLAY_NAMES: Record<PaidAccessLevel, string> = {
