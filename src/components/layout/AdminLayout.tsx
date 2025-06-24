@@ -174,6 +174,13 @@ const AdminLayout: React.FC = () => {
       badge: undefined,
     },
     {
+      text: 'Blog Management',
+      icon: <ArticleIcon />,
+      path: '/blogs',
+      section: 'MANAGEMENT',
+      badge: undefined,
+    },
+    {
       text: 'Report Management',
       icon: <ReportIcon />,
       path: '/reports',
@@ -205,13 +212,6 @@ const AdminLayout: React.FC = () => {
       text: 'Analytics',
       icon: <ShowChartIcon />,
       path: '/statistics',
-      section: 'MANAGEMENT',
-      badge: undefined,
-    },
-    {
-      text: 'Blog Management',
-      icon: <ArticleIcon />,
-      path: '/blogs',
       section: 'MANAGEMENT',
       badge: undefined,
     },
