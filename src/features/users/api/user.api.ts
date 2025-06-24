@@ -1,8 +1,5 @@
 import axios, { AxiosError } from 'axios';
 import { User, UserFormData } from '../../../types/user';
-// TODO: Add back when backend supports status filtering
-// import { UserStatus } from "../../../constants/user";
-// import { UserRoleType } from "../../../constants/roles"; // TODO: Uncomment when backend supports role filtering
 import api from '../../../api/baseApi';
 
 export interface FetchUsersParams {
@@ -11,20 +8,19 @@ export interface FetchUsersParams {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   search?: string;
-  // status?: UserStatus; // TODO: Add when backend supports status filtering
-  // role?: UserRoleType; // TODO: Add when backend supports role filtering
+  filter?: string;
 }
 
 export interface PaginatedUsersApiResponse {
-  data: User[]; // Assuming your User type matches UserResponseDto structure
+  data: User[];
   total: number;
   page: number;
   limit: number;
 }
 
-const getApiErrorMessage = (error: AxiosError | any): string => {
+const getApiErrorMessage = (error: any): string => {
   if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<any>;
+    const axiosError = error;
 
     if (axiosError.response?.data?.message) {
       return Array.isArray(axiosError.response.data.message)
@@ -48,7 +44,6 @@ export const fetchUsers = async (
   params?: FetchUsersParams,
 ): Promise<PaginatedUsersApiResponse> => {
   try {
-    // Pass params to the GET request, Axios will serialize them as query string
     const response = await api.get<PaginatedUsersApiResponse>(
       '/admin/users/all',
       { params },
@@ -56,7 +51,7 @@ export const fetchUsers = async (
     return response.data;
   } catch (error) {
     console.error('API fetchUsers error:', error);
-    throw new Error(getApiErrorMessage(error)); // Rethrow with formatted message
+    throw new Error(getApiErrorMessage(error));
   }
 };
 
@@ -71,20 +66,10 @@ export const createUser = async (userData: UserFormData): Promise<User> => {
 
 export const updateUser = async (
   userId: string,
-  userData: Omit<UserFormData, 'id' | 'password'>,
+  userData: UserFormData,
 ): Promise<User> => {
-  const payload = {
-    username: userData.username,
-    email: userData.email,
-    fullName: userData.fullName,
-    profilePictureUrl: userData.profilePictureUrl,
-    bio: userData.bio,
-    birthday: userData.birthday,
-    roles: userData.roles,
-    status: userData.status,
-  };
   try {
-    const response = await api.patch<User>(`/admin/users/${userId}`, payload);
+    const response = await api.patch<User>(`/admin/users/${userId}`, userData);
     return response.data;
   } catch (error) {
     throw new Error(getApiErrorMessage(error));

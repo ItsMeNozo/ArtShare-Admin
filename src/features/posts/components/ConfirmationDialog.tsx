@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Dialog,
   DialogActions,
@@ -7,7 +7,7 @@ import {
   DialogTitle,
   Button,
   CircularProgress,
-} from "@mui/material";
+} from '@mui/material';
 
 export interface ConfirmationDialogProps {
   open: boolean;
@@ -19,13 +19,13 @@ export interface ConfirmationDialogProps {
   confirmText?: string;
   cancelText?: string;
   confirmButtonColor?:
-    | "inherit"
-    | "primary"
-    | "secondary"
-    | "success"
-    | "error"
-    | "info"
-    | "warning";
+    | 'inherit'
+    | 'primary'
+    | 'secondary'
+    | 'success'
+    | 'error'
+    | 'info'
+    | 'warning';
 }
 
 const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
@@ -35,16 +35,16 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   title,
   message,
   isActionLoading = false,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
-  confirmButtonColor = "error",
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
+  confirmButtonColor = 'error',
 }) => {
   return (
     <Dialog
       open={open}
       onClose={(_, reason) => {
-        if (reason === "backdropClick" && isActionLoading) return;
-        if (reason === "escapeKeyDown" && isActionLoading) return;
+        if (reason === 'backdropClick' && isActionLoading) return;
+        if (reason === 'escapeKeyDown' && isActionLoading) return;
         onClose();
       }}
       aria-labelledby="confirmation-dialog-title"
@@ -57,7 +57,6 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         </DialogContentText>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        {/* Added some padding to actions */}
         <Button
           onClick={onClose}
           color="inherit"
@@ -78,7 +77,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
             ) : null
           }
         >
-          {isActionLoading ? "Processing..." : confirmText}
+          {isActionLoading ? 'Processing...' : confirmText}
         </Button>
       </DialogActions>
     </Dialog>
