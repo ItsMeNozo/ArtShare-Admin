@@ -209,12 +209,7 @@ export const CategoryEditViewDialog: React.FC<CategoryEditViewDialogProps> = ({
         </DialogTitle>
 
         <DialogContent sx={{ p: 0 }}>
-          <CategoryForm
-            formik={formik}
-            isEditing={isEditing}
-            isCreatingNewCategory={isCreatingNewCategory}
-            initialCategory={initialCategory}
-          />
+          <CategoryForm formik={formik} isEditing={isEditing} />
         </DialogContent>
 
         {isCreatingNewCategory && (
