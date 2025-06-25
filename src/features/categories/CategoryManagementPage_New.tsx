@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { Box, Paper } from "@mui/material";
+import { Box, Typography, Paper } from "@mui/material";
 import {
   CategoryDataProvider,
   useCategoryData,
@@ -83,6 +83,10 @@ const CategoryManagementView: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Category Management
+      </Typography>
+
       <Paper sx={{ p: 3 }}>
         <CategoryToolbar />
         <CategoryTable />
