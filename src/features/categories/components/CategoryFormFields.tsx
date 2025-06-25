@@ -2,7 +2,6 @@ import React from "react";
 import {
   TextField,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   Typography,
@@ -169,7 +168,7 @@ export const CategoryTypeField: React.FC<FormFieldProps> = ({
           display: "block",
           color: "text.secondary",
           fontWeight: 500,
-          mb: 0.5,
+          mb: 1.5,
         }}
       >
         Category Type <span style={{ color: "red" }}>*</span>
@@ -180,13 +179,22 @@ export const CategoryTypeField: React.FC<FormFieldProps> = ({
         disabled={!isEditing}
         size="small"
       >
-        <InputLabel>Select category type</InputLabel>
         <Select
           name="type"
           value={formik.values.type}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          label="Select category type"
+          displayEmpty
+          renderValue={(selected) => {
+            if (!selected) {
+              return (
+                <Typography variant="body2" color="text.disabled">
+                  Select category type
+                </Typography>
+              );
+            }
+            return selected;
+          }}
         >
           {Object.values(CategoryTypeValues).map((type) => (
             <MenuItem key={type} value={type}>
