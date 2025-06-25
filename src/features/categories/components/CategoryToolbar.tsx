@@ -117,15 +117,10 @@ export const CategoryToolbar: React.FC = () => {
           mb: 2,
         }}
       >
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center", flex: 1 }}>
-          <TextField
-            label="Search categories"
-            variant="outlined"
-            size="small"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{ minWidth: 200 }}
-          />
+        <Typography variant="h5" component="h1" fontWeight="bold">
+          Category Management
+        </Typography>
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center", ml: "auto" }}>
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Type</InputLabel>
             <Select
@@ -141,9 +136,14 @@ export const CategoryToolbar: React.FC = () => {
               ))}
             </Select>
           </FormControl>
-        </Box>
-
-        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+          <TextField
+            label="Search categories"
+            variant="outlined"
+            size="small"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{ minWidth: 200 }}
+          />
           <Button
             variant="contained"
             startIcon={<AddIcon />}
