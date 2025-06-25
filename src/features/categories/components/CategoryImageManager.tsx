@@ -33,35 +33,52 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageAdd = (event: ChangeEvent<HTMLInputElement>) => {
-    if (
-      event.target.files &&
-      formik.values.example_images.length < MAX_IMAGES
-    ) {
-      const file = event.target.files[0];
-      if (file) {
+    if (event.target.files && event.target.files.length > 0) {
+      const files = Array.from(event.target.files);
+      const currentImages = formik.values.example_images;
+      const availableSlots = MAX_IMAGES - currentImages.length;
+
+      if (files.length > availableSlots) {
+        formik.setFieldError(
+          "example_images",
+          `You can only add ${availableSlots} more image(s). Maximum ${MAX_IMAGES} images allowed.`,
+        );
+        return;
+      }
+
+      const newImageUrls: string[] = [];
+      let hasError = false;
+
+      for (const file of files) {
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
           formik.setFieldError(
             "example_images",
-            "Image size must be less than 5MB",
+            `Image "${file.name}" is too large. Max size is 5MB.`,
           );
-          return;
+          hasError = true;
+          break;
         }
 
         // Validate file type
         if (!file.type.startsWith("image/")) {
           formik.setFieldError(
             "example_images",
-            "Please select a valid image file",
+            `"${file.name}" is not a valid image file.`,
           );
-          return;
+          hasError = true;
+          break;
         }
 
         // Create a temporary URL for the image
         const newImageUrl = URL.createObjectURL(file);
+        newImageUrls.push(newImageUrl);
+      }
+
+      if (!hasError) {
         formik.setFieldValue("example_images", [
-          ...formik.values.example_images,
-          newImageUrl,
+          ...currentImages,
+          ...newImageUrls,
         ]);
 
         // Clear any previous errors
@@ -99,14 +116,14 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
     e.preventDefault();
     e.stopPropagation();
 
-    if (!isEditing || formik.values.example_images.length >= MAX_IMAGES) return;
+    if (!isEditing) return;
 
     const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find((file) => file.type.startsWith("image/"));
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
 
-    if (imageFile) {
+    if (imageFiles.length > 0) {
       const event = {
-        target: { files: [imageFile] },
+        target: { files: imageFiles, value: "" },
       } as any;
       handleImageAdd(event);
     }
@@ -128,7 +145,7 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Add up to {MAX_IMAGES} example images to help users understand this
-          category.
+          category. You can select multiple images at once.
           <br />
           Supported formats: JPG, PNG, GIF. Max size: 5MB per image.
         </Typography>
@@ -158,7 +175,7 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
           >
             <UploadIcon sx={{ fontSize: 48, color: "text.secondary", mb: 1 }} />
             <Typography variant="h6" gutterBottom>
-              Drop an image here or click to browse
+              Drop images here or click to browse
             </Typography>
             <Button
               variant="outlined"
@@ -166,7 +183,7 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
               onClick={triggerImageUpload}
               sx={{ mt: 1 }}
             >
-              Choose Image
+              Choose Images
             </Button>
           </Paper>
         )}
@@ -175,6 +192,7 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
         <input
           type="file"
           accept="image/*"
+          multiple
           ref={fileInputRef}
           onChange={handleImageAdd}
           style={{ display: "none" }}
