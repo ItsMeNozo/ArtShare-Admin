@@ -8,9 +8,7 @@ import {
   Select,
   MenuItem,
   Typography,
-  IconButton,
   Menu,
-  Toolbar,
   Alert,
   Collapse,
   SelectChangeEvent,
@@ -74,7 +72,11 @@ export const CategoryToolbar: React.FC = () => {
       Type: category.type,
       Description: category.description || "",
       "Posts Count": category.posts_count || 0,
+      "Example Images": category.example_images?.length || 0,
       "Created Date": new Date(category.created_at).toLocaleDateString(),
+      "Updated Date": category.updated_at
+        ? new Date(category.updated_at).toLocaleDateString()
+        : "Never",
     }));
   }, [getDataForExport]);
 
@@ -86,14 +88,37 @@ export const CategoryToolbar: React.FC = () => {
       category.type,
       category.description || "",
       category.posts_count || 0,
+      category.example_images?.length || 0,
       new Date(category.created_at).toLocaleDateString(),
+      category.updated_at
+        ? new Date(category.updated_at).toLocaleDateString()
+        : "Never",
     ]);
 
     autoTable(doc, {
-      head: [["Name", "Type", "Description", "Posts", "Created Date"]],
+      head: [
+        [
+          "Name",
+          "Type",
+          "Description",
+          "Posts",
+          "Images",
+          "Created",
+          "Updated",
+        ],
+      ],
       body: pdfData,
+      columnStyles: {
+        0: { cellWidth: 30 }, // Name
+        1: { cellWidth: 20 }, // Type
+        2: { cellWidth: 40 }, // Description
+        3: { cellWidth: 15 }, // Posts
+        4: { cellWidth: 15 }, // Images
+        5: { cellWidth: 25 }, // Created
+        6: { cellWidth: 25 }, // Updated
+      },
     });
-    doc.save("categories.pdf");
+    doc.save(`categories-export-${new Date().toISOString().split("T")[0]}.pdf`);
     handleMoreMenuClose();
   }, [getDataForExport, handleMoreMenuClose]);
 
@@ -151,46 +176,69 @@ export const CategoryToolbar: React.FC = () => {
           >
             Add Category
           </Button>
-          <IconButton onClick={handleMoreMenuOpen}>
-            <MoreVertIcon />
-          </IconButton>
+          <Button
+            variant="outlined"
+            startIcon={<MoreVertIcon />}
+            onClick={handleMoreMenuOpen}
+            sx={{ textTransform: "none" }}
+          >
+            Export
+          </Button>
         </Box>
       </Box>
 
       {selectedIds.length > 0 && (
-        <Toolbar
+        <Box
           sx={{
-            pl: { sm: 2 },
-            pr: { xs: 1, sm: 1 },
+            mb: 2,
+            px: 2,
+            py: 1,
+            borderRadius: 2,
             bgcolor: (theme) =>
               theme.palette.mode === "dark"
-                ? "rgba(255, 255, 255, 0.12)"
-                : "rgba(0, 0, 0, 0.04)",
-            borderRadius: 1,
-            mb: 2,
+                ? theme.palette.grey[700]
+                : theme.palette.grey[200],
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 1,
           }}
         >
-          <Typography
-            sx={{ flex: "1 1 100%" }}
-            color="inherit"
-            variant="subtitle1"
-            component="div"
-          >
-            {selectedIds.length} selected
+          <Typography variant="subtitle1" fontWeight="medium">
+            {selectedIds.length} category(ies) selected
           </Typography>
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<DeleteIcon />}
-            onClick={handleOpenBulkDeleteDialog}
-            sx={{ mr: 1 }}
-          >
-            Delete Selected
-          </Button>
-          <Button variant="outlined" onClick={resetSelection}>
-            Clear Selection
-          </Button>
-        </Toolbar>
+
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={handleOpenBulkDeleteDialog}
+              size="small"
+              sx={{ textTransform: "none" }}
+            >
+              Delete Selected
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={resetSelection}
+              size="small"
+              sx={{ textTransform: "none" }}
+            >
+              Clear Selection
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<MoreVertIcon />}
+              onClick={handleMoreMenuOpen}
+              size="small"
+              sx={{ textTransform: "none" }}
+            >
+              Export
+            </Button>
+          </Box>
+        </Box>
       )}
 
       <Menu
@@ -200,17 +248,21 @@ export const CategoryToolbar: React.FC = () => {
       >
         <CSVLink
           data={csvFormattedData}
-          filename="categories.csv"
+          filename={`categories-export-${new Date().toISOString().split("T")[0]}.csv`}
           style={{ textDecoration: "none", color: "inherit" }}
         >
           <MenuItem onClick={handleMoreMenuClose}>
             <FileDownloadIcon sx={{ mr: 1 }} />
-            Export CSV
+            Export{" "}
+            {selectedIds.length > 0 ? `${selectedIds.length} Selected as ` : ""}
+            CSV
           </MenuItem>
         </CSVLink>
         <MenuItem onClick={handleExportPDF}>
           <PdfIcon sx={{ mr: 1 }} />
-          Export PDF
+          Export{" "}
+          {selectedIds.length > 0 ? `${selectedIds.length} Selected as ` : ""}
+          PDF
         </MenuItem>
       </Menu>
     </>
