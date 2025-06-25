@@ -95,7 +95,7 @@ export const CategoryToolbar: React.FC = () => {
     });
     doc.save("categories.pdf");
     handleMoreMenuClose();
-  }, [getDataForExport]);
+  }, [getDataForExport, handleMoreMenuClose]);
 
   return (
     <>
