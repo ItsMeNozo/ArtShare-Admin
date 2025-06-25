@@ -16,10 +16,7 @@ import {
 } from "@mui/material";
 import {
   Close as CloseIcon,
-  Edit as EditIcon,
   Save as SaveIcon,
-  Cancel as CancelIcon,
-  Visibility as ViewIcon,
   Add as AddIcon,
 } from "@mui/icons-material";
 import { Category } from "../../../types/category";
@@ -130,10 +127,7 @@ export const CategoryEditViewDialog: React.FC<CategoryEditViewDialogProps> = ({
 
     return (
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        {isEditing ? <EditIcon color="primary" /> : <ViewIcon color="action" />}
-        <Typography variant="h6">
-          {isEditing ? "Edit Category" : "View Category"}
-        </Typography>
+        <Typography variant="h6">Category Details</Typography>
         {initialCategory && (
           <Chip
             label={initialCategory.type}
@@ -144,61 +138,6 @@ export const CategoryEditViewDialog: React.FC<CategoryEditViewDialogProps> = ({
         )}
       </Box>
     );
-  };
-
-  const getActionButtons = () => {
-    const buttons = [];
-
-    if (!isCreatingNewCategory) {
-      buttons.push(
-        <Button
-          key="edit-toggle"
-          onClick={handleEditToggle}
-          color={isEditing ? "inherit" : "primary"}
-          disabled={formik.isSubmitting}
-          startIcon={isEditing ? <CancelIcon /> : <EditIcon />}
-        >
-          {isEditing ? "Cancel" : "Edit"}
-        </Button>,
-      );
-    }
-
-    buttons.push(
-      <Button
-        key="close"
-        onClick={handleClose}
-        disabled={formik.isSubmitting}
-        color="inherit"
-      >
-        Close
-      </Button>,
-    );
-
-    if (isEditing) {
-      buttons.push(
-        <Button
-          key="save"
-          variant="contained"
-          onClick={handleSave}
-          disabled={formik.isSubmitting || !formik.dirty}
-          startIcon={
-            formik.isSubmitting ? (
-              <CircularProgress size={16} color="inherit" />
-            ) : (
-              <SaveIcon />
-            )
-          }
-        >
-          {formik.isSubmitting
-            ? "Saving..."
-            : isCreatingNewCategory
-              ? "Create Category"
-              : "Save Changes"}
-        </Button>,
-      );
-    }
-
-    return buttons;
   };
 
   return (
@@ -221,15 +160,51 @@ export const CategoryEditViewDialog: React.FC<CategoryEditViewDialogProps> = ({
             display="flex"
             justifyContent="space-between"
             alignItems="center"
+            sx={{ gap: 2 }}
           >
             {getDialogTitle()}
-            <IconButton
-              onClick={handleClose}
-              disabled={formik.isSubmitting}
-              size="small"
-            >
-              <CloseIcon />
-            </IconButton>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              {!isCreatingNewCategory && (
+                <Button
+                  onClick={handleEditToggle}
+                  color={isEditing ? "inherit" : "primary"}
+                  disabled={formik.isSubmitting}
+                  size="small"
+                  variant={isEditing ? "outlined" : "contained"}
+                >
+                  {isEditing ? "Cancel" : "Edit"}
+                </Button>
+              )}
+              {isEditing && (
+                <Button
+                  variant="contained"
+                  onClick={handleSave}
+                  disabled={formik.isSubmitting || !formik.dirty}
+                  startIcon={
+                    formik.isSubmitting ? (
+                      <CircularProgress size={16} color="inherit" />
+                    ) : (
+                      <SaveIcon />
+                    )
+                  }
+                  size="small"
+                >
+                  {formik.isSubmitting
+                    ? "Saving..."
+                    : isCreatingNewCategory
+                      ? "Create"
+                      : "Save"}
+                </Button>
+              )}
+              <IconButton
+                onClick={handleClose}
+                disabled={formik.isSubmitting}
+                size="small"
+                sx={{ ml: 0.5 }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
           </Box>
         </DialogTitle>
 
@@ -242,9 +217,31 @@ export const CategoryEditViewDialog: React.FC<CategoryEditViewDialogProps> = ({
           />
         </DialogContent>
 
-        <DialogActions sx={{ p: 2, gap: 1 }}>
-          {getActionButtons()}
-        </DialogActions>
+        {isCreatingNewCategory && (
+          <DialogActions sx={{ p: 2, gap: 0.5 }}>
+            <Button
+              onClick={handleClose}
+              disabled={formik.isSubmitting}
+              color="inherit"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleSave}
+              disabled={formik.isSubmitting || !formik.dirty}
+              startIcon={
+                formik.isSubmitting ? (
+                  <CircularProgress size={16} color="inherit" />
+                ) : (
+                  <SaveIcon />
+                )
+              }
+            >
+              {formik.isSubmitting ? "Creating..." : "Create Category"}
+            </Button>
+          </DialogActions>
+        )}
       </Dialog>
 
       <Snackbar

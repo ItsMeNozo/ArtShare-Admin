@@ -140,7 +140,7 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
           <Paper
             variant="outlined"
             sx={{
-              p: 3,
+              p: 2,
               textAlign: "center",
               border: "2px dashed",
               borderColor: "grey.300",

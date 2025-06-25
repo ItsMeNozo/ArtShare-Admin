@@ -25,15 +25,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
   initialCategory = null,
 }) => {
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography
-        variant="h6"
-        gutterBottom
-        sx={{ borderBottom: 1, borderColor: "divider", pb: 1, mb: 3 }}
-      >
-        {isCreatingNewCategory ? "Create New Category" : "Category Details"}
-      </Typography>
-
+    <Box sx={{ p: 2 }}>
       <form onSubmit={formik.handleSubmit}>
         <Grid container spacing={3}>
           {/* Category Summary - Only show for existing categories */}
@@ -46,41 +38,41 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
             </Grid>
           )}
 
-          {/* Basic Information Section */}
-          <Grid size={{ xs: 12, lg: isCreatingNewCategory ? 8 : 8 }}>
-            <Paper
-              variant="outlined"
-              sx={{ p: 3, height: "fit-content", mb: 3 }}
-            >
-              <Typography
-                variant="h6"
-                gutterBottom
-                sx={{ color: "primary.main" }}
-              >
-                Basic Information
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-
-              <Grid container spacing={2}>
-                <CategoryNameField formik={formik} isEditing={isEditing} />
-                <CategoryDescriptionField
-                  formik={formik}
-                  isEditing={isEditing}
-                />
-                <CategoryTypeField formik={formik} isEditing={isEditing} />
-              </Grid>
-            </Paper>
-
+          {/* Category Information Section */}
+          <Grid size={{ xs: 12, lg: isCreatingNewCategory ? 12 : 8 }}>
             {/* Example Images Section */}
-            <Paper variant="outlined" sx={{ p: 3, height: "fit-content" }}>
+            <Paper variant="outlined" sx={{ p: 2, height: "fit-content" }}>
               <Typography
                 variant="h6"
                 gutterBottom
                 sx={{ color: "primary.main" }}
               >
-                Visual Examples
+                {isCreatingNewCategory
+                  ? "Category Information"
+                  : "Visual Examples"}
               </Typography>
               <Divider sx={{ mb: 3 }} />
+
+              {isCreatingNewCategory && (
+                <>
+                  <Grid container spacing={2} sx={{ mb: 3 }}>
+                    <CategoryNameField formik={formik} isEditing={isEditing} />
+                    <CategoryDescriptionField
+                      formik={formik}
+                      isEditing={isEditing}
+                    />
+                    <CategoryTypeField formik={formik} isEditing={isEditing} />
+                  </Grid>
+                  <Divider sx={{ mb: 3 }} />
+                  <Typography
+                    variant="subtitle1"
+                    gutterBottom
+                    sx={{ color: "primary.main" }}
+                  >
+                    Visual Examples
+                  </Typography>
+                </>
+              )}
 
               <CategoryImageManager formik={formik} isEditing={isEditing} />
             </Paper>

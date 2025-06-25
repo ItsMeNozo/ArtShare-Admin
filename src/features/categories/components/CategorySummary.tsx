@@ -1,17 +1,7 @@
 import React from "react";
-import {
-  Box,
-  Typography,
-  Chip,
-  Divider,
-  Grid,
-  Avatar,
-  Paper,
-  Badge,
-} from "@mui/material";
+import { Box, Typography, Divider, Grid, Paper } from "@mui/material";
 import {
   Category as CategoryIcon,
-  Image as ImageIcon,
   Palette as PaletteIcon,
   Brush as BrushIcon,
 } from "@mui/icons-material";
@@ -32,7 +22,7 @@ export const CategorySummary: React.FC<CategorySummaryProps> = ({
       <Paper
         variant="outlined"
         sx={{
-          p: 3,
+          p: 2,
           textAlign: "center",
           bgcolor: "grey.50",
           borderStyle: "dashed",
@@ -49,6 +39,17 @@ export const CategorySummary: React.FC<CategorySummaryProps> = ({
     );
   }
 
+  const getTypeDescription = (type: string): string => {
+    switch (type) {
+      case CategoryTypeValues.ATTRIBUTE:
+        return "Describes artistic styles, themes, or characteristics (e.g., Abstract, Realistic, Dark)";
+      case CategoryTypeValues.MEDIUM:
+        return "Describes the materials or tools used for creation (e.g., Digital Art, Oil Painting, Watercolor)";
+      default:
+        return "General category classification";
+    }
+  };
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case CategoryTypeValues.ATTRIBUTE:
@@ -60,52 +61,23 @@ export const CategorySummary: React.FC<CategorySummaryProps> = ({
     }
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case CategoryTypeValues.ATTRIBUTE:
-        return "primary";
-      case CategoryTypeValues.MEDIUM:
-        return "secondary";
-      default:
-        return "default";
-    }
-  };
-
   return (
-    <Paper variant="outlined" sx={{ p: 3, height: "fit-content" }}>
+    <Paper variant="outlined" sx={{ p: 2, height: "fit-content" }}>
       <Typography variant="h6" gutterBottom sx={{ color: "primary.main" }}>
-        Category Overview
+        Category Details
       </Typography>
       <Divider sx={{ mb: 3 }} />
 
-      <Box sx={{ textAlign: "center", mb: 3 }}>
-        <Avatar
-          sx={{
-            width: 80,
-            height: 80,
-            mx: "auto",
-            mb: 2,
-            bgcolor: `${getTypeColor(category.type)}.main`,
-            fontSize: "2rem",
-          }}
-        >
-          {getTypeIcon(category.type)}
-        </Avatar>
-
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
-          {category.name}
-        </Typography>
-
-        <Chip
-          label={category.type}
-          color={getTypeColor(category.type) as any}
-          variant="outlined"
-          icon={getTypeIcon(category.type)}
-          sx={{ mb: 2 }}
-        />
-      </Box>
-
       <Grid container spacing={2}>
+        <Grid size={{ xs: 12 }}>
+          <Typography variant="subtitle2" gutterBottom color="text.secondary">
+            NAME
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 2, fontWeight: 600 }}>
+            {category.name}
+          </Typography>
+        </Grid>
+
         <Grid size={{ xs: 12 }}>
           <Typography variant="subtitle2" gutterBottom color="text.secondary">
             DESCRIPTION
@@ -115,37 +87,28 @@ export const CategorySummary: React.FC<CategorySummaryProps> = ({
           </Typography>
         </Grid>
 
-        <Grid size={{ xs: 6 }}>
+        <Grid size={{ xs: 12 }}>
           <Typography variant="subtitle2" gutterBottom color="text.secondary">
             TYPE
           </Typography>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
             {getTypeIcon(category.type)}
-            <Typography variant="body2">{category.type}</Typography>
-          </Box>
-        </Grid>
-
-        <Grid size={{ xs: 6 }}>
-          <Typography variant="subtitle2" gutterBottom color="text.secondary">
-            EXAMPLES
-          </Typography>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Badge
-              badgeContent={category.example_images?.length || 0}
-              color="primary"
-              showZero
-            >
-              <ImageIcon />
-            </Badge>
-            <Typography variant="body2">
-              {category.example_images?.length || 0} images
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {category.type}
             </Typography>
           </Box>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ fontSize: "0.8rem" }}
+          >
+            {getTypeDescription(category.type)}
+          </Typography>
         </Grid>
 
         {category.id && (
           <Grid size={{ xs: 12 }}>
-            <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: 1.5 }} />
             <Typography variant="subtitle2" gutterBottom color="text.secondary">
               METADATA
             </Typography>

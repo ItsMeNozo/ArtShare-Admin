@@ -34,6 +34,10 @@ const categoryTypeTooltips = {
     "Medium: Refers to the art medium or material used. Helps classify artworks by their physical composition (e.g., 'Oil Painting', 'Sculpture', 'Digital Art').",
 };
 
+const getCategoryTypeColor = (type: string): "primary" | "secondary" => {
+  return type === CategoryTypeValues.ATTRIBUTE ? "primary" : "secondary";
+};
+
 export const CategoryTable: React.FC = () => {
   const theme = useTheme();
   const { filteredCategories, loading } = useCategoryData();
@@ -146,11 +150,7 @@ export const CategoryTable: React.FC = () => {
                       <Chip
                         label={category.type}
                         size="small"
-                        color={
-                          category.type === CategoryTypeValues.ATTRIBUTE
-                            ? "primary"
-                            : "secondary"
-                        }
+                        color={getCategoryTypeColor(category.type)}
                         variant="outlined"
                       />
                     </Tooltip>
@@ -181,7 +181,13 @@ export const CategoryTable: React.FC = () => {
                     </Typography>
                   </TableCell>
                   <TableCell align="center">
-                    <Box sx={{ display: "flex", gap: 0.5 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        gap: 0.5,
+                        justifyContent: "center",
+                      }}
+                    >
                       <Tooltip title="Edit">
                         <IconButton
                           size="small"

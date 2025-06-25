@@ -10,6 +10,7 @@ import {
   FormHelperText,
   Grid,
   Box,
+  Chip,
 } from "@mui/material";
 import { FormikProps } from "formik";
 import { CategoryFormData } from "../hooks/useCategoryForm";
@@ -25,6 +26,10 @@ const categoryTypeTooltips = {
     "Attribute: Describes characteristics or properties. Used for filtering or defining features (e.g., 'Color', 'Size', 'Style').",
   [CategoryTypeValues.MEDIUM]:
     "Medium: Refers to the art medium or material used. Helps classify artworks by their physical composition (e.g., 'Oil Painting', 'Sculpture', 'Digital Art').",
+};
+
+const getCategoryTypeColor = (type: string): "primary" | "secondary" => {
+  return type === CategoryTypeValues.ATTRIBUTE ? "primary" : "secondary";
 };
 
 const FormTextField: React.FC<{
@@ -141,14 +146,13 @@ export const CategoryTypeField: React.FC<FormFieldProps> = ({
         label="Category Type"
         value={
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography variant="body1">{formik.values.type}</Typography>
             <Tooltip title={categoryTypeTooltips[formik.values.type]} arrow>
-              <Typography
-                variant="body2"
-                sx={{ color: "text.secondary", cursor: "help" }}
-              >
-                ⓘ
-              </Typography>
+              <Chip
+                label={formik.values.type}
+                color={getCategoryTypeColor(formik.values.type)}
+                variant="outlined"
+                size="small"
+              />
             </Tooltip>
           </Box>
         }
