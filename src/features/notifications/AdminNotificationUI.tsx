@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Badge,
   IconButton,
@@ -16,7 +16,7 @@ import {
   CircularProgress,
   Alert,
   useTheme,
-} from "@mui/material";
+} from '@mui/material';
 import {
   Notifications as NotificationsIcon,
   CheckCircle as CheckCircleIcon,
@@ -24,11 +24,11 @@ import {
   Info as InfoIcon,
   Report as ReportIcon,
   MarkEmailRead as MarkEmailReadIcon,
-} from "@mui/icons-material";
-import { alpha } from "@mui/material/styles";
-import { useAuth } from "../../context/AuthContext"; // Adjust path as needed
-import { useNotifications } from "./useNotifications";
-import { NavigateFunction, useNavigate } from "react-router-dom";
+} from '@mui/icons-material';
+import { alpha } from '@mui/material/styles';
+import { useAuth } from '../../context/AuthContext'; // Adjust path as needed
+import { useNotifications } from './useNotifications';
+import { NavigateFunction, useNavigate } from 'react-router-dom';
 
 // Types matching your existing notification system
 export interface NotificationPayload {
@@ -56,10 +56,10 @@ export interface Notification<T = NotificationPayload> {
 const formatNotificationMessage = (
   notif: Notification<NotificationPayload>,
 ) => {
-  const message = notif?.payload?.message || "";
+  const message = notif?.payload?.message || '';
 
   // Handle report resolved notifications
-  if (message.includes("report") && message.includes("resolved")) {
+  if (message.includes('report') && message.includes('resolved')) {
     const reportPattern =
       /Your report regarding\s*[""']([^""']+)[""']\s*(has been\s*.+)$/i;
     const reportMatch = message.match(reportPattern);
@@ -74,29 +74,29 @@ const formatNotificationMessage = (
   const actionPatterns = [
     {
       regex: /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+liked your (?:post|artwork))/,
-      action: "liked your post",
+      action: 'liked your post',
     },
     {
       regex:
         /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+commented on your (?:post|artwork))/,
-      action: "commented on your post",
+      action: 'commented on your post',
     },
     {
       regex:
         /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+(?:followed you|started following you))/,
-      action: "followed you",
+      action: 'followed you',
     },
     {
       regex:
         /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+published (?:new|a new) (?:post|artwork))/,
-      action: "published new content",
+      action: 'published new content',
     },
   ];
 
   for (const pattern of actionPatterns) {
     const match = message.match(pattern.regex);
     if (match && match[1]) {
-      const userName = match[1].trim().replace(/^"|"$/g, "");
+      const userName = match[1].trim().replace(/^"|"$/g, '');
       return `${userName} ${pattern.action}`;
     }
   }
@@ -107,19 +107,19 @@ const formatNotificationMessage = (
 // Helper function to get notification icon
 const getNotificationIcon = (notificationType: string) => {
   switch (notificationType.toLowerCase()) {
-    case "report_resolved":
-    case "report-resolved":
+    case 'report_resolved':
+    case 'report-resolved':
       return (
-        <CheckCircleIcon fontSize="small" sx={{ color: "success.main" }} />
+        <CheckCircleIcon fontSize="small" sx={{ color: 'success.main' }} />
       );
-    case "warning":
-      return <WarningIcon fontSize="small" sx={{ color: "warning.main" }} />;
-    case "artwork_liked":
-    case "artwork_commented":
-    case "user_followed":
-      return <InfoIcon fontSize="small" sx={{ color: "info.main" }} />;
+    case 'warning':
+      return <WarningIcon fontSize="small" sx={{ color: 'warning.main' }} />;
+    case 'artwork_liked':
+    case 'artwork_commented':
+    case 'user_followed':
+      return <InfoIcon fontSize="small" sx={{ color: 'info.main' }} />;
     default:
-      return <ReportIcon fontSize="small" sx={{ color: "primary.main" }} />;
+      return <ReportIcon fontSize="small" sx={{ color: 'primary.main' }} />;
   }
 };
 
@@ -129,7 +129,7 @@ const formatTimeAgo = (dateString: string): string => {
   const date = new Date(dateString);
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  if (diffInSeconds < 60) return "Just now";
+  if (diffInSeconds < 60) return 'Just now';
   if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
   if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
   if (diffInSeconds < 604800)
@@ -163,7 +163,7 @@ const AdminNotificationUI: React.FC<AdminNotificationUIProps> = ({
     markAsRead,
     markAllAsRead,
     refetch,
-  } = useNotifications(user?.id || "");
+  } = useNotifications(user?.id || '');
 
   const unreadCount = notifications.filter(
     (n: { isRead: any }) => !n.isRead,
@@ -187,7 +187,7 @@ const AdminNotificationUI: React.FC<AdminNotificationUIProps> = ({
       try {
         await markAsRead(notification.id);
       } catch (error) {
-        console.error("Failed to mark notification as read:", error);
+        console.error('Failed to mark notification as read:', error);
       } finally {
         setSelectedNotificationId(null);
       }
@@ -200,7 +200,7 @@ const AdminNotificationUI: React.FC<AdminNotificationUIProps> = ({
     notification: Notification<NotificationPayload>,
     navigate: NavigateFunction,
   ) => {
-    if (notification.type === "report_created") {
+    if (notification.type === 'report_created') {
       navigate(`/reports`, {
         state: {
           report_id: notification.payload.report.id,
@@ -213,7 +213,7 @@ const AdminNotificationUI: React.FC<AdminNotificationUIProps> = ({
     try {
       await markAllAsRead();
     } catch (error) {
-      console.error("Failed to mark all notifications as read:", error);
+      console.error('Failed to mark all notifications as read:', error);
     }
   };
 
@@ -228,8 +228,8 @@ const AdminNotificationUI: React.FC<AdminNotificationUIProps> = ({
           color="inherit"
           onClick={handleClick}
           sx={{
-            position: "relative",
-            "&:hover": {
+            position: 'relative',
+            '&:hover': {
               backgroundColor: alpha(theme.palette.common.white, 0.1),
             },
           }}
@@ -239,10 +239,10 @@ const AdminNotificationUI: React.FC<AdminNotificationUIProps> = ({
             color="error"
             max={99}
             sx={{
-              "& .MuiBadge-badge": {
-                fontSize: "0.75rem",
-                minWidth: "18px",
-                height: "18px",
+              '& .MuiBadge-badge': {
+                fontSize: '0.75rem',
+                minWidth: '18px',
+                height: '18px',
               },
             }}
           >
@@ -256,24 +256,24 @@ const AdminNotificationUI: React.FC<AdminNotificationUIProps> = ({
         open={isOpen}
         onClose={handleClose}
         anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
+          vertical: 'bottom',
+          horizontal: 'right',
         }}
         transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
+          vertical: 'top',
+          horizontal: 'right',
         }}
       >
         {/* Header */}
-        <Box sx={{ px: 2, py: 1.5, borderBottom: 1, borderColor: "divider" }}>
+        <Box sx={{ px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
           <Box
             sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <NotificationsIcon color="primary" fontSize="small" />
               <Typography variant="subtitle1" fontWeight={600}>
                 Notifications
@@ -283,11 +283,11 @@ const AdminNotificationUI: React.FC<AdminNotificationUIProps> = ({
                   label={unreadCount}
                   size="small"
                   color="primary"
-                  sx={{ height: 20, fontSize: "0.75rem" }}
+                  sx={{ height: 20, fontSize: '0.75rem' }}
                 />
               )}
             </Box>
-            <Box sx={{ display: "flex", gap: 0.5 }}>
+            <Box sx={{ display: 'flex', gap: 0.5 }}>
               <Tooltip title="Refresh">
                 <IconButton
                   size="small"
@@ -330,19 +330,19 @@ const AdminNotificationUI: React.FC<AdminNotificationUIProps> = ({
 
         {/* Loading State */}
         {isLoading && notifications.length === 0 && (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
             <CircularProgress size={24} />
           </Box>
         )}
 
         {/* Notifications List */}
-        <Box sx={{ maxHeight, overflow: "auto" }}>
+        <Box sx={{ maxHeight, overflow: 'auto' }}>
           {notifications.length === 0 && !isLoading ? (
-            <Box sx={{ textAlign: "center", py: 4, px: 2 }}>
+            <Box sx={{ textAlign: 'center', py: 4, px: 2 }}>
               <NotificationsIcon
                 sx={{
                   fontSize: 48,
-                  color: "text.disabled",
+                  color: 'text.disabled',
                   mb: 1,
                 }}
               />
@@ -364,18 +364,16 @@ const AdminNotificationUI: React.FC<AdminNotificationUIProps> = ({
                       px: 2,
                       py: 1.5,
                       backgroundColor: notification.isRead
-                        ? "transparent"
+                        ? 'transparent'
                         : alpha(theme.palette.primary.main, 0.05),
                       borderLeft: notification.isRead
-                        ? "none"
+                        ? 'none'
                         : `3px solid ${theme.palette.primary.main}`,
-                      "&:hover": {
-                        backgroundColor: alpha(
-                          theme.palette.primary.main,
-                          0.08,
-                        ),
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        color: 'black',
                       },
-                      position: "relative",
+                      position: 'relative',
                     }}
                     disabled={selectedNotificationId === notification.id}
                   >
@@ -402,8 +400,8 @@ const AdminNotificationUI: React.FC<AdminNotificationUIProps> = ({
                       secondary={
                         <Box
                           sx={{
-                            display: "flex",
-                            alignItems: "center",
+                            display: 'flex',
+                            alignItems: 'center',
                             gap: 1,
                             mt: 0.5,
                           }}
@@ -418,8 +416,8 @@ const AdminNotificationUI: React.FC<AdminNotificationUIProps> = ({
                               color="primary"
                               sx={{
                                 height: 16,
-                                fontSize: "0.65rem",
-                                "& .MuiChip-label": { px: 0.5 },
+                                fontSize: '0.65rem',
+                                '& .MuiChip-label': { px: 0.5 },
                               }}
                             />
                           )}
@@ -432,8 +430,8 @@ const AdminNotificationUI: React.FC<AdminNotificationUIProps> = ({
                         sx={{
                           width: 8,
                           height: 8,
-                          borderRadius: "50%",
-                          backgroundColor: "primary.main",
+                          borderRadius: '50%',
+                          backgroundColor: 'primary.main',
                           ml: 1,
                         }}
                       />
@@ -461,7 +459,7 @@ const AdminNotificationUI: React.FC<AdminNotificationUIProps> = ({
                 fullWidth
                 size="small"
                 onClick={handleClose}
-                sx={{ textTransform: "none" }}
+                sx={{ textTransform: 'none' }}
               >
                 Close
               </Button>
