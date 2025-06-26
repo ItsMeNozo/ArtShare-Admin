@@ -254,7 +254,7 @@ const ReportManagementPage: React.FC = () => {
               </TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
               <TableCell
-                align="left"
+                align="center"
                 sx={{
                   fontWeight: 'bold',
                   width: '1%', // For shrink-to-fit
@@ -295,35 +295,44 @@ const ReportManagementPage: React.FC = () => {
                   {new Date(r.created_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell
-                  align="left"
-                  className="px-0" // Keep if this Tailwind/utility class is used
-                  sx={{ whiteSpace: 'nowrap' }}
+                  align="center"
+                  sx={{
+                    whiteSpace: 'nowrap',
+                    textAlign: 'center',
+                    padding: '8px',
+                  }}
                 >
-                  <Button
-                    size="small"
-                    color="primary"
-                    onClick={() => handleView(r)}
-                    sx={{ mr: 0.5 }} // Add a small margin if buttons are too close
-                  >
-                    View
-                  </Button>
-                  <Button
-                    size="small"
-                    color="error"
-                    style={{
-                      visibility:
-                        r.status === 'DISMISSED' || r.status === 'RESOLVED'
-                          ? 'hidden'
-                          : undefined,
-                    }}
-                    onClick={() => {
-                      setActiveReportId(r.id);
-                      setActiveReport(r); // Also set activeReport for ResolveReportDialog
-                      setDialogOpen(true);
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: 0.5,
                     }}
                   >
-                    Resolve
-                  </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                      onClick={() => handleView(r)}
+                    >
+                      View
+                    </Button>
+                    {r.status !== 'DISMISSED' && r.status !== 'RESOLVED' && (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="error"
+                        onClick={() => {
+                          setActiveReportId(r.id);
+                          setActiveReport(r); // Also set activeReport for ResolveReportDialog
+                          setDialogOpen(true);
+                        }}
+                      >
+                        Resolve
+                      </Button>
+                    )}
+                  </Box>
                 </TableCell>
               </TableRow>
             ))}
