@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -20,7 +20,7 @@ import {
   ImageListItemBar,
   Badge,
   Alert,
-} from "@mui/material";
+} from '@mui/material';
 import {
   AutoAwesome as AutoAwesomeIcon,
   AddPhotoAlternate as AddPhotoAlternateIcon,
@@ -29,7 +29,7 @@ import {
   AspectRatio as AspectRatioIcon,
   Palette as PaletteIcon,
   ThumbUp as ThumbUpIcon,
-} from "@mui/icons-material";
+} from '@mui/icons-material';
 import {
   ResponsiveContainer,
   PieChart,
@@ -42,34 +42,34 @@ import {
   YAxis,
   CartesianGrid,
   Legend,
-} from "recharts";
-import { format, subDays, isAfter, parseISO } from "date-fns";
-import { AxiosError } from "axios";
-import api from "../../api/baseApi";
-import { StripeData } from "./statistics.types";
-import { StripeIncomeCard } from "./components/StripeIncomeCard";
+} from 'recharts';
+import { format, subDays, isAfter, parseISO } from 'date-fns';
+import { AxiosError } from 'axios';
+import api from '../../api/baseApi';
+import { StripeData } from './statistics.types';
+import { StripeIncomeCard } from './components/StripeIncomeCard';
 
 /* -------------------- 1. Theme & Constants -------------------- */
 const theme = createTheme({
   palette: {
-    mode: "light",
-    primary: { main: "#0062d2" },
-    secondary: { main: "#ef5350" },
-    background: { default: "#f0f4f9", paper: "#ffffff" },
+    mode: 'light',
+    primary: { main: '#0062d2' },
+    secondary: { main: '#ef5350' },
+    background: { default: '#f0f4f9', paper: '#ffffff' },
   },
   shape: { borderRadius: 16 },
-  typography: { fontFamily: "Inter, sans-serif" },
+  typography: { fontFamily: 'Inter, sans-serif' },
 });
 
 const CHART_COLORS = [
-  "#0062d2",
-  "#29b6f6",
-  "#66bb6a",
-  "#ffa726",
-  "#ef5350",
-  "#ab47bc",
+  '#0062d2',
+  '#29b6f6',
+  '#66bb6a',
+  '#ffa726',
+  '#ef5350',
+  '#ab47bc',
 ];
-const COLORS_POSTS = ["#66bb6a", "#ffa726", "#29b6f6", "#ef5350"];
+const COLORS_POSTS = ['#66bb6a', '#ffa726', '#29b6f6', '#ef5350'];
 
 /* -------------------- 2. Type Definitions -------------------- */
 
@@ -119,8 +119,8 @@ const SummaryTile = ({
   label: string;
   value: number;
 }) => (
-  <Card sx={{ p: 3, textAlign: "center", height: "100%" }}>
-    <Avatar sx={{ mb: 1, bgcolor: "primary.main", mx: "auto" }}>{icon}</Avatar>
+  <Card sx={{ p: 3, textAlign: 'center', height: '100%' }}>
+    <Avatar sx={{ mb: 1, bgcolor: 'primary.main', mx: 'auto' }}>{icon}</Avatar>
     <Typography variant="h5" fontWeight={700}>
       {value.toLocaleString()}
     </Typography>
@@ -141,7 +141,7 @@ const PieCard = ({
   colors?: string[];
   colorOffset?: number;
 }) => (
-  <Card sx={{ height: "100%" }}>
+  <Card sx={{ height: '100%' }}>
     <CardHeader
       title={
         <Typography variant="subtitle1" fontWeight={600}>
@@ -217,7 +217,7 @@ const PlatformGrowthChart = ({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="date"
-              tickFormatter={(str) => format(parseISO(str), "MMM d")}
+              tickFormatter={(str) => format(parseISO(str), 'MMM d')}
             />
             <YAxis />
             <RechartsTooltip />
@@ -248,7 +248,7 @@ export default function StatisticDashboardPage() {
   const [statisticsData, setStatisticsData] = useState<StatisticsData | null>(
     null,
   );
-  const [statsFilter, setStatsFilter] = useState<"all" | "last7">("all");
+  const [statsFilter, setStatsFilter] = useState<'all' | 'last7'>('all');
 
   // State for new analytics data
   const [analyticsData, setAnalyticsData] = useState<AnalyticsPlatformData>({});
@@ -261,7 +261,7 @@ export default function StatisticDashboardPage() {
   const [stripeData, setStripeData] = useState<StripeData | null>(null);
   const stripeDashboardUrl =
     import.meta.env.VITE_STRIPE_DASHBOARD_URL ||
-    "https://dashboard.stripe.com/test/dashboard";
+    'https://dashboard.stripe.com/test/dashboard';
 
   // --- Data Fetching ---
   useEffect(() => {
@@ -278,9 +278,9 @@ export default function StatisticDashboardPage() {
           postsOverTimeRes,
           stripeData,
         ] = await Promise.all([
-          api.get("/statistics"),
-          api.get("/analytics/overall-user-stats"),
-          api.get("/analytics/overall-post-stats"),
+          api.get('/statistics'),
+          api.get('/analytics/overall-user-stats'),
+          api.get('/analytics/overall-post-stats'),
           api.get(`/analytics/users-over-time?days=${timeSeriesDays}`),
           api.get(`/analytics/posts-over-time?days=${timeSeriesDays}`),
           api.get(`/api/stripe/income-summary`),
@@ -299,7 +299,7 @@ export default function StatisticDashboardPage() {
         const errorMessage =
           (axiosError.response?.data as any)?.message ||
           axiosError.message ||
-          "An error occurred while fetching dashboard data.";
+          'An error occurred while fetching dashboard data.';
         setError(errorMessage);
       } finally {
         setLoading(false);
@@ -338,7 +338,7 @@ export default function StatisticDashboardPage() {
     if (!processedStats.topPosts) return [];
     const data = processedStats.topPosts;
 
-    if (statsFilter === "all") {
+    if (statsFilter === 'all') {
       const filtered = data
         .sort((a, b) => b.like_count - a.like_count)
         .slice(0, 5);
@@ -381,9 +381,9 @@ export default function StatisticDashboardPage() {
   const overallUserChartData = useMemo((): PieChartDataItem[] => {
     if (!analyticsData.userStats) return [];
     return [
-      { name: "Onboarded", count: analyticsData.userStats.onboardedUsers },
+      { name: 'Onboarded', count: analyticsData.userStats.onboardedUsers },
       {
-        name: "Not Onboarded",
+        name: 'Not Onboarded',
         count:
           analyticsData.userStats.totalUsers -
           analyticsData.userStats.onboardedUsers,
@@ -396,13 +396,13 @@ export default function StatisticDashboardPage() {
       return { publishedVsDraft: [], aiVsHuman: [] };
     return {
       publishedVsDraft: [
-        { name: "Published", count: analyticsData.postStats.publishedPosts },
-        { name: "Drafts", count: analyticsData.postStats.draftPosts },
+        { name: 'Published', count: analyticsData.postStats.publishedPosts },
+        { name: 'Drafts', count: analyticsData.postStats.draftPosts },
       ].filter((item) => item.count > 0),
       aiVsHuman: [
-        { name: "AI Created", count: analyticsData.postStats.aiCreatedPosts },
+        { name: 'AI Created', count: analyticsData.postStats.aiCreatedPosts },
         {
-          name: "Human Created",
+          name: 'Human Created',
           count:
             analyticsData.postStats.totalPosts -
             analyticsData.postStats.aiCreatedPosts,
@@ -415,10 +415,10 @@ export default function StatisticDashboardPage() {
     return (
       <Box
         sx={{
-          height: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
         }}
       >
         <CircularProgress />
@@ -437,13 +437,13 @@ export default function StatisticDashboardPage() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 6 }}>
+      <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 6 }}>
         <Container maxWidth="xl">
           <Box
             sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
               mb: 3,
             }}
           >
@@ -521,7 +521,7 @@ export default function StatisticDashboardPage() {
                       title={
                         <Typography variant="subtitle1" fontWeight={600}>
                           Top 5 AI Posts (
-                          {statsFilter === "last7" ? "7 Days" : "All‑time"})
+                          {statsFilter === 'last7' ? '7 Days' : 'All‑time'})
                         </Typography>
                       }
                     />
@@ -532,11 +532,11 @@ export default function StatisticDashboardPage() {
                           gap={12}
                           sx={{
                             height: 200,
-                            "& .MuiImageListItem-root": {
-                              position: "relative",
+                            '& .MuiImageListItem-root': {
+                              position: 'relative',
                             },
-                            "& .MuiImageListItemBar-root": {
-                              position: "absolute",
+                            '& .MuiImageListItemBar-root': {
+                              position: 'absolute',
                               bottom: 0,
                               left: 0,
                               right: 0,
@@ -549,13 +549,13 @@ export default function StatisticDashboardPage() {
                                 key={post.id}
                                 sx={{
                                   borderRadius: 2,
-                                  overflow: "hidden",
-                                  position: "relative",
-                                  "& .MuiImageListItemBar-root": {
+                                  overflow: 'hidden',
+                                  position: 'relative',
+                                  '& .MuiImageListItemBar-root': {
                                     background:
-                                      "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%)",
-                                    "& .MuiImageListItemBar-actionIcon": {
-                                      position: "absolute",
+                                      'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%)',
+                                    '& .MuiImageListItemBar-actionIcon': {
+                                      position: 'absolute',
                                       top: 8,
                                       right: 8,
                                     },
@@ -567,9 +567,9 @@ export default function StatisticDashboardPage() {
                                   alt={post.title}
                                   loading="lazy"
                                   style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
                                   }}
                                 />
                                 <ImageListItemBar
@@ -578,7 +578,7 @@ export default function StatisticDashboardPage() {
                                       <Typography
                                         variant="caption"
                                         noWrap
-                                        sx={{ color: "#fff" }}
+                                        sx={{ color: '#fff' }}
                                       >
                                         {post.title}
                                       </Typography>
@@ -587,40 +587,40 @@ export default function StatisticDashboardPage() {
                                   subtitle={
                                     <Typography
                                       variant="caption"
-                                      sx={{ color: "#fff" }}
+                                      sx={{ color: '#fff' }}
                                     >
-                                      {format(parseISO(post.created_at), "PP")}
+                                      {format(parseISO(post.created_at), 'PP')}
                                     </Typography>
                                   }
                                   actionIcon={
-                                    <Box sx={{ position: "relative" }}>
+                                    <Box sx={{ position: 'relative' }}>
                                       <Badge
                                         badgeContent={post.like_count}
                                         showZero
                                         sx={{
                                           mr: 1,
-                                          "& .MuiBadge-badge": {
-                                            fontSize: "0.8rem",
-                                            minWidth: "24px",
-                                            height: "24px",
-                                            backgroundColor: "#ff1744",
-                                            color: "#fff",
-                                            fontWeight: "bold",
-                                            border: "2px solid #fff",
+                                          '& .MuiBadge-badge': {
+                                            fontSize: '0.8rem',
+                                            minWidth: '24px',
+                                            height: '24px',
+                                            backgroundColor: '#ff1744',
+                                            color: '#fff',
+                                            fontWeight: 'bold',
+                                            border: '2px solid #fff',
                                             boxShadow:
-                                              "0 2px 8px rgba(0,0,0,0.3)",
+                                              '0 2px 8px rgba(0,0,0,0.3)',
                                             zIndex: 10,
                                             transform:
-                                              "scale(1) translate(50%, -50%)",
+                                              'scale(1) translate(50%, -50%)',
                                           },
                                         }}
                                       >
                                         <ThumbUpIcon
                                           sx={{
-                                            color: "#fff",
+                                            color: '#fff',
                                             fontSize: 24,
                                             filter:
-                                              "drop-shadow(2px 2px 4px rgba(0,0,0,0.8))",
+                                              'drop-shadow(2px 2px 4px rgba(0,0,0,0.8))',
                                           }}
                                         />
                                       </Badge>
@@ -632,7 +632,7 @@ export default function StatisticDashboardPage() {
                           })}
                         </ImageList>
                       ) : (
-                        <Box sx={{ textAlign: "center", py: 4 }}>
+                        <Box sx={{ textAlign: 'center', py: 4 }}>
                           <Typography variant="body2" color="text.secondary">
                             No posts found for the selected time period.
                           </Typography>

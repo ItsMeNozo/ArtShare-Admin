@@ -1,16 +1,16 @@
-import { useState, useCallback } from "react";
-import { useDebounce } from "../../../common/hooks/useDebounce";
-import { UserSortableKeys } from "../types";
-import { useUsersQuery } from "./useUserQueries";
+import { useState, useCallback } from 'react';
+import { useDebounce } from '../../../common/hooks/useDebounce';
+import { UserSortableKeys } from '../types';
+import { useUsersQuery } from './useUserQueries';
 
 export const useUserTableControls = () => {
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [order, setOrder] = useState<"asc" | "desc">("desc");
-  const [orderBy, setOrderBy] = useState<UserSortableKeys>("createdAt");
-  const [role, setRole] = useState<string>("");
-  const [status, setStatus] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [order, setOrder] = useState<'asc' | 'desc'>('desc');
+  const [orderBy, setOrderBy] = useState<UserSortableKeys>('createdAt');
+  const [role, setRole] = useState<string>('');
+  const [status, setStatus] = useState<string>('');
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -40,8 +40,8 @@ export const useUserTableControls = () => {
 
   const handleSortRequest = useCallback(
     (property: UserSortableKeys) => {
-      const isAsc = orderBy === property && order === "asc";
-      setOrder(isAsc ? "desc" : "asc");
+      const isAsc = orderBy === property && order === 'asc';
+      setOrder(isAsc ? 'desc' : 'asc');
       setOrderBy(property);
       setCurrentPage(0);
     },

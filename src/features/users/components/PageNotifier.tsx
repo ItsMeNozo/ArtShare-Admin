@@ -1,6 +1,6 @@
-import React from "react";
-import { Snackbar } from "@mui/material";
-import MuiAlert, { AlertProps, AlertColor } from "@mui/material/Alert";
+import React from 'react';
+import { Snackbar } from '@mui/material';
+import MuiAlert, { AlertProps, AlertColor } from '@mui/material/Alert';
 
 const PageSnackbarAlert = React.forwardRef<HTMLDivElement, AlertProps>(
   function PageSnackbarAlert(props, ref) {
@@ -26,12 +26,12 @@ export const PageNotifier: React.FC<PageNotifierProps> = ({
       open={open}
       autoHideDuration={6000}
       onClose={onClose}
-      anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
     >
       <PageSnackbarAlert
         onClose={onClose}
         severity={severity}
-        sx={{ width: "100%" }}
+        sx={{ width: '100%' }}
       >
         {message}
       </PageSnackbarAlert>

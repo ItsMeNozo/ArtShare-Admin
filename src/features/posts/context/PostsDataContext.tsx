@@ -1,8 +1,8 @@
-import React, { createContext, useState, useContext } from "react";
-import { useDebounce } from "../../../common/hooks/useDebounce";
-import { useGetAdminPosts } from "../hooks/usePostQueries";
-import { Order } from "../../users/types";
-import { PostListItemDto } from "../types/post-api.types";
+import React, { createContext, useState, useContext } from 'react';
+import { useDebounce } from '../../../common/hooks/useDebounce';
+import { useGetAdminPosts } from '../hooks/usePostQueries';
+import { Order } from '../../users/types';
+import { PostListItemDto } from '../types/post-api.types';
 
 interface PostsDataContextType {
   posts: PostListItemDto[];
@@ -36,9 +36,9 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  const [sortBy, setSortBy] = useState("created_at");
-  const [sortOrder, setSortOrder] = useState<Order>("desc");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState('created_at');
+  const [sortOrder, setSortOrder] = useState<Order>('desc');
+  const [searchTerm, setSearchTerm] = useState('');
   const [categoryId, setCategoryId] = useState<number | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -65,8 +65,8 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
     _event: React.MouseEvent<unknown>,
     property: string,
   ) => {
-    const isAsc = sortBy === property && sortOrder === "asc";
-    setSortOrder(isAsc ? "desc" : "asc");
+    const isAsc = sortBy === property && sortOrder === 'asc';
+    setSortOrder(isAsc ? 'desc' : 'asc');
     setSortBy(property);
   };
 
@@ -105,7 +105,7 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
 export const usePostsData = (): PostsDataContextType => {
   const context = useContext(PostsDataContext);
   if (!context) {
-    throw new Error("usePostsData must be used within a PostsDataProvider");
+    throw new Error('usePostsData must be used within a PostsDataProvider');
   }
   return context;
 };

@@ -1,5 +1,5 @@
-import React from "react";
-import { Paper, Typography, Box } from "@mui/material";
+import React from 'react';
+import { Paper, Typography, Box } from '@mui/material';
 
 interface ChartWrapperProps {
   title: string;
@@ -7,16 +7,16 @@ interface ChartWrapperProps {
   chartDataExists: boolean;
   noDataMessage?: string;
   height?: number | string;
-  titleVariant?: "h6" | "subtitle1" | "subtitle2";
+  titleVariant?: 'h6' | 'subtitle1' | 'subtitle2';
 }
 
 const ChartWrapper: React.FC<ChartWrapperProps> = ({
   title,
   children,
   chartDataExists,
-  noDataMessage = "No data available for this chart.",
+  noDataMessage = 'No data available for this chart.',
   height = 300,
-  titleVariant = "subtitle1",
+  titleVariant = 'subtitle1',
 }) => {
   return (
     <Paper elevation={2} className="p-4 h-full flex flex-col">
@@ -29,7 +29,7 @@ const ChartWrapper: React.FC<ChartWrapperProps> = ({
         {title}
       </Typography>
       {chartDataExists ? (
-        <Box sx={{ height, width: "100%" }} className="flex-grow">
+        <Box sx={{ height, width: '100%' }} className="flex-grow">
           {children}
         </Box>
       ) : (

@@ -33,7 +33,7 @@ export interface GetAllPostsAdminParams {
   isPublished?: boolean | null;
   isPrivate?: boolean | null;
   sortBy?: string;
-  sortOrder?: "asc" | "desc";
+  sortOrder?: 'asc' | 'desc';
   categoryId?: number | null;
 }
 

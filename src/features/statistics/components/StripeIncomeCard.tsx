@@ -1,19 +1,19 @@
-import React from "react";
-import { Card, CardContent, Typography, CardActionArea } from "@mui/material";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import { StripeLogo } from "./StripeLogo";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer } from "recharts";
-import { StripeIncomeCardProps } from "../statistics.types";
+import React from 'react';
+import { Card, CardContent, Typography, CardActionArea } from '@mui/material';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { StripeLogo } from './StripeLogo';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { StripeIncomeCardProps } from '../statistics.types';
 
 export const StripeIncomeCard: React.FC<StripeIncomeCardProps> = ({
   totalIncome,
-  currency = "USD",
+  currency = 'USD',
   period,
   stripeDashboardUrl,
   dailyData,
 }) => {
-  const formattedIncome = new Intl.NumberFormat("en-US", {
-    style: "currency",
+  const formattedIncome = new Intl.NumberFormat('en-US', {
+    style: 'currency',
     currency: currency,
     minimumFractionDigits: 2,
   }).format(totalIncome);
@@ -22,11 +22,11 @@ export const StripeIncomeCard: React.FC<StripeIncomeCardProps> = ({
     <Card
       className="w-full max-w-sm rounded-xl shadow-lg transition-shadow hover:shadow-2xl overflow-hidden"
       sx={{
-        border: "1px solid",
-        borderColor: "grey.300",
+        border: '1px solid',
+        borderColor: 'grey.300',
         transition: (theme) =>
-          theme.transitions.create(["box-shadow", "border-color"]),
-        "&:hover": { borderColor: "primary.main" },
+          theme.transitions.create(['box-shadow', 'border-color']),
+        '&:hover': { borderColor: 'primary.main' },
       }}
     >
       {/* The ActionArea now needs a relative position to contain the absolute chart */}
@@ -100,7 +100,7 @@ export const StripeIncomeCard: React.FC<StripeIncomeCardProps> = ({
               >
                 View more
               </Typography>
-              <ArrowForwardIcon className="ml-1" style={{ fontSize: "1rem" }} />
+              <ArrowForwardIcon className="ml-1" style={{ fontSize: '1rem' }} />
             </div>
           </CardContent>
         </div>

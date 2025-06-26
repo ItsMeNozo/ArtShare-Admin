@@ -1,5 +1,5 @@
-import { UserRoleType, USER_ROLES } from "../../../constants/roles";
-import { UserStatus } from "../../../constants/user";
+import { UserRoleType, USER_ROLES } from '../../../constants/roles';
+import { UserStatus } from '../../../constants/user';
 
 export const AVAILABLE_ROLES_FOR_SELECT: UserRoleType[] =
   Object.values(USER_ROLES);

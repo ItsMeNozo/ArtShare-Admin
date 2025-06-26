@@ -1,6 +1,6 @@
-import React, { createContext, useState, useContext, useCallback } from "react";
-import { AlertColor } from "@mui/material/Alert";
-import { User } from "../../../types/user";
+import React, { createContext, useState, useContext, useCallback } from 'react';
+import { AlertColor } from '@mui/material/Alert';
+import { User } from '../../../types/user';
 
 interface DialogsState {
   editView: { open: boolean; user: User | null; isCreating: boolean };
@@ -70,8 +70,8 @@ export const UserInterfaceProvider: React.FC<{ children: React.ReactNode }> = ({
     severity: AlertColor;
   }>({
     open: false,
-    message: "",
-    severity: "info",
+    message: '',
+    severity: 'info',
   });
 
   const showPageNotification = useCallback(
@@ -83,7 +83,7 @@ export const UserInterfaceProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const handlePageSnackbarClose = useCallback(
     (_?: React.SyntheticEvent | Event, reason?: string) => {
-      if (reason === "clickaway") return;
+      if (reason === 'clickaway') return;
       setSnackbar((prev) => ({ ...prev, open: false }));
     },
     [],
@@ -135,7 +135,7 @@ export const UserInterfaceProvider: React.FC<{ children: React.ReactNode }> = ({
     if (selectedIds.length > 0) {
       setDialogs((d) => ({ ...d, bulkDelete: { open: true } }));
     } else {
-      showPageNotification("No users selected for bulk deletion.", "info");
+      showPageNotification('No users selected for bulk deletion.', 'info');
     }
   }, [selectedIds.length, showPageNotification]);
 
@@ -198,7 +198,7 @@ export const useUserInterface = (): UserInterfaceContextType => {
   const context = useContext(UserInterfaceContext);
   if (context === undefined) {
     throw new Error(
-      "useUserInterface must be used within a UserInterfaceProvider",
+      'useUserInterface must be used within a UserInterfaceProvider',
     );
   }
   return context;

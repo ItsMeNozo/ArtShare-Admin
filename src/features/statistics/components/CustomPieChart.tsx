@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   PieChart,
   Pie,
@@ -6,9 +6,9 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from "recharts";
-import { Paper, Typography, Box } from "@mui/material";
-import { PieChartDataItem } from "../statistics.types";
+} from 'recharts';
+import { Paper, Typography, Box } from '@mui/material';
+import { PieChartDataItem } from '../statistics.types';
 
 interface CustomPieChartProps {
   data: PieChartDataItem[];
@@ -17,9 +17,9 @@ interface CustomPieChartProps {
   height?: number;
   outerRadius?: number;
   showLegend?: boolean;
-  legendLayout?: "horizontal" | "vertical";
-  legendAlign?: "left" | "center" | "right";
-  legendVerticalAlign?: "top" | "middle" | "bottom";
+  legendLayout?: 'horizontal' | 'vertical';
+  legendAlign?: 'left' | 'center' | 'right';
+  legendVerticalAlign?: 'top' | 'middle' | 'bottom';
 }
 
 const CustomPieChart: React.FC<CustomPieChartProps> = ({
@@ -29,9 +29,9 @@ const CustomPieChart: React.FC<CustomPieChartProps> = ({
   height = 200, // Default height
   outerRadius = 60,
   showLegend = true,
-  legendLayout = "vertical",
-  legendAlign = "right",
-  legendVerticalAlign = "middle",
+  legendLayout = 'vertical',
+  legendAlign = 'right',
+  legendVerticalAlign = 'middle',
 }) => {
   return (
     <Paper elevation={2} className="p-4 h-full flex flex-col">
@@ -44,7 +44,7 @@ const CustomPieChart: React.FC<CustomPieChartProps> = ({
         {title}
       </Typography>
       {data.length > 0 ? (
-        <Box sx={{ height, width: "100%" }} className="flex-grow">
+        <Box sx={{ height, width: '100%' }} className="flex-grow">
           <ResponsiveContainer>
             <PieChart>
               <Pie
@@ -70,7 +70,7 @@ const CustomPieChart: React.FC<CustomPieChartProps> = ({
                   layout={legendLayout}
                   align={legendAlign}
                   verticalAlign={legendVerticalAlign}
-                  wrapperStyle={{ fontSize: "12px" }}
+                  wrapperStyle={{ fontSize: '12px' }}
                 />
               )}
             </PieChart>

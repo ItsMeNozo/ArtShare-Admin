@@ -1,27 +1,27 @@
-import api from "../../../api/baseApi";
+import api from '../../../api/baseApi';
 import {
   GetAllPostsAdminParams,
   PostsResponse,
   PostDetailsResponseDto,
   AdminUpdatePostDto,
-} from "../types/post-api.types";
+} from '../types/post-api.types';
 
 export const fetchAdminPosts = async (
   params: GetAllPostsAdminParams,
 ): Promise<PostsResponse> => {
   const queryParams: any = { ...params };
-  if (params.isPublished === true) queryParams.isPublished = "true";
-  else if (params.isPublished === false) queryParams.isPublished = "false";
+  if (params.isPublished === true) queryParams.isPublished = 'true';
+  else if (params.isPublished === false) queryParams.isPublished = 'false';
   else delete queryParams.isPublished;
 
-  if (params.isPrivate === true) queryParams.isPrivate = "true";
-  else if (params.isPrivate === false) queryParams.isPrivate = "false";
+  if (params.isPrivate === true) queryParams.isPrivate = 'true';
+  else if (params.isPrivate === false) queryParams.isPrivate = 'false';
   else delete queryParams.isPrivate;
 
   if (queryParams.page === undefined) delete queryParams.page;
   if (queryParams.pageSize === undefined) delete queryParams.pageSize;
 
-  const { data } = await api.get("/posts/admin/all", {
+  const { data } = await api.get('/posts/admin/all', {
     params: queryParams,
   });
   return data;
@@ -49,7 +49,7 @@ export const adminDeletePost = async (postId: number): Promise<void> => {
 export const bulkDeleteAdminPosts = async (
   postIds: number[],
 ): Promise<{ count: number }> => {
-  const { data } = await api.delete("/posts/admin/bulk-delete", {
+  const { data } = await api.delete('/posts/admin/bulk-delete', {
     data: { postIds },
   });
   return data;

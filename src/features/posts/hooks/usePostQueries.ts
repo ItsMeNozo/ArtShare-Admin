@@ -4,27 +4,27 @@ import {
   useQueryClient,
   UseQueryResult,
   UseMutationResult,
-} from "@tanstack/react-query";
+} from '@tanstack/react-query';
 import {
   fetchAdminPosts,
   fetchAdminPostDetails,
   adminUpdatePost,
   adminDeletePost,
   bulkDeleteAdminPosts,
-} from "../api/post.api";
+} from '../api/post.api';
 import {
   GetAllPostsAdminParams,
   PostsResponse,
   PostDetailsResponseDto,
   AdminUpdatePostDto,
-} from "../types/post-api.types";
+} from '../types/post-api.types';
 
 export const postKeys = {
-  all: ["adminPosts"] as const,
-  lists: () => [...postKeys.all, "list"] as const,
+  all: ['adminPosts'] as const,
+  lists: () => [...postKeys.all, 'list'] as const,
   list: (params: GetAllPostsAdminParams) =>
     [...postKeys.lists(), params] as const,
-  details: () => [...postKeys.all, "detail"] as const,
+  details: () => [...postKeys.all, 'detail'] as const,
   detail: (id: number) => [...postKeys.details(), id] as const,
 };
 

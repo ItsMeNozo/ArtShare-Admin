@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState } from "react";
+import React, { useMemo, useCallback, useState } from 'react';
 import {
   Box,
   Typography,
@@ -13,22 +13,22 @@ import {
   FormControl,
   InputLabel,
   Select,
-} from "@mui/material";
+} from '@mui/material';
 import {
   Delete as DeleteIcon,
   UndoOutlined as UndoOutlinedIcon,
   FileDownloadOutlined as FileDownloadOutlinedIcon,
   Search as SearchIcon,
   MoreVertOutlined,
-} from "@mui/icons-material";
-import { CSVLink } from "react-csv";
-import { format } from "date-fns";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+} from '@mui/icons-material';
+import { CSVLink } from 'react-csv';
+import { format } from 'date-fns';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
-import { usePostsData } from "../context/PostsDataContext";
-import { usePostsUI } from "../context/PostsUIContext";
-import { useGetCategories } from "../hooks/useCategoryQueries";
+import { usePostsData } from '../context/PostsDataContext';
+import { usePostsUI } from '../context/PostsUIContext';
+import { useGetCategories } from '../hooks/useCategoryQueries';
 
 interface TableToolbarProps {
   onBulkDelete: () => void;
@@ -66,45 +66,45 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
       ID: post.id,
       Title: post.title,
       Author: post.user.username,
-      CreatedAt: format(new Date(post.created_at), "yyyy-MM-dd HH:mm:ss"),
+      CreatedAt: format(new Date(post.created_at), 'yyyy-MM-dd HH:mm:ss'),
     }));
   }, [getDataForExport]);
 
   const handleExportPDF = useCallback(() => {
-    const doc = new jsPDF("landscape");
+    const doc = new jsPDF('landscape');
     const dataToExport = getDataForExport();
     autoTable(doc, {
-      head: [["ID", "Title", "Author", "Created At"]],
+      head: [['ID', 'Title', 'Author', 'Created At']],
       body: dataToExport.map((p) => [
         p.id,
         p.title,
         p.user.username,
-        format(new Date(p.created_at), "MMM dd, yyyy"),
+        format(new Date(p.created_at), 'MMM dd, yyyy'),
       ]),
       startY: 20,
       didDrawPage: (data) => {
         doc.setFontSize(16);
-        doc.text("Admin Posts Report", data.settings.margin.left || 15, 15);
+        doc.text('Admin Posts Report', data.settings.margin.left || 15, 15);
       },
     });
-    doc.save("admin-posts-report.pdf");
+    doc.save('admin-posts-report.pdf');
   }, [getDataForExport]);
 
   const csvHeaders = [
-    { label: "ID", key: "ID" },
-    { label: "Title", key: "Title" },
-    { label: "Author", key: "Author" },
-    { label: "Created At", key: "CreatedAt" },
+    { label: 'ID', key: 'ID' },
+    { label: 'Title', key: 'Title' },
+    { label: 'Author', key: 'Author' },
+    { label: 'Created At', key: 'CreatedAt' },
   ];
 
   return (
     <>
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
           gap: 2,
           mb: 2,
         }}
@@ -117,13 +117,13 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
           <Box sx={{ flexGrow: 1 }} />
         )}
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <FormControl sx={{ minWidth: 180 }} size="small">
             <InputLabel id="category-filter-label">Category</InputLabel>
             <Select
               labelId="category-filter-label"
               id="category-filter-select"
-              value={tableControls.categoryId ?? ""}
+              value={tableControls.categoryId ?? ''}
               label="Category"
               onChange={(e) => {
                 const value = e.target.value;
@@ -148,18 +148,18 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
             value={tableControls.searchTerm}
             onChange={(e) => tableControls.setSearchTerm(e.target.value)}
             sx={{
-              minWidth: { xs: "100%", sm: 200, md: 250 },
+              minWidth: { xs: '100%', sm: 200, md: 250 },
               maxWidth: { sm: 400 },
               backgroundColor:
-                theme.palette.mode === "dark" ? "grey.800" : "grey.50",
+                theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
               borderRadius: 1,
-              "& .MuiOutlinedInput-root": {
-                fontSize: "0.9rem",
-                "& fieldset": {
+              '& .MuiOutlinedInput-root': {
+                fontSize: '0.9rem',
+                '& fieldset': {
                   borderColor:
-                    theme.palette.mode === "dark" ? "grey.700" : "grey.300",
+                    theme.palette.mode === 'dark' ? 'grey.700' : 'grey.300',
                 },
-                "&:hover fieldset": { borderColor: theme.palette.primary.main },
+                '&:hover fieldset': { borderColor: theme.palette.primary.main },
               },
             }}
             InputProps={{
@@ -167,7 +167,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                 <InputAdornment position="start">
                   <SearchIcon
                     fontSize="small"
-                    sx={{ color: "text.secondary" }}
+                    sx={{ color: 'text.secondary' }}
                   />
                 </InputAdornment>
               ),
@@ -184,13 +184,13 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
             py: 1,
             borderRadius: 2,
             backgroundColor:
-              theme.palette.mode === "dark"
+              theme.palette.mode === 'dark'
                 ? theme.palette.grey[700]
                 : theme.palette.grey[200],
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
             gap: 1,
           }}
         >
@@ -211,7 +211,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
               variant="contained"
               onClick={onBulkDelete}
               size="small"
-              sx={{ textTransform: "none" }}
+              sx={{ textTransform: 'none' }}
               disabled={isActionLoading}
             >
               Delete
@@ -245,11 +245,11 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                   headers={csvHeaders}
                   filename="admin-posts.csv"
                   style={{
-                    textDecoration: "none",
-                    color: "inherit",
-                    display: "flex",
-                    alignItems: "center",
-                    width: "100%",
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    display: 'flex',
+                    alignItems: 'center',
+                    width: '100%',
                   }}
                   target="_blank"
                 >

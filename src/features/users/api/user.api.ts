@@ -1,12 +1,12 @@
-import axios, { AxiosError } from "axios";
-import { User, UserFormData } from "../../../types/user";
-import api from "../../../api/baseApi";
+import axios, { AxiosError } from 'axios';
+import { User, UserFormData } from '../../../types/user';
+import api from '../../../api/baseApi';
 
 export interface FetchUsersParams {
   page?: number;
   limit?: number;
   sortBy?: string;
-  sortOrder?: "asc" | "desc";
+  sortOrder?: 'asc' | 'desc';
   search?: string;
   filter?: string;
 }
@@ -24,7 +24,7 @@ const getApiErrorMessage = (error: any): string => {
 
     if (axiosError.response?.data?.message) {
       return Array.isArray(axiosError.response.data.message)
-        ? axiosError.response.data.message.join(", ")
+        ? axiosError.response.data.message.join(', ')
         : axiosError.response.data.message;
     }
     if (axiosError.response?.data?.error) {
@@ -37,7 +37,7 @@ const getApiErrorMessage = (error: any): string => {
     );
   }
 
-  return error.message || "An unknown error occurred";
+  return error.message || 'An unknown error occurred';
 };
 
 export const fetchUsers = async (
@@ -45,19 +45,19 @@ export const fetchUsers = async (
 ): Promise<PaginatedUsersApiResponse> => {
   try {
     const response = await api.get<PaginatedUsersApiResponse>(
-      "/admin/users/all",
+      '/admin/users/all',
       { params },
     );
     return response.data;
   } catch (error) {
-    console.error("API fetchUsers error:", error);
+    console.error('API fetchUsers error:', error);
     throw new Error(getApiErrorMessage(error));
   }
 };
 
 export const createUser = async (userData: UserFormData): Promise<User> => {
   try {
-    const response = await api.post<User>("/admin/users/create", userData);
+    const response = await api.post<User>('/admin/users/create', userData);
     return response.data;
   } catch (error) {
     throw new Error(getApiErrorMessage(error));
@@ -92,7 +92,7 @@ export const deleteMultipleUsers = async (
 ): Promise<{ count: number }> => {
   try {
     const response = await api.delete<{ count: number }>(
-      "/admin/users/multiple",
+      '/admin/users/multiple',
       {
         data: { userIds },
       },

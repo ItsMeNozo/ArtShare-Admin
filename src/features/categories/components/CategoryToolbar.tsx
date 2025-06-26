@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   Box,
   TextField,
@@ -12,20 +12,20 @@ import {
   Alert,
   Collapse,
   SelectChangeEvent,
-} from "@mui/material";
+} from '@mui/material';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
   MoreVert as MoreVertIcon,
   FileDownload as FileDownloadIcon,
   PictureAsPdf as PdfIcon,
-} from "@mui/icons-material";
-import { CSVLink } from "react-csv";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import { CategoryType, CategoryTypeValues } from "../../../types/category";
-import { useCategoryData } from "../context/CategoryDataContext";
-import { useCategoryInterface } from "../context/CategoryInterfaceContext";
+} from '@mui/icons-material';
+import { CSVLink } from 'react-csv';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { CategoryType, CategoryTypeValues } from '../../../types/category';
+import { useCategoryData } from '../context/CategoryDataContext';
+import { useCategoryInterface } from '../context/CategoryInterfaceContext';
 
 export const CategoryToolbar: React.FC = () => {
   const {
@@ -54,9 +54,9 @@ export const CategoryToolbar: React.FC = () => {
   };
 
   const handleTypeFilterChange = (
-    event: SelectChangeEvent<CategoryType | "ALL">,
+    event: SelectChangeEvent<CategoryType | 'ALL'>,
   ) => {
-    setTypeFilter(event.target.value as CategoryType | "ALL");
+    setTypeFilter(event.target.value as CategoryType | 'ALL');
   };
 
   const getDataForExport = useCallback(() => {
@@ -70,41 +70,41 @@ export const CategoryToolbar: React.FC = () => {
     return dataToExport.map((category) => ({
       Name: category.name,
       Type: category.type,
-      Description: category.description || "",
-      "Posts Count": category.posts_count || 0,
-      "Example Images": category.example_images?.length || 0,
-      "Created Date": new Date(category.created_at).toLocaleDateString(),
-      "Updated Date": category.updated_at
+      Description: category.description || '',
+      'Posts Count': category.posts_count || 0,
+      'Example Images': category.example_images?.length || 0,
+      'Created Date': new Date(category.created_at).toLocaleDateString(),
+      'Updated Date': category.updated_at
         ? new Date(category.updated_at).toLocaleDateString()
-        : "Never",
+        : 'Never',
     }));
   }, [getDataForExport]);
 
   const handleExportPDF = useCallback(() => {
-    const doc = new jsPDF("landscape");
+    const doc = new jsPDF('landscape');
     const dataToExport = getDataForExport();
     const pdfData = dataToExport.map((category) => [
       category.name,
       category.type,
-      category.description || "",
+      category.description || '',
       category.posts_count || 0,
       category.example_images?.length || 0,
       new Date(category.created_at).toLocaleDateString(),
       category.updated_at
         ? new Date(category.updated_at).toLocaleDateString()
-        : "Never",
+        : 'Never',
     ]);
 
     autoTable(doc, {
       head: [
         [
-          "Name",
-          "Type",
-          "Description",
-          "Posts",
-          "Images",
-          "Created",
-          "Updated",
+          'Name',
+          'Type',
+          'Description',
+          'Posts',
+          'Images',
+          'Created',
+          'Updated',
         ],
       ],
       body: pdfData,
@@ -118,7 +118,7 @@ export const CategoryToolbar: React.FC = () => {
         6: { cellWidth: 25 }, // Updated
       },
     });
-    doc.save(`categories-export-${new Date().toISOString().split("T")[0]}.pdf`);
+    doc.save(`categories-export-${new Date().toISOString().split('T')[0]}.pdf`);
     handleMoreMenuClose();
   }, [getDataForExport, handleMoreMenuClose]);
 
@@ -134,10 +134,10 @@ export const CategoryToolbar: React.FC = () => {
 
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
           gap: 2,
           mb: 2,
         }}
@@ -145,7 +145,7 @@ export const CategoryToolbar: React.FC = () => {
         <Typography variant="h5" component="h1" fontWeight="bold">
           Category Management
         </Typography>
-        <Box sx={{ display: "flex", gap: 1, alignItems: "center", ml: "auto" }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', ml: 'auto' }}>
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Type</InputLabel>
             <Select
@@ -180,7 +180,7 @@ export const CategoryToolbar: React.FC = () => {
             variant="outlined"
             startIcon={<MoreVertIcon />}
             onClick={handleMoreMenuOpen}
-            sx={{ textTransform: "none" }}
+            sx={{ textTransform: 'none' }}
           >
             Export
           </Button>
@@ -195,13 +195,13 @@ export const CategoryToolbar: React.FC = () => {
             py: 1,
             borderRadius: 2,
             bgcolor: (theme) =>
-              theme.palette.mode === "dark"
+              theme.palette.mode === 'dark'
                 ? theme.palette.grey[700]
                 : theme.palette.grey[200],
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
             gap: 1,
           }}
         >
@@ -209,14 +209,14 @@ export const CategoryToolbar: React.FC = () => {
             {selectedIds.length} category(ies) selected
           </Typography>
 
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             <Button
               variant="contained"
               color="error"
               startIcon={<DeleteIcon />}
               onClick={handleOpenBulkDeleteDialog}
               size="small"
-              sx={{ textTransform: "none" }}
+              sx={{ textTransform: 'none' }}
             >
               Delete Selected
             </Button>
@@ -224,7 +224,7 @@ export const CategoryToolbar: React.FC = () => {
               variant="outlined"
               onClick={resetSelection}
               size="small"
-              sx={{ textTransform: "none" }}
+              sx={{ textTransform: 'none' }}
             >
               Clear Selection
             </Button>
@@ -233,7 +233,7 @@ export const CategoryToolbar: React.FC = () => {
               startIcon={<MoreVertIcon />}
               onClick={handleMoreMenuOpen}
               size="small"
-              sx={{ textTransform: "none" }}
+              sx={{ textTransform: 'none' }}
             >
               Export
             </Button>
@@ -248,20 +248,20 @@ export const CategoryToolbar: React.FC = () => {
       >
         <CSVLink
           data={csvFormattedData}
-          filename={`categories-export-${new Date().toISOString().split("T")[0]}.csv`}
-          style={{ textDecoration: "none", color: "inherit" }}
+          filename={`categories-export-${new Date().toISOString().split('T')[0]}.csv`}
+          style={{ textDecoration: 'none', color: 'inherit' }}
         >
           <MenuItem onClick={handleMoreMenuClose}>
             <FileDownloadIcon sx={{ mr: 1 }} />
-            Export{" "}
-            {selectedIds.length > 0 ? `${selectedIds.length} Selected as ` : ""}
+            Export{' '}
+            {selectedIds.length > 0 ? `${selectedIds.length} Selected as ` : ''}
             CSV
           </MenuItem>
         </CSVLink>
         <MenuItem onClick={handleExportPDF}>
           <PdfIcon sx={{ mr: 1 }} />
-          Export{" "}
-          {selectedIds.length > 0 ? `${selectedIds.length} Selected as ` : ""}
+          Export{' '}
+          {selectedIds.length > 0 ? `${selectedIds.length} Selected as ` : ''}
           PDF
         </MenuItem>
       </Menu>

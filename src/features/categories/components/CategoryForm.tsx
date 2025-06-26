@@ -1,13 +1,13 @@
-import React from "react";
-import { Box, Typography, Grid, Divider, Paper } from "@mui/material";
-import { FormikProps } from "formik";
-import { CategoryFormData } from "../hooks/useCategoryForm";
+import React from 'react';
+import { Box, Typography, Grid, Divider, Paper } from '@mui/material';
+import { FormikProps } from 'formik';
+import { CategoryFormData } from '../hooks/useCategoryForm';
 import {
   CategoryNameField,
   CategoryDescriptionField,
   CategoryTypeField,
-} from "./CategoryFormFields";
-import { CategoryImageManager } from "./CategoryImageManager";
+} from './CategoryFormFields';
+import { CategoryImageManager } from './CategoryImageManager';
 
 interface CategoryFormProps {
   formik: FormikProps<CategoryFormData>;
@@ -27,12 +27,12 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
             {/* Basic Information Section */}
             <Paper
               variant="outlined"
-              sx={{ p: 2, height: "fit-content", mb: 3 }}
+              sx={{ p: 2, height: 'fit-content', mb: 3 }}
             >
               <Typography
                 variant="h6"
                 gutterBottom
-                sx={{ color: "primary.main" }}
+                sx={{ color: 'primary.main' }}
               >
                 Basic Information
               </Typography>
@@ -49,11 +49,11 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
             </Paper>
 
             {/* Visual Examples Section */}
-            <Paper variant="outlined" sx={{ p: 2, height: "fit-content" }}>
+            <Paper variant="outlined" sx={{ p: 2, height: 'fit-content' }}>
               <Typography
                 variant="h6"
                 gutterBottom
-                sx={{ color: "primary.main" }}
+                sx={{ color: 'primary.main' }}
               >
                 Visual Examples
               </Typography>
