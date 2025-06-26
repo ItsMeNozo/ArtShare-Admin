@@ -113,12 +113,12 @@ export function useNotifications(userId: string): UseNotificationsReturn {
         console.log("[Socket] Connected successfully");
       });
 
-      socketRef.current.on("disconnect", (reason) => {
+      socketRef.current.on("disconnect", (reason: any) => {
         alert(`disconnected ${reason}`);
         console.log("[Socket] Disconnected:", reason);
       });
 
-      socketRef.current.on("connect_error", (error) => {
+      socketRef.current.on("connect_error", (error: any) => {
         console.error("[Socket] Connection error:", error);
         setError("Real-time connection failed");
       });

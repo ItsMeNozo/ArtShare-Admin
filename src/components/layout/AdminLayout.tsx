@@ -37,7 +37,6 @@ import ReportIcon from "@mui/icons-material/Report"; // For Report Management
 import CategoryIcon from "@mui/icons-material/Category"; // For Category Management
 import BarChartIcon from "@mui/icons-material/BarChart"; // For Statistics
 import ShowChartIcon from "@mui/icons-material/ShowChart";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import LogoutIcon from "@mui/icons-material/Logout";
