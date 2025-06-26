@@ -10,13 +10,13 @@ import PostManagementPage from "./features/posts";
 import StatisticsPage from "./features/statistics";
 import StatisticDashboardPage from "./features/statistics/AIStatistics";
 import ProfilePage from "./features/profile/ProfilePage";
+import BlogManagementPage from "./features/blogs/BlogManagementPage";
 
 export const router = createBrowserRouter([
   {
     path: "/login",
     element: <LoginPage />,
   },
-
   {
     // This path will now be the parent for all admin routes
     path: "/", // Or you could use a more specific base like "/admin" if you prefer
@@ -34,6 +34,7 @@ export const router = createBrowserRouter([
       { path: "reports", element: <ReportManagementPage /> },
       { path: "ai", element: <StatisticDashboardPage /> },
       { path: "profile", element: <ProfilePage /> },
+      { path: "blogs", element: <BlogManagementPage /> },
     ],
   },
   {

@@ -8,7 +8,6 @@ import {
   Avatar,
   IconButton,
   Tooltip,
-  Badge,
   List,
   ListItemButton,
   ListItemIcon,
@@ -46,10 +45,11 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { useCustomTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import { Person } from "@mui/icons-material";
+import AdminNotificationUI from "../../features/notifications/AdminNotificationUI";
 
 const drawerWidth = 260;
 
-// --- Styled Components (Drawer, AppBar, etc. - UNCHANGED from your last version) ---
+// Styled Components (unchanged)
 const openedMixin = (theme: Theme): CSSObject => ({
   width: drawerWidth,
   transition: theme.transitions.create("width", {
@@ -58,6 +58,7 @@ const openedMixin = (theme: Theme): CSSObject => ({
   }),
   overflowX: "hidden",
 });
+
 const closedMixin = (theme: Theme): CSSObject => ({
   transition: theme.transitions.create("width", {
     easing: theme.transitions.easing.sharp,
@@ -73,6 +74,7 @@ const DrawerHeaderStyled = styled("div")(({ theme }) => ({
   padding: theme.spacing(0, 1),
   ...theme.mixins.toolbar,
 }));
+
 const StyledAppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== "open",
 })<{ open?: boolean }>(({ theme, open }) => ({
@@ -90,6 +92,7 @@ const StyledAppBar = styled(MuiAppBar, {
     }),
   }),
 }));
+
 const StyledDrawer = styled(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== "open",
 })(({ theme, open }) => ({
@@ -106,9 +109,6 @@ const StyledDrawer = styled(MuiDrawer, {
     "& .MuiDrawer-paper": closedMixin(theme),
   }),
 }));
-// --- END Styled Components ---
-
-const notificationCount = 5; // Example
 
 const AdminLayout: React.FC = () => {
   const { mode: currentThemeMode, toggleColorMode } = useCustomTheme();
@@ -153,18 +153,14 @@ const AdminLayout: React.FC = () => {
   // Get admin name from user context or fallback
   const adminName = user?.username || user?.fullName || "Admin User";
 
-  // --- UPDATED sidebarItemsConfig based on your Use Case Diagram ---
   const sidebarItemsConfig = [
-    // MAIN section
     {
       text: "Dashboard",
       icon: <DashboardIcon />,
       path: "/",
       section: "MAIN",
       badge: undefined,
-    }, // Assuming '/' is your dashboard path
-
-    // MANAGEMENT section
+    },
     {
       text: "User Management",
       icon: <GroupIcon />,
@@ -176,6 +172,13 @@ const AdminLayout: React.FC = () => {
       text: "Post Management",
       icon: <ArticleIcon />,
       path: "/posts",
+      section: "MANAGEMENT",
+      badge: undefined,
+    },
+    {
+      text: "Blog Management",
+      icon: <ArticleIcon />,
+      path: "/blogs",
       section: "MANAGEMENT",
       badge: undefined,
     },
@@ -207,6 +210,13 @@ const AdminLayout: React.FC = () => {
       section: "MANAGEMENT",
       badge: undefined,
     },
+    {
+      text: "Analytics",
+      icon: <ShowChartIcon />,
+      path: "/statistics",
+      section: "MANAGEMENT",
+      badge: undefined,
+    },
   ];
 
   const mainMenuItems = sidebarItemsConfig.filter(
@@ -215,7 +225,6 @@ const AdminLayout: React.FC = () => {
   const managementItems = sidebarItemsConfig.filter(
     (item) => item.section === "MANAGEMENT",
   );
-  // const pageItems = sidebarItemsConfig.filter(item => item.section === 'PAGES'); // Not used with this config
 
   React.useEffect(() => {
     const currentPath = location.pathname;
@@ -377,7 +386,7 @@ const AdminLayout: React.FC = () => {
             <MenuIcon />
           </IconButton>
 
-          {!open && ( // Logo in AppBar when drawer is closed
+          {!open && (
             <Link
               to="/"
               style={{
@@ -389,7 +398,7 @@ const AdminLayout: React.FC = () => {
             >
               <Box
                 component="img"
-                src={app_logo} // Your brown/yellow logo
+                src={app_logo}
                 alt="Art Share Logo"
                 sx={{ height: 28, width: "auto", mr: 1 }}
               />
@@ -409,6 +418,8 @@ const AdminLayout: React.FC = () => {
           {open && <Box sx={{ width: { xs: 0, sm: 150 } }} />}
 
           <Box sx={{ flexGrow: 1 }} />
+
+          {/* Updated notification section */}
           <Box
             sx={{
               display: "flex",
@@ -425,13 +436,9 @@ const AdminLayout: React.FC = () => {
                 )}
               </IconButton>
             </Tooltip>
-            <Tooltip title="Notifications">
-              <IconButton color="inherit">
-                <Badge badgeContent={notificationCount} color="error">
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
-            </Tooltip>
+
+            {/* New Notification UI Component */}
+            <AdminNotificationUI />
 
             <Box
               sx={{
@@ -568,7 +575,7 @@ const AdminLayout: React.FC = () => {
             >
               <Box
                 component="img"
-                src={app_logo} // Your brown/yellow Art Share logo
+                src={app_logo}
                 alt="Art Share Logo"
                 sx={{ height: 32, width: "auto", mr: 1.5 }}
               />
@@ -587,12 +594,6 @@ const AdminLayout: React.FC = () => {
           <IconButton
             onClick={open ? handleDrawerClose : handleDrawerOpen}
             sx={{
-              // color: alpha("#FFFFFF", 0.7), // Base color for the button (icon inherits this)
-              // "&:hover": {
-              //   color: "#FFFFFF",        // Color on hover
-              //   backgroundColor: alpha("#FFFFFF", 0.08) // Optional: subtle background on hover
-              // },
-              // More direct approach using theme context for consistency
               color:
                 muiTheme.palette.mode === "dark"
                   ? alpha(muiTheme.palette.common.white, 0.7)
