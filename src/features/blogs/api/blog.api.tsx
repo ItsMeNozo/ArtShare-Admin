@@ -1,6 +1,6 @@
-import api from "../../../api/baseApi";
+import api from '../../../api/baseApi';
 
-export interface AdminPostListItemUserDto {
+export interface AdminBlogListItemUserDto {
   id: string;
   username: string;
   profile_picture_url?: string | null;
@@ -23,13 +23,14 @@ export interface AdminBlogListItemDto {
   pictures: any[];
   embedded_videos: any[];
   view_count: number;
+  user: AdminBlogListItemUserDto;
 }
 
 export interface GetAllPostsAdminParams {
   page?: number;
   pageSize?: number;
   sortBy?: string;
-  sortOrder?: "asc" | "desc";
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface AdminBlogsResponse {
@@ -104,7 +105,7 @@ export const fetchBlogsForAdmin = async (
     limit: number;
     totalPages: number;
     hasNextPage: boolean;
-  }>("/reports/blogs", { params: queryParams });
+  }>('/reports/blogs', { params: queryParams });
 
   return {
     blogs: resp.data.data,
@@ -139,7 +140,7 @@ export const bulkPublishAdminPosts = async (
   postIds: number[],
   publish: boolean,
 ): Promise<{ count: number }> => {
-  const { data } = await api.patch("/posts/admin/bulk-publish", {
+  const { data } = await api.patch('/posts/admin/bulk-publish', {
     postIds,
     publish,
   });
@@ -149,7 +150,7 @@ export const bulkPublishAdminPosts = async (
 export const bulkDeleteAdminPosts = async (
   blogIds: number[],
 ): Promise<{ count: number }> => {
-  const { data } = await api.delete("/blogs/admin/bulk-delete", {
+  const { data } = await api.delete('/blogs/admin/bulk-delete', {
     data: { blogIds },
   });
   return data;
