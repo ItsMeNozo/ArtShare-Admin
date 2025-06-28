@@ -26,14 +26,10 @@ import {
   Badge,
   Alert,
   Link,
-  Stack,
   IconButton,
   useTheme,
 } from "@mui/material";
-import {
-  Person as PersonIcon,
-  ReportProblem as ReportProblemIcon,
-} from "@mui/icons-material";
+import { Person as PersonIcon } from "@mui/icons-material";
 import {
   Chip,
   List,
