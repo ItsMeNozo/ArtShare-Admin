@@ -46,50 +46,62 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
         return;
       }
 
-      // Process files asynchronously to convert to base64
-      Promise.all(
-        files.map(
-          (file) =>
-            new Promise<string>((resolve, reject) => {
-              // Validate file size (max 5MB)
-              if (file.size > 5 * 1024 * 1024) {
-                reject(
-                  new Error(
-                    `Image "${file.name}" is too large. Max size is 5MB.`,
-                  ),
-                );
-                return;
-              }
+      // Process files individually and collect results
+      const processFiles = async () => {
+        const validImages: string[] = [];
+        const errors: string[] = [];
 
-              // Validate file type
-              if (!file.type.startsWith("image/")) {
-                reject(new Error(`"${file.name}" is not a valid image file.`));
-                return;
-              }
+        for (const file of files) {
+          try {
+            // Validate file size (max 5MB per file)
+            if (file.size > 5 * 1024 * 1024) {
+              errors.push(
+                `"${file.name}" is too large (${Math.round(file.size / (1024 * 1024))}MB). Max size is 5MB per image.`,
+              );
+              continue;
+            }
 
-              // Convert to base64
+            // Validate file type
+            if (!file.type.startsWith("image/")) {
+              errors.push(`"${file.name}" is not a valid image file.`);
+              continue;
+            }
+
+            // Convert to base64
+            const base64Image = await new Promise<string>((resolve, reject) => {
               const reader = new FileReader();
               reader.onload = () => resolve(reader.result as string);
               reader.onerror = () =>
                 reject(new Error(`Failed to read file "${file.name}"`));
               reader.readAsDataURL(file);
-            }),
-        ),
-      )
-        .then((base64Images) => {
+            });
+
+            validImages.push(base64Image);
+          } catch (error) {
+            errors.push(
+              `Failed to process "${file.name}": ${error instanceof Error ? error.message : "Unknown error"}`,
+            );
+          }
+        }
+
+        // Update form with valid images
+        if (validImages.length > 0) {
           formik.setFieldValue("example_images", [
             ...currentImages,
-            ...base64Images,
+            ...validImages,
           ]);
+        }
 
-          // Clear any previous errors
-          if (formik.errors.example_images) {
-            formik.setFieldError("example_images", undefined);
-          }
-        })
-        .catch((error) => {
-          formik.setFieldError("example_images", error.message);
-        });
+        // Show errors if any, but don't prevent valid images from being added
+        if (errors.length > 0) {
+          formik.setFieldError("example_images", errors.join(". "));
+        } else if (formik.errors.example_images) {
+          // Clear errors if all files were processed successfully
+          formik.setFieldError("example_images", undefined);
+        }
+      };
+
+      processFiles();
     }
     // Reset file input
     event.target.value = "";
@@ -119,10 +131,11 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
     const imageFiles = files.filter((file) => file.type.startsWith("image/"));
 
     if (imageFiles.length > 0) {
-      const event = {
+      // Create a synthetic event to reuse the handleImageAdd logic
+      const syntheticEvent = {
         target: { files: imageFiles, value: "" },
-      } as any;
-      handleImageAdd(event);
+      } as unknown as ChangeEvent<HTMLInputElement>;
+      handleImageAdd(syntheticEvent);
     }
   };
 
