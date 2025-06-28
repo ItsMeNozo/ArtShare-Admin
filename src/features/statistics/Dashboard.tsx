@@ -31,10 +31,20 @@ import {
   useTheme,
 } from "@mui/material";
 import {
+  Person as PersonIcon,
+  ReportProblem as ReportProblemIcon,
+} from "@mui/icons-material";
+import {
+  Chip,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+} from "@mui/material";
+import {
   AutoAwesome as AutoAwesomeIcon,
   AddPhotoAlternate as AddPhotoAlternateIcon,
   Timeline as TimelineIcon,
-  ThumbUp as ThumbUpIcon,
   Article as ArticleIcon,
   LightMode as LightModeIcon,
   DarkMode as DarkModeIcon,
@@ -185,7 +195,7 @@ export default function StatisticDashboardPage() {
   const topPostsFiltered = useMemo(() => {
     const data = processed.topPosts ?? [];
     if (statsFilter === "all") {
-      return [...data].sort((a, b) => b.like_count - a.like_count).slice(0, 5);
+      return [...data].sort((a, b) => b.like_count - a.like_count).slice(0, 3);
     }
     const sevenDaysAgo = subDays(new Date(), 7);
     return data
@@ -249,7 +259,7 @@ function DashboardContent({
 }: any) {
   const theme = useTheme();
   const { toggleColorMode } = useContext(ColorModeContext);
-
+  const navigate = useNavigate();
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 6 }}>
       <Container maxWidth="xl">
@@ -306,7 +316,7 @@ function DashboardContent({
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
             <SummaryTile
               icon={<ArticleIcon />}
-              label="Blogs"
+              label="Total Blogs"
               value={processed.blogsCount}
               to="/blogs"
             />
@@ -316,7 +326,7 @@ function DashboardContent({
               icon={<AddPhotoAlternateIcon />}
               label="AI Images"
               value={processed.imagesCount}
-              to="/posts"
+              to="/posts/category=ai-posts"
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
@@ -356,31 +366,63 @@ function DashboardContent({
               />
               <CardContent>
                 {processed.recentReports.length ? (
-                  <Stack spacing={2}>
+                  <List disablePadding>
                     {processed.recentReports.map((r: any) => (
-                      <Link
+                      <ListItem
                         key={r.id}
-                        underline="none"
-                        href={`/reports/`}
-                        variant="body2"
                         sx={{
-                          p: 2,
-                          border: "1px solid",
-                          borderColor: "divider",
+                          px: 1.5,
+                          py: 1,
                           borderRadius: 2,
-                          display: "block",
-                          "&:hover": { bgcolor: "action.hover" },
+                          "&:hover": {
+                            bgcolor: "action.hover",
+                            cursor: "pointer",
+                          },
                         }}
+                        onClick={() => navigate(`/reports`)} /* deep-link */
                       >
-                        {r.title}
-                      </Link>
+                        {/*  reporter avatar  */}
+                        <ListItemAvatar>
+                          <Avatar sx={{ bgcolor: "primary.light" }}>
+                            <PersonIcon fontSize="small" />
+                          </Avatar>
+                        </ListItemAvatar>
+
+                        {/*  id and reason  */}
+                        <ListItemText
+                          primary={
+                            <Typography variant="body2" fontWeight={600} noWrap>
+                              {r.reporter_id}
+                            </Typography>
+                          }
+                          secondary={
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              noWrap
+                            >
+                              {r.reason}
+                            </Typography>
+                          }
+                          sx={{ mr: 1 }}
+                        />
+
+                        {/*  status chip  */}
+                        <Chip
+                          label={r.status}
+                          size="small"
+                          color={r.status === "PENDING" ? "warning" : "success"}
+                          variant="outlined"
+                        />
+                      </ListItem>
                     ))}
-                  </Stack>
+                  </List>
                 ) : (
                   <Typography variant="body2" color="text.secondary">
-                    No recent reports found.
+                    No reports
                   </Typography>
                 )}
+
                 <Box mt={2} textAlign="right">
                   <Link href="/reports" underline="hover">
                     See all
@@ -395,14 +437,18 @@ function DashboardContent({
             <Card sx={{ mb: 3 }}>
               <CardHeader
                 title={
-                  <Typography variant="subtitle1">Top 5 AI Posts</Typography>
+                  <Typography variant="subtitle1">Top 3 AI Posts</Typography>
                 }
               />
               <CardContent>
                 {topPostsFiltered.length ? (
-                  <ImageList cols={3} gap={20} sx={{ m: 0, height: 350 }}>
+                  <ImageList cols={3} gap={20} sx={{ m: 0 }}>
                     {topPostsFiltered.map((post: any) => (
-                      <ImageListItem key={post.id}>
+                      <ImageListItem
+                        key={post.id}
+                        sx={{ cursor: "pointer" }}
+                        onClick={() => navigate("/posts?category=ai-posts")}
+                      >
                         <img
                           src={post.thumbnail_url}
                           alt={post.title}
@@ -451,9 +497,7 @@ function DashboardContent({
                                     border: "1.5px solid #fff",
                                   },
                                 }}
-                              >
-                                <ThumbUpIcon sx={{ color: "#fff" }} />
-                              </Badge>
+                              ></Badge>
                             </Box>
                           }
                         />

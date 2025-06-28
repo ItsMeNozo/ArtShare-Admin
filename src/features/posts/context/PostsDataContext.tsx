@@ -1,9 +1,9 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
 import { useDebounce } from "../../../common/hooks/useDebounce";
 import { useGetAdminPosts } from "../hooks/usePostQueries";
 import { Order } from "../../users/types";
 import { PostListItemDto } from "../types/post-api.types";
-
+import { useSearchParams } from "react-router-dom";
 interface PostsDataContextType {
   posts: PostListItemDto[];
   totalPosts: number;
@@ -40,7 +40,14 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
   const [sortOrder, setSortOrder] = useState<Order>("desc");
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryId, setCategoryId] = useState<number | null>(null);
+  const [params] = useSearchParams();
+  const initialCat = params.get("category"); // "ai-posts"
 
+  useEffect(() => {
+    if (initialCat === "ai-posts") {
+      setCategoryId(23); // whatever numeric ID maps to AI posts
+    }
+  }, [initialCat]);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const { data, isLoading, isPlaceholderData, error } = useGetAdminPosts({
