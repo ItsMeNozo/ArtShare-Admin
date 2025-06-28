@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   TextField,
   FormControl,
@@ -10,10 +10,10 @@ import {
   Grid,
   Box,
   Chip,
-} from '@mui/material';
-import { FormikProps } from 'formik';
-import { CategoryFormData } from '../hooks/useCategoryForm';
-import { CategoryTypeValues } from '../../../types/category';
+} from "@mui/material";
+import { FormikProps } from "formik";
+import { CategoryFormData } from "../hooks/useCategoryForm";
+import { CategoryTypeValues } from "../../../types/category";
 
 interface FormFieldProps {
   formik: FormikProps<CategoryFormData>;
@@ -27,8 +27,8 @@ const categoryTypeTooltips = {
     "Medium: Refers to the art medium or material used. Helps classify artworks by their physical composition (e.g., 'Oil Painting', 'Sculpture', 'Digital Art').",
 };
 
-const getCategoryTypeColor = (type: string): 'primary' | 'secondary' => {
-  return type === CategoryTypeValues.ATTRIBUTE ? 'primary' : 'secondary';
+const getCategoryTypeColor = (type: string): "primary" | "secondary" => {
+  return type === CategoryTypeValues.ATTRIBUTE ? "primary" : "secondary";
 };
 
 const FormTextField: React.FC<{
@@ -56,13 +56,13 @@ const FormTextField: React.FC<{
       component="label"
       htmlFor={id}
       sx={{
-        display: 'block',
-        color: 'text.secondary',
+        display: "block",
+        color: "text.secondary",
         fontWeight: 500,
         mb: 0.5,
       }}
     >
-      {label} {required && <span style={{ color: 'red' }}>*</span>}
+      {label} {required && <span style={{ color: "red" }}>*</span>}
     </Typography>
     <TextField
       fullWidth
@@ -91,9 +91,19 @@ const ReadOnlyField: React.FC<{
     <Typography variant="caption" color="text.secondary" fontWeight={500}>
       {label}
     </Typography>
-    <Typography variant="body1" className="break-words min-h-[24px]">
-      {value || '-'}
-    </Typography>
+    <Box
+      component="div"
+      sx={{
+        fontSize: "1rem",
+        fontFamily: "inherit",
+        lineHeight: 1.5,
+        color: "text.primary",
+        minHeight: "24px",
+        wordBreak: "break-words",
+      }}
+    >
+      {value || "-"}
+    </Box>
   </Grid>
 );
 
@@ -144,7 +154,7 @@ export const CategoryTypeField: React.FC<FormFieldProps> = ({
       <ReadOnlyField
         label="Category Type"
         value={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Tooltip title={categoryTypeTooltips[formik.values.type]} arrow>
               <Chip
                 label={formik.values.type}
@@ -165,13 +175,13 @@ export const CategoryTypeField: React.FC<FormFieldProps> = ({
         variant="caption"
         component="label"
         sx={{
-          display: 'block',
-          color: 'text.secondary',
+          display: "block",
+          color: "text.secondary",
           fontWeight: 500,
           mb: 1.5,
         }}
       >
-        Category Type <span style={{ color: 'red' }}>*</span>
+        Category Type <span style={{ color: "red" }}>*</span>
       </Typography>
       <FormControl
         fullWidth
