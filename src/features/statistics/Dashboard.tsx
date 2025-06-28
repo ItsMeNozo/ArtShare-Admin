@@ -54,7 +54,7 @@ const ColorModeContext = createContext<{ toggleColorMode: () => void }>({
 
 /* ---------- Types ---------- */
 type StatisticsData = {
-  posts_by_ai?: { count: number }[];
+  total_posts?: { count: number }[];
   total_ai_images?: { count: number }[];
   token_usage?: { count: number }[];
   styles?: { key: string; count: number }[];
@@ -160,8 +160,9 @@ export default function StatisticDashboardPage() {
   /* ---------- Derived ---------- */
   const processed = useMemo(() => {
     if (!statisticsData) return {} as any;
+    console.log(statisticsData);
     return {
-      postsCount: statisticsData.posts_by_ai?.[0]?.count ?? 0,
+      postsCount: statisticsData.total_posts?.[0]?.count ?? 0,
       blogsCount: statisticsData.total_blogs?.[0]?.count ?? 0,
       imagesCount: statisticsData.total_ai_images?.[0]?.count ?? 0,
       tokensCount: statisticsData.token_usage?.[0]?.count ?? 0,
@@ -297,7 +298,7 @@ function DashboardContent({
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
             <SummaryTile
               icon={<AutoAwesomeIcon />}
-              label="AI Posts"
+              label="Total Posts"
               value={processed.postsCount}
               to="/posts"
             />
