@@ -149,7 +149,7 @@ export default function StatisticDashboardPage() {
       try {
         const [statsRes, stripeRes] = await Promise.all([
           api.get(`/statistics${daysQuery}`),
-          api.get(`/api/stripe/income-summary${daysQuery}`),
+          api.get(`/api/stripe/income-summary`),
         ]);
         setStatisticsData(statsRes.data);
         setStripeData(stripeRes.data);
@@ -272,7 +272,7 @@ function DashboardContent({
             mb: 1,
           }}
         >
-          <Typography variant="h4" fontWeight={700}>
+          <Typography variant="h4" fontWeight={700} mb={3} color="text.primary">
             Dashboard
           </Typography>
 
@@ -299,8 +299,12 @@ function DashboardContent({
         </Box>
 
         {/* Greeting */}
-        <Typography variant="h6" mb={3}>
-          Welcome back, {userName}
+        <Typography
+          variant="h6"
+          mb={3}
+          color="text.primary" // ✅ add this prop
+        >
+          Welcome back, {userName || "Admin"}
         </Typography>
 
         {/* Summary tiles */}
