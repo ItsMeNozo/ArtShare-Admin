@@ -1,4 +1,4 @@
-import type UserRoleType from '../constants/roles';
+import type UserRoleType from "../constants/roles";
 
 export interface UserAccess {
   userId: string;

@@ -1,6 +1,6 @@
-import React, { createContext, useState, useContext, useCallback } from 'react';
-import { AlertColor } from '@mui/material/Alert';
-import { PostListItemDto } from '../types/post-api.types';
+import React, { createContext, useState, useContext, useCallback } from "react";
+import { AlertColor } from "@mui/material/Alert";
+import { PostListItemDto } from "../types/post-api.types";
 
 interface ConfirmationDialogState {
   open: boolean;
@@ -65,12 +65,12 @@ export const PostsUIProvider: React.FC<{ children: React.ReactNode }> = ({
   const [currentPostForMenu, setCurrentPostForMenu] =
     useState<PostListItemDto | null>(null);
   const [confirmDialogState, setConfirmDialogState] =
-    useState<ConfirmationDialogState>({ open: false, title: '', message: '' });
+    useState<ConfirmationDialogState>({ open: false, title: "", message: "" });
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
   const [snackbar, setSnackbar] = useState<SnackbarState>({
     open: false,
-    message: '',
-    severity: 'success',
+    message: "",
+    severity: "success",
   });
 
   const handleDeselectAll = useCallback(() => setSelected([]), []);
@@ -144,7 +144,7 @@ export const PostsUIProvider: React.FC<{ children: React.ReactNode }> = ({
   const closeEditModal = useCallback(() => setEditingPostId(null), []);
 
   const showSnackbar = useCallback(
-    (message: string, severity: AlertColor = 'success') => {
+    (message: string, severity: AlertColor = "success") => {
       setSnackbar({ open: true, message, severity });
     },
     [],
@@ -152,7 +152,7 @@ export const PostsUIProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const closeSnackbar = useCallback(
     (_event?: React.SyntheticEvent | Event, reason?: string) => {
-      if (reason === 'clickaway') return;
+      if (reason === "clickaway") return;
       setSnackbar((s) => ({ ...s, open: false }));
     },
     [],
@@ -186,7 +186,7 @@ export const PostsUIProvider: React.FC<{ children: React.ReactNode }> = ({
 export const usePostsUI = (): PostsUIContextType => {
   const context = useContext(PostsUIContext);
   if (context === undefined) {
-    throw new Error('usePostsUI must be used within a PostsUIProvider');
+    throw new Error("usePostsUI must be used within a PostsUIProvider");
   }
   return context;
 };

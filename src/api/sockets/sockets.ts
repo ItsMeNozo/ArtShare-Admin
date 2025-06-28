@@ -44,7 +44,7 @@ export function connectToNotifications(userId: string): Socket {
     console.log("[Socket] connected with ID →", socket!.id);
   });
 
-  socket.on("disconnect", (reason) => {
+  socket.on("disconnect", (reason: any) => {
     console.log("[Socket] disconnected:", reason);
     if (reason === "io server disconnect") {
       // The server forcefully disconnected, likely due to auth failure
@@ -54,11 +54,11 @@ export function connectToNotifications(userId: string): Socket {
     }
   });
 
-  socket.on("error", (error) => {
+  socket.on("error", (error: any) => {
     console.error("[Socket] Error from server:", error);
   });
 
-  socket.on("connect_error", (error) => {
+  socket.on("connect_error", (error: any) => {
     console.error("[Socket] connection error:", error.message);
     if (error.message.includes("Authentication")) {
       console.error(
@@ -73,15 +73,15 @@ export function connectToNotifications(userId: string): Socket {
     }
   });
 
-  socket.on("reconnect", (attemptNumber) => {
+  socket.on("reconnect", (attemptNumber: any) => {
     console.log("[Socket] reconnected after", attemptNumber, "attempts");
   });
 
-  socket.on("reconnect_attempt", (attemptNumber) => {
+  socket.on("reconnect_attempt", (attemptNumber: any) => {
     console.log("[Socket] reconnection attempt", attemptNumber);
   });
 
-  socket.on("reconnect_error", (error) => {
+  socket.on("reconnect_error", (error: any) => {
     console.error("[Socket] reconnection failed:", error);
   });
 

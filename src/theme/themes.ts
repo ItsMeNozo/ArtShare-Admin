@@ -1,14 +1,14 @@
-import { createTheme } from '@mui/material/styles';
-import { alpha } from '@mui/material/styles';
-import '@mui/material/styles';
+import { createTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
+import "@mui/material/styles";
 
 // shared colour tokens
-const SIDEBAR_LIGHT = '#111C43'; // left drawer when mode = light
-const SIDEBAR_DARK = '#1A1C1E'; // left drawer when mode = dark
-const PAGE_LIGHT = '#f4f6fa'; // content area when mode = light
-const PAGE_DARK = '#181a1e'; // content area when mode = dark
+const SIDEBAR_LIGHT = "#111C43"; // left drawer when mode = light
+const SIDEBAR_DARK = "#1A1C1E"; // left drawer when mode = dark
+const PAGE_LIGHT = "#f4f6fa"; // content area when mode = light
+const PAGE_DARK = "#181a1e"; // content area when mode = dark
 
-declare module '@mui/material/styles' {
+declare module "@mui/material/styles" {
   interface Palette {
     mountain: {
       100: string;
@@ -26,37 +26,37 @@ declare module '@mui/material/styles' {
 
 export const lightTheme = createTheme({
   palette: {
-    mode: 'light',
+    mode: "light",
     background: {
       default: PAGE_LIGHT, // 👉 right‑hand surface
-      paper: '#ffffff', // keep cards white
+      paper: "#ffffff", // keep cards white
     },
     primary: {
-      main: '#6366F1', // indigo-500 (example, adjust to your primary)
-      light: '#818CF8', // indigo-400
-      contrastText: '#FFFFFF',
+      main: "#6366F1", // indigo-500 (example, adjust to your primary)
+      light: "#818CF8", // indigo-400
+      contrastText: "#FFFFFF",
     },
     secondary: {
-      main: '#0EA5E9', // sky-500 (example)
+      main: "#0EA5E9", // sky-500 (example)
       // ... other secondary colors
     },
     text: {
-      primary: '#1f2937', // Darker grey for primary text (like Tailwind's gray-800)
-      secondary: '#6b7280', // Medium grey for secondary text (like Tailwind's gray-500)
+      primary: "#1f2937", // Darker grey for primary text (like Tailwind's gray-800)
+      secondary: "#6b7280", // Medium grey for secondary text (like Tailwind's gray-500)
     },
     // ... other palette colors (success, warning, error, info, divider)
-    divider: '#e5e7eb', // Lighter divider (like Tailwind's gray-200)
+    divider: "#e5e7eb", // Lighter divider (like Tailwind's gray-200)
     success: {
-      main: '#2EB67D',
+      main: "#2EB67D",
     },
     error: {
-      main: '#E01E5A',
+      main: "#E01E5A",
     },
     warning: {
-      main: '#ECB22E',
+      main: "#ECB22E",
     },
     info: {
-      main: '#36C5F0',
+      main: "#36C5F0",
     },
   },
   components: {
@@ -74,7 +74,7 @@ export const lightTheme = createTheme({
       styleOverrides: {
         paper: {
           backgroundColor: SIDEBAR_LIGHT, // Your specified dark sidebar color
-          color: alpha('#FFFFFF', 0.8), // Default text color for sidebar
+          color: alpha("#FFFFFF", 0.8), // Default text color for sidebar
         },
       },
     },
@@ -88,30 +88,30 @@ export const lightTheme = createTheme({
           paddingRight: theme.spacing(2),
 
           /* default state - white(80%) on #111C43 */
-          color: '#7C9AC8', // Slightly less opaque for non-selected
-          '& .MuiListItemIcon-root': {
-            color: alpha('#FFFFFF', 0.8),
+          color: "#7C9AC8", // Slightly less opaque for non-selected
+          "& .MuiListItemIcon-root": {
+            color: alpha("#FFFFFF", 0.8),
           },
 
           /* hover state */
-          '&:hover': {
-            backgroundColor: alpha('#FFFFFF', 0.08), // Subtle white overlay on hover
-            color: alpha('#FFFFFF', 0.9),
-            '& .MuiListItemIcon-root': {
-              color: alpha('#FFFFFF', 0.9),
+          "&:hover": {
+            backgroundColor: alpha("#FFFFFF", 0.08), // Subtle white overlay on hover
+            color: alpha("#FFFFFF", 0.9),
+            "& .MuiListItemIcon-root": {
+              color: alpha("#FFFFFF", 0.9),
             },
           },
 
           /* selected state - like the reference UI */
-          '&.Mui-selected': {
+          "&.Mui-selected": {
             backgroundColor: alpha(theme.palette.primary.main, 0.15), // A very light tint of primary, or a light grey
             // or use a specific color: backgroundColor: '#2A3A6B', // Example: a lighter shade of the sidebar
-            color: '#FFFFFF', // Bright white text for selected
+            color: "#FFFFFF", // Bright white text for selected
             fontWeight: 600, // Ensure selected text is bold
-            '& .MuiListItemIcon-root': {
-              color: '#FFFFFF', // Bright white icon for selected
+            "& .MuiListItemIcon-root": {
+              color: "#FFFFFF", // Bright white icon for selected
             },
-            '&:hover': {
+            "&:hover": {
               // Hover on selected
               backgroundColor: alpha(theme.palette.primary.main, 0.25),
               // or use a specific color: backgroundColor: '#3A4A7B',
@@ -123,9 +123,9 @@ export const lightTheme = createTheme({
     MuiListItemText: {
       styleOverrides: {
         primary: {
-          color: 'inherit',
+          color: "inherit",
           fontWeight: 500,
-          fontSize: '0.8125rem', // ~13px
+          fontSize: "0.8125rem", // ~13px
         },
       },
     },
@@ -133,8 +133,8 @@ export const lightTheme = createTheme({
       styleOverrides: {
         root: {
           minWidth: 28, // Reduce icon spacing
-          fontSize: '18px', // Reduce icon size
-          color: alpha('#FFFFFF', 0.7),
+          fontSize: "18px", // Reduce icon size
+          color: alpha("#FFFFFF", 0.7),
         },
       },
     },
@@ -142,13 +142,13 @@ export const lightTheme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           // Make 'root' a function
-          backgroundColor: 'transparent',
-          color: alpha('#FFFFFF', 0.6),
-          lineHeight: '30px',
+          backgroundColor: "transparent",
+          color: alpha("#FFFFFF", 0.6),
+          lineHeight: "30px",
           marginLeft: theme.spacing(1.5), // Correctly resolves
           fontWeight: 500, // Or theme.typography.fontWeightMedium
-          fontSize: '0.75rem',
-          textTransform: 'uppercase',
+          fontSize: "0.75rem",
+          textTransform: "uppercase",
         }),
       },
     },
@@ -156,7 +156,7 @@ export const lightTheme = createTheme({
       // Sidebar divider
       styleOverrides: {
         root: () => ({
-          borderColor: alpha('#FFFFFF', 0.12), // Subtle white divider
+          borderColor: alpha("#FFFFFF", 0.12), // Subtle white divider
         }),
       },
     },
@@ -167,7 +167,7 @@ export const lightTheme = createTheme({
           borderRadius: 16, // pill shape
           height: 28, // control the chip height
           fontWeight: 500, // semi-bold label
-          textTransform: 'none', // keep “Today” capital-T only
+          textTransform: "none", // keep “Today” capital-T only
           paddingLeft: theme.spacing(1),
           paddingRight: theme.spacing(1),
         }),
@@ -175,15 +175,15 @@ export const lightTheme = createTheme({
         filledPrimary: ({ theme }) => ({
           backgroundColor: theme.palette.primary.main,
           color: theme.palette.primary.contrastText,
-          '&:hover': {
+          "&:hover": {
             backgroundColor: theme.palette.primary.dark,
           },
         }),
         // when you do <Chip color="secondary" />, this runs
         filledSecondary: ({ theme }) => ({
           backgroundColor: theme.palette.secondary.main,
-          color: '#fff',
-          '&:hover': {
+          color: "#fff",
+          "&:hover": {
             backgroundColor: theme.palette.secondary.dark,
           },
         }),
@@ -198,8 +198,8 @@ export const lightTheme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           backgroundColor:
-            theme.palette.mode === 'dark' ? '#1f2937' : '#f9fafb', // shadcn feel
-          '& .MuiTableCell-root': {
+            theme.palette.mode === "dark" ? "#1f2937" : "#f9fafb", // shadcn feel
+          "& .MuiTableCell-root": {
             //   bolder header text
             fontWeight: 600,
             color: theme.palette.text.primary,
@@ -211,9 +211,9 @@ export const lightTheme = createTheme({
     MuiTableRow: {
       styleOverrides: {
         root: ({ theme }) => ({
-          '&:hover': {
+          "&:hover": {
             backgroundColor:
-              theme.palette.mode === 'dark' ? '#273549' : '#f3f4f6',
+              theme.palette.mode === "dark" ? "#273549" : "#f3f4f6",
           },
         }),
       },
@@ -221,7 +221,7 @@ export const lightTheme = createTheme({
   },
   typography: {
     fontFamily: "'Inter', sans-serif",
-    button: { textTransform: 'none' },
+    button: { textTransform: "none" },
   },
   shape: { borderRadius: 8 },
 });
@@ -229,15 +229,15 @@ export const lightTheme = createTheme({
 /* ----------  DARK THEME  ---------- */
 export const darkTheme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: "dark",
     primary: {
-      main: '#8B5CF6', // violet-500
-      light: '#A78BFA', // violet-400
-      dark: '#7C3AED', // violet-600
-      contrastText: '#FFFFFF', // White text on violet
+      main: "#8B5CF6", // violet-500
+      light: "#A78BFA", // violet-400
+      dark: "#7C3AED", // violet-600
+      contrastText: "#FFFFFF", // White text on violet
     },
     secondary: {
-      main: '#0EA5E9',
+      main: "#0EA5E9",
       // ...
     },
     background: {
@@ -245,10 +245,10 @@ export const darkTheme = createTheme({
       paper: PAGE_DARK, // Your slate-800 for cards, AppBar background in dark mode
     },
     text: {
-      primary: '#f1f5f9', // slate-100
-      secondary: '#9ca3af', // slate-400
+      primary: "#f1f5f9", // slate-100
+      secondary: "#9ca3af", // slate-400
     },
-    divider: '#334155', // slate-700
+    divider: "#334155", // slate-700
   },
   components: {
     MuiAppBar: {
@@ -265,7 +265,7 @@ export const darkTheme = createTheme({
       styleOverrides: {
         paper: {
           backgroundColor: SIDEBAR_DARK, // Consistent dark sidebar color
-          color: alpha('#FFFFFF', 0.8),
+          color: alpha("#FFFFFF", 0.8),
         },
       },
     },
@@ -279,25 +279,25 @@ export const darkTheme = createTheme({
           paddingLeft: theme.spacing(2),
           paddingRight: theme.spacing(2),
 
-          color: alpha('#FFFFFF', 0.7),
-          '& .MuiListItemIcon-root': {
-            color: alpha('#FFFFFF', 0.7),
+          color: alpha("#FFFFFF", 0.7),
+          "& .MuiListItemIcon-root": {
+            color: alpha("#FFFFFF", 0.7),
           },
-          '&:hover': {
-            backgroundColor: alpha('#FFFFFF', 0.08),
-            color: alpha('#FFFFFF', 0.9),
-            '& .MuiListItemIcon-root': {
-              color: alpha('#FFFFFF', 0.9),
+          "&:hover": {
+            backgroundColor: alpha("#FFFFFF", 0.08),
+            color: alpha("#FFFFFF", 0.9),
+            "& .MuiListItemIcon-root": {
+              color: alpha("#FFFFFF", 0.9),
             },
           },
-          '&.Mui-selected': {
+          "&.Mui-selected": {
             backgroundColor: alpha(theme.palette.primary.main, 0.25), // Brighter primary tint for dark mode
-            color: '#FFFFFF',
+            color: "#FFFFFF",
             fontWeight: 600,
-            '& .MuiListItemIcon-root': {
-              color: '#FFFFFF',
+            "& .MuiListItemIcon-root": {
+              color: "#FFFFFF",
             },
-            '&:hover': {
+            "&:hover": {
               backgroundColor: alpha(theme.palette.primary.main, 0.35),
             },
           },
@@ -307,9 +307,9 @@ export const darkTheme = createTheme({
     MuiListItemText: {
       styleOverrides: {
         primary: {
-          color: 'inherit',
+          color: "inherit",
           fontWeight: 500,
-          fontSize: '0.8125rem', // ~13px
+          fontSize: "0.8125rem", // ~13px
         },
       },
     },
@@ -317,8 +317,8 @@ export const darkTheme = createTheme({
       styleOverrides: {
         root: {
           minWidth: 28, // Reduce icon spacing
-          fontSize: '18px', // Reduce icon size
-          color: alpha('#FFFFFF', 0.7),
+          fontSize: "18px", // Reduce icon size
+          color: alpha("#FFFFFF", 0.7),
         },
       },
     },
@@ -327,20 +327,20 @@ export const darkTheme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           // Make 'root' a function
-          backgroundColor: 'transparent',
-          color: alpha('#FFFFFF', 0.6),
-          lineHeight: '30px',
+          backgroundColor: "transparent",
+          color: alpha("#FFFFFF", 0.6),
+          lineHeight: "30px",
           marginLeft: theme.spacing(1.5), // Correctly resolves
           fontWeight: 500,
-          fontSize: '0.75rem',
-          textTransform: 'uppercase',
+          fontSize: "0.75rem",
+          textTransform: "uppercase",
         }),
       },
     },
     MuiDivider: {
       styleOverrides: {
         root: () => ({
-          borderColor: alpha('#FFFFFF', 0.12),
+          borderColor: alpha("#FFFFFF", 0.12),
         }),
       },
     },
@@ -351,7 +351,7 @@ export const darkTheme = createTheme({
           borderRadius: 16, // pill shape
           height: 28, // control the chip height
           fontWeight: 500, // semi-bold label
-          textTransform: 'none', // keep “Today” capital-T only
+          textTransform: "none", // keep “Today” capital-T only
           paddingLeft: theme.spacing(1),
           paddingRight: theme.spacing(1),
         }),
@@ -359,15 +359,15 @@ export const darkTheme = createTheme({
         filledPrimary: ({ theme }) => ({
           backgroundColor: theme.palette.primary.main,
           color: theme.palette.primary.contrastText,
-          '&:hover': {
+          "&:hover": {
             backgroundColor: theme.palette.primary.dark,
           },
         }),
         // when you do <Chip color="secondary" />, this runs
         filledSecondary: ({ theme }) => ({
           backgroundColor: theme.palette.secondary.main,
-          color: '#fff',
-          '&:hover': {
+          color: "#fff",
+          "&:hover": {
             backgroundColor: theme.palette.secondary.dark,
           },
         }),
@@ -382,8 +382,8 @@ export const darkTheme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           backgroundColor:
-            theme.palette.mode === 'dark' ? '#1f2937' : '#f9fafb', // shadcn feel
-          '& .MuiTableCell-root': {
+            theme.palette.mode === "dark" ? "#1f2937" : "#f9fafb", // shadcn feel
+          "& .MuiTableCell-root": {
             //   bolder header text
             fontWeight: 600,
             color: theme.palette.text.primary,
@@ -396,9 +396,9 @@ export const darkTheme = createTheme({
     MuiTableRow: {
       styleOverrides: {
         root: ({ theme }) => ({
-          '&:hover': {
+          "&:hover": {
             backgroundColor:
-              theme.palette.mode === 'dark' ? '#273549' : '#f3f4f6',
+              theme.palette.mode === "dark" ? "#273549" : "#f3f4f6",
           },
         }),
       },
@@ -407,14 +407,14 @@ export const darkTheme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           // Override button text color in dark mode for better visibility
-          ...(theme.palette.mode === 'dark' && {
-            '&.MuiButton-text': {
+          ...(theme.palette.mode === "dark" && {
+            "&.MuiButton-text": {
               color: theme.palette.text.primary, // Use primary text color instead of purple
             },
-            '&.MuiButton-outlined': {
+            "&.MuiButton-outlined": {
               color: theme.palette.text.primary, // Use primary text color for outlined buttons
               borderColor: theme.palette.divider,
-              '&:hover': {
+              "&:hover": {
                 backgroundColor: theme.palette.action.hover,
                 borderColor: theme.palette.text.secondary,
               },
@@ -426,7 +426,7 @@ export const darkTheme = createTheme({
   },
   typography: {
     fontFamily: "'Inter', sans-serif",
-    button: { textTransform: 'none' },
+    button: { textTransform: "none" },
   },
   shape: { borderRadius: 8 },
 });

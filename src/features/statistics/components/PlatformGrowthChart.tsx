@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   LineChart,
   Line,
@@ -8,7 +8,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from 'recharts';
+} from "recharts";
 import {
   Box,
   Paper,
@@ -17,9 +17,9 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
-} from '@mui/material';
-import { format, parseISO } from 'date-fns';
-import { CombinedTimePoint } from '../statistics.types';
+} from "@mui/material";
+import { format, parseISO } from "date-fns";
+import { CombinedTimePoint } from "../statistics.types";
 
 interface PlatformGrowthChartProps {
   data: CombinedTimePoint[];
@@ -49,7 +49,7 @@ const PlatformGrowthChart: React.FC<PlatformGrowthChartProps> = ({
             variant="caption"
             component="label"
             htmlFor="timeseries-days-select-growth"
-            sx={{ mb: 0.5, color: 'text.secondary' }}
+            sx={{ mb: 0.5, color: "text.secondary" }}
           >
             Period
           </Typography>
@@ -69,7 +69,7 @@ const PlatformGrowthChart: React.FC<PlatformGrowthChartProps> = ({
         </Box>
       </Box>
       {data.length > 0 ? (
-        <Box sx={{ height: 400, width: '100%' }}>
+        <Box sx={{ height: 400, width: "100%" }}>
           <ResponsiveContainer>
             <LineChart
               data={data}
@@ -78,7 +78,7 @@ const PlatformGrowthChart: React.FC<PlatformGrowthChartProps> = ({
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="date"
-                tickFormatter={(tick) => format(parseISO(tick), 'MMM d')}
+                tickFormatter={(tick) => format(parseISO(tick), "MMM d")}
               />
               <YAxis yAxisId="left" allowDecimals={false} />
               <YAxis
@@ -88,7 +88,7 @@ const PlatformGrowthChart: React.FC<PlatformGrowthChartProps> = ({
               />
               <Tooltip
                 labelFormatter={(label) =>
-                  format(parseISO(label), 'MMM d, yyyy')
+                  format(parseISO(label), "MMM d, yyyy")
                 }
               />
               <Legend />

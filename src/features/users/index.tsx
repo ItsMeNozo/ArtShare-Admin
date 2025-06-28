@@ -1,15 +1,15 @@
-import React, { useCallback } from 'react';
-import { Container } from '@mui/material';
-import { UserDataProvider, useUserData } from './context/UserDataContext';
+import React, { useCallback } from "react";
+import { Container } from "@mui/material";
+import { UserDataProvider, useUserData } from "./context/UserDataContext";
 import {
   UserInterfaceProvider,
   useUserInterface,
-} from './context/UserInterfaceContext';
-import { UserTable } from './components/UserTable';
-import { UserEditViewDialog } from './components/UserEditViewDialog';
-import { UserActionMenu } from './components/UserActionMenu';
-import { DeleteConfirmationDialog } from './components/DeleteConfirmationDialog';
-import { PageNotifier } from './components/PageNotifier';
+} from "./context/UserInterfaceContext";
+import { UserTable } from "./components/UserTable";
+import { UserEditViewDialog } from "./components/UserEditViewDialog";
+import { UserActionMenu } from "./components/UserActionMenu";
+import { DeleteConfirmationDialog } from "./components/DeleteConfirmationDialog";
+import { PageNotifier } from "./components/PageNotifier";
 
 const UserManagementView: React.FC = () => {
   const { deleteUserMutation, bulkDeleteUsersMutation } = useUserData();
@@ -35,14 +35,14 @@ const UserManagementView: React.FC = () => {
       onSuccess: () => {
         showPageNotification(
           `User "${userToDelete.username}" deleted successfully.`,
-          'success',
+          "success",
         );
         handleCloseDeleteDialog();
       },
       onError: (error) =>
         showPageNotification(
           `Failed to delete user: ${error.message}`,
-          'error',
+          "error",
         ),
     });
   }, [
@@ -59,7 +59,7 @@ const UserManagementView: React.FC = () => {
       onSuccess: () => {
         showPageNotification(
           `${selectedIds.length} user(s) deleted successfully.`,
-          'success',
+          "success",
         );
         resetSelection();
         handleCloseBulkDeleteDialog();
@@ -67,7 +67,7 @@ const UserManagementView: React.FC = () => {
       onError: (error) =>
         showPageNotification(
           `Failed to delete users: ${error.message}`,
-          'error',
+          "error",
         ),
     });
   }, [
@@ -111,7 +111,7 @@ const UserManagementView: React.FC = () => {
         onConfirm={handleDeleteUser}
         isPending={deleteUserMutation.isPending}
         title="Confirm Deletion"
-        contentText={`Are you sure you want to delete user "${dialogs.delete.user?.username || ''}"? This action cannot be undone.`}
+        contentText={`Are you sure you want to delete user "${dialogs.delete.user?.username || ""}"? This action cannot be undone.`}
       />
 
       <DeleteConfirmationDialog
