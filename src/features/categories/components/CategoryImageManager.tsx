@@ -1,4 +1,4 @@
-import React, { useRef, ChangeEvent } from "react";
+import React, { useRef, ChangeEvent, useState } from "react";
 import {
   Box,
   Button,
@@ -9,6 +9,7 @@ import {
   Alert,
   Paper,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import {
   PhotoCameraOutlined as CameraIcon,
@@ -25,12 +26,56 @@ interface CategoryImageManagerProps {
 }
 
 const MAX_IMAGES = 4;
+const MAX_IMAGE_WIDTH = 800; // Maximum width for compressed images
+const MAX_IMAGE_HEIGHT = 600; // Maximum height for compressed images
+const JPEG_QUALITY = 0.8; // JPEG compression quality (0.1 to 1.0)
+
+// Helper function to compress image
+const compressImage = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    img.onload = () => {
+      // Calculate new dimensions while maintaining aspect ratio
+      let { width, height } = img;
+
+      if (width > MAX_IMAGE_WIDTH || height > MAX_IMAGE_HEIGHT) {
+        const aspectRatio = width / height;
+
+        if (width > height) {
+          width = MAX_IMAGE_WIDTH;
+          height = width / aspectRatio;
+        } else {
+          height = MAX_IMAGE_HEIGHT;
+          width = height * aspectRatio;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      // Draw and compress
+      ctx?.drawImage(img, 0, 0, width, height);
+
+      // Convert to base64 with compression
+      const compressedDataUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+      resolve(compressedDataUrl);
+    };
+
+    img.onerror = () =>
+      reject(new Error("Failed to load image for compression"));
+    img.src = URL.createObjectURL(file);
+  });
+};
 
 export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
   formik,
   isEditing,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleImageAdd = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -48,6 +93,7 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
 
       // Process files individually and collect results
       const processFiles = async () => {
+        setIsProcessing(true);
         const validImages: string[] = [];
         const errors: string[] = [];
 
@@ -67,14 +113,8 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
               continue;
             }
 
-            // Convert to base64
-            const base64Image = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = () =>
-                reject(new Error(`Failed to read file "${file.name}"`));
-              reader.readAsDataURL(file);
-            });
+            // Convert to compressed base64
+            const base64Image = await compressImage(file);
 
             validImages.push(base64Image);
           } catch (error) {
@@ -99,6 +139,8 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
           // Clear errors if all files were processed successfully
           formik.setFieldError("example_images", undefined);
         }
+
+        setIsProcessing(false);
       };
 
       processFiles();
@@ -172,29 +214,48 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
               border: "2px dashed",
               borderColor: "grey.300",
               borderRadius: 2,
-              cursor: "pointer",
+              cursor: isProcessing ? "default" : "pointer",
               transition: "all 0.2s ease",
-              "&:hover": {
-                borderColor: "primary.main",
-                bgcolor: "primary.50",
-              },
+              "&:hover": !isProcessing
+                ? {
+                    borderColor: "primary.main",
+                    bgcolor: "primary.50",
+                  }
+                : {},
+              opacity: isProcessing ? 0.7 : 1,
             }}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onClick={triggerImageUpload}
+            onDragOver={!isProcessing ? handleDragOver : undefined}
+            onDrop={!isProcessing ? handleDrop : undefined}
+            onClick={!isProcessing ? triggerImageUpload : undefined}
           >
-            <UploadIcon sx={{ fontSize: 48, color: "text.secondary", mb: 1 }} />
-            <Typography variant="h6" gutterBottom>
-              Drop images here or click to browse
-            </Typography>
-            <Button
-              variant="outlined"
-              startIcon={<CameraIcon />}
-              onClick={triggerImageUpload}
-              sx={{ mt: 1 }}
-            >
-              Choose Images
-            </Button>
+            {isProcessing ? (
+              <>
+                <CircularProgress sx={{ mb: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  Processing images...
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Compressing and uploading your images
+                </Typography>
+              </>
+            ) : (
+              <>
+                <UploadIcon
+                  sx={{ fontSize: 48, color: "text.secondary", mb: 1 }}
+                />
+                <Typography variant="h6" gutterBottom>
+                  Drop images here or click to browse
+                </Typography>
+                <Button
+                  variant="outlined"
+                  startIcon={<CameraIcon />}
+                  onClick={triggerImageUpload}
+                  sx={{ mt: 1 }}
+                >
+                  Choose Images
+                </Button>
+              </>
+            )}
           </Paper>
         )}
 
