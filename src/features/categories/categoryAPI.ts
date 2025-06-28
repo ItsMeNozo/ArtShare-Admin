@@ -43,9 +43,16 @@ export const addCategory = async (
   categoryData: CreateCategoryDto,
 ): Promise<Category> => {
   try {
+    // Use longer timeout for operations with images
+    const timeout =
+      categoryData.example_images && categoryData.example_images.length > 0
+        ? 60000
+        : 10000; // 60s if images, 10s otherwise
+
     const response = await api.post<Category>(
       CATEGORIES_ENDPOINT,
       categoryData,
+      { timeout },
     );
     return {
       ...response.data,
@@ -65,9 +72,16 @@ export const updateCategory = async (
   categoryData: UpdateCategoryDto,
 ): Promise<Category> => {
   try {
+    // Use longer timeout for operations with images
+    const timeout =
+      categoryData.example_images && categoryData.example_images.length > 0
+        ? 60000
+        : 10000; // 60s if images, 10s otherwise
+
     const response = await api.patch<Category>(
       `${CATEGORIES_ENDPOINT}/${id}`,
       categoryData,
+      { timeout },
     ); // Assuming PATCH for updates
     return {
       ...response.data,
