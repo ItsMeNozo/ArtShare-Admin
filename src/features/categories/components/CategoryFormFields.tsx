@@ -91,9 +91,19 @@ const ReadOnlyField: React.FC<{
     <Typography variant="caption" color="text.secondary" fontWeight={500}>
       {label}
     </Typography>
-    <Typography variant="body1" className="break-words min-h-[24px]">
+    <Box
+      component="div"
+      sx={{
+        fontSize: "1rem",
+        fontFamily: "inherit",
+        lineHeight: 1.5,
+        color: "text.primary",
+        minHeight: "24px",
+        wordBreak: "break-words",
+      }}
+    >
       {value || "-"}
-    </Typography>
+    </Box>
   </Grid>
 );
 

@@ -1,6 +1,6 @@
 import api from "../../../api/baseApi";
 
-export interface AdminPostListItemUserDto {
+export interface AdminBlogListItemUserDto {
   id: string;
   username: string;
   profile_picture_url?: string | null;
@@ -23,6 +23,7 @@ export interface AdminBlogListItemDto {
   pictures: any[];
   embedded_videos: any[];
   view_count: number;
+  user: AdminBlogListItemUserDto;
 }
 
 export interface GetAllPostsAdminParams {

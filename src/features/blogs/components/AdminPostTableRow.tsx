@@ -125,9 +125,9 @@ const AdminPostTableRow: React.FC<AdminPostTableRowProps> = React.memo(
             }}
           >
             <Avatar
-              // src={blog.}
               variant="rounded"
               sx={{ mr: 1.5, width: 48, height: 48 }}
+              src={blog.pictures.length > 0 ? blog.pictures[0] : undefined}
             />
             {titleCellConfig.truncate ? (
               <Tooltip title={blog.title}>
@@ -170,9 +170,9 @@ const AdminPostTableRow: React.FC<AdminPostTableRowProps> = React.memo(
               />
             )} */}
             {userCellConfig.truncate ? (
-              <Tooltip title={String(blog.user_id)}>
+              <Tooltip title={String(blog?.user_id)}>
                 <Typography variant="body2" noWrap>
-                  {blog.user_id}
+                  {blog.user?.username ?? blog.user_id}
                 </Typography>
               </Tooltip>
             ) : (

@@ -64,7 +64,20 @@ const validationSchema = Yup.object({
     )
     .required("Category type is required"),
   example_images: Yup.array()
-    .of(Yup.string().url("Invalid image URL"))
+    .of(
+      Yup.string().test("valid-url-or-data", "Invalid image URL", (value) => {
+        if (!value) return true; // Allow empty values
+        // Allow data URLs (base64 images)
+        if (value.startsWith("data:image/")) return true;
+        // Allow regular HTTP/HTTPS URLs
+        try {
+          new URL(value);
+          return true;
+        } catch {
+          return false;
+        }
+      }),
+    )
     .max(4, "Maximum 4 example images allowed")
     .nullable(),
 });
