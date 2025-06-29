@@ -119,7 +119,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <FormControl sx={{ minWidth: 150 }} size="small">
-            <InputLabel id="ai-filter-label">Content Type</InputLabel>
+            <InputLabel id="ai-filter-label">Content type</InputLabel>
             <Select
               labelId="ai-filter-label"
               value={
@@ -136,7 +136,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
               }}
             >
               <MenuItem value="">
-                <em>All Content</em>
+                <em>All content</em>
               </MenuItem>
               <MenuItem value="true">AI Created</MenuItem>
               <MenuItem value="false">Human Created</MenuItem>
@@ -155,7 +155,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
               }}
             >
               <MenuItem value="">
-                <em>All Categories</em>
+                <em>All categories</em>
               </MenuItem>
               {categories.map((category) => (
                 <MenuItem key={category.id} value={category.id}>
