@@ -54,12 +54,12 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
     if (aiCreatedParam === "true") {
       setAiCreated(true);
-      setCategoryId(null);
       setPage(0);
     } else if (aiCreatedParam === "false") {
       setAiCreated(false);
-      setCategoryId(null);
       setPage(0);
+    } else {
+      setAiCreated(null);
     }
   }, [params]);
 
