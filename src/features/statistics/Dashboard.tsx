@@ -325,7 +325,7 @@ function DashboardContent({
               icon={<AddPhotoAlternateIcon />}
               label="AI Images"
               value={processed.imagesCount}
-              to="/posts/category=ai-posts"
+              to="/posts?ai_created=true"
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
@@ -446,7 +446,7 @@ function DashboardContent({
                       <ImageListItem
                         key={post.id}
                         sx={{ cursor: "pointer" }}
-                        onClick={() => navigate("/posts?category=ai-posts")}
+                        onClick={() => navigate("/posts?ai_created=true")}
                       >
                         <img
                           src={post.thumbnail_url}
