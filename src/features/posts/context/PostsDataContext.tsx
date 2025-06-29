@@ -2,7 +2,10 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import { useDebounce } from "../../../common/hooks/useDebounce";
 import { useGetAdminPosts } from "../hooks/usePostQueries";
 import { Order } from "../../users/types";
-import { PostListItemDto } from "../types/post-api.types";
+import {
+  GetAllPostsAdminParams,
+  PostListItemDto,
+} from "../types/post-api.types";
 import { useSearchParams } from "react-router-dom";
 interface PostsDataContextType {
   posts: PostListItemDto[];
@@ -16,8 +19,10 @@ interface PostsDataContextType {
     sortOrder: Order;
     searchTerm: string;
     categoryId: number | null;
+    aiCreated: boolean | null;
     setSearchTerm: (term: string) => void;
     setCategoryId: (id: number | null) => void;
+    setAiCreated: (value: boolean | null) => void;
     handleChangePage: (event: unknown, newPage: number) => void;
     handleChangePageSize: (event: React.ChangeEvent<HTMLInputElement>) => void;
     handleRequestSort: (
@@ -40,24 +45,40 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
   const [sortOrder, setSortOrder] = useState<Order>("desc");
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryId, setCategoryId] = useState<number | null>(null);
+  const [aiCreated, setAiCreated] = useState<boolean | null>(null);
+
   const [params] = useSearchParams();
-  const initialCat = params.get("category"); // "ai-posts"
 
   useEffect(() => {
-    if (initialCat === "ai-posts") {
-      setCategoryId(23); // whatever numeric ID maps to AI posts
+    const aiCreatedParam = params.get("ai_created");
+
+    if (aiCreatedParam === "true") {
+      setAiCreated(true);
+      setPage(0);
+    } else if (aiCreatedParam === "false") {
+      setAiCreated(false);
+      setPage(0);
+    } else {
+      setAiCreated(null);
     }
-  }, [initialCat]);
+  }, [params]);
+
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const { data, isLoading, isPlaceholderData, error } = useGetAdminPosts({
+  const queryParams: GetAllPostsAdminParams = {
     page: page + 1,
-    pageSize: pageSize,
+    limit: pageSize,
     sortBy: sortBy,
     sortOrder: sortOrder,
-    searchTerm: debouncedSearchTerm,
-    categoryId: categoryId,
-  });
+    search: debouncedSearchTerm,
+    filter: {
+      categoryId: categoryId,
+      aiCreated: aiCreated,
+    },
+  };
+
+  const { data, isLoading, isPlaceholderData, error } =
+    useGetAdminPosts(queryParams);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -82,8 +103,13 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
     setPage(0);
   };
 
+  const handleSetAiCreated = (value: boolean | null) => {
+    setAiCreated(value);
+    setPage(0);
+  };
+
   const value = {
-    posts: data?.posts || [],
+    posts: data?.data || [],
     totalPosts: data?.total || 0,
     isLoading: isLoading || isPlaceholderData,
     error: error ? error.message : null,
@@ -96,6 +122,8 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
       setSearchTerm,
       categoryId,
       setCategoryId: handleSetCategoryId,
+      aiCreated,
+      setAiCreated: handleSetAiCreated,
       handleChangePage,
       handleChangePageSize,
       handleRequestSort,

@@ -25,21 +25,30 @@ export interface PostListItemDto {
   categories: PostCategoryDto[];
 }
 
-export interface GetAllPostsAdminParams {
-  page?: number;
-  pageSize?: number;
-  searchTerm?: string;
-  userId?: string;
+export interface PostFilterParams {
+  categoryId?: number | null;
+  userId?: string | null;
   isPublished?: boolean | null;
   isPrivate?: boolean | null;
+  aiCreated?: boolean | null;
+}
+
+export interface GetAllPostsAdminParams {
+  page?: number;
+  limit?: number;
+  search?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
-  categoryId?: number | null;
+  filter?: PostFilterParams;
 }
 
 export interface PostsResponse {
-  posts: PostListItemDto[];
+  data: PostListItemDto[];
   total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
 }
 
 export interface AdminUpdatePostDto {
