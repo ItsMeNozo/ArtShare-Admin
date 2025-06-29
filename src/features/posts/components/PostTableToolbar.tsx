@@ -118,6 +118,30 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
         )}
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <FormControl sx={{ minWidth: 150 }} size="small">
+            <InputLabel id="ai-filter-label">Content Type</InputLabel>
+            <Select
+              labelId="ai-filter-label"
+              value={
+                tableControls.aiCreated === null
+                  ? ""
+                  : String(tableControls.aiCreated)
+              }
+              label="Content type"
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "true") tableControls.setAiCreated(true);
+                else if (value === "false") tableControls.setAiCreated(false);
+                else tableControls.setAiCreated(null);
+              }}
+            >
+              <MenuItem value="">
+                <em>All Content</em>
+              </MenuItem>
+              <MenuItem value="true">AI Created</MenuItem>
+              <MenuItem value="false">Human Created</MenuItem>
+            </Select>
+          </FormControl>
           <FormControl sx={{ minWidth: 180 }} size="small">
             <InputLabel id="category-filter-label">Category</InputLabel>
             <Select
