@@ -23,7 +23,6 @@ import {
   ImageList,
   ImageListItem,
   ImageListItemBar,
-  Badge,
   Alert,
   Link,
   IconButton,
@@ -485,20 +484,6 @@ function DashboardContent({
                             >
                               {format(parseISO(post.created_at), "MMM d")}
                             </Typography>
-                          }
-                          actionIcon={
-                            <Box sx={{ mr: 1 }}>
-                              <Badge
-                                badgeContent={post.like_count}
-                                sx={{
-                                  "& .MuiBadge-badge": {
-                                    backgroundColor: "#ff1744",
-                                    color: "#fff",
-                                    border: "1.5px solid #fff",
-                                  },
-                                }}
-                              ></Badge>
-                            </Box>
                           }
                         />
                       </ImageListItem>
