@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { AlertColor } from '@mui/material';
-import { Category } from '../../../types/category';
+import React, { createContext, useContext, useState, useCallback } from "react";
+import { AlertColor } from "@mui/material";
+import { Category } from "../../../types/category";
 
 interface DialogsState {
   editView: { open: boolean; category: Category | null; isCreating: boolean };
@@ -58,8 +58,8 @@ export const CategoryInterfaceProvider: React.FC<{
     severity: AlertColor;
   }>({
     open: false,
-    message: '',
-    severity: 'info',
+    message: "",
+    severity: "info",
   });
 
   const showPageNotification = useCallback(
@@ -71,7 +71,7 @@ export const CategoryInterfaceProvider: React.FC<{
 
   const handlePageSnackbarClose = useCallback(
     (_?: React.SyntheticEvent | Event, reason?: string) => {
-      if (reason === 'clickaway') return;
+      if (reason === "clickaway") return;
       setSnackbar((prev) => ({ ...prev, open: false }));
     },
     [],
@@ -171,7 +171,7 @@ export const useCategoryInterface = (): CategoryInterfaceContextType => {
   const context = useContext(CategoryInterfaceContext);
   if (context === undefined) {
     throw new Error(
-      'useCategoryInterface must be used within a CategoryInterfaceProvider',
+      "useCategoryInterface must be used within a CategoryInterfaceProvider",
     );
   }
   return context;

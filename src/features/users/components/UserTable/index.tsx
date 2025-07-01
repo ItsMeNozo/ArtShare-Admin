@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Table,
   TableBody,
@@ -10,12 +10,12 @@ import {
   TableCell,
   Typography,
   Box,
-} from '@mui/material';
-import { useUserData } from '../../context/UserDataContext';
-import { UserTableToolbar } from './UserTableToolbar';
-import { UserTableHeadComponent } from './UserTableHeadComponent';
-import { UserTableRowComponent } from './UserTableRowComponent';
-import { defaultHeadCells } from '../../constants/userTable.constants';
+} from "@mui/material";
+import { useUserData } from "../../context/UserDataContext";
+import { UserTableToolbar } from "./UserTableToolbar";
+import { UserTableHeadComponent } from "./UserTableHeadComponent";
+import { UserTableRowComponent } from "./UserTableRowComponent";
+import { defaultHeadCells } from "../../constants/userTable.constants";
 
 export const UserTable: React.FC = () => {
   const { displayUsers, loading, totalUsers, tableControls } = useUserData();
@@ -33,7 +33,7 @@ export const UserTable: React.FC = () => {
               <TableRow>
                 <TableCell
                   colSpan={defaultHeadCells.length + 1}
-                  sx={{ textAlign: 'center', border: 'none', py: 10 }}
+                  sx={{ textAlign: "center", border: "none", py: 10 }}
                 >
                   <CircularProgress />
                 </TableCell>
@@ -42,15 +42,15 @@ export const UserTable: React.FC = () => {
               <TableRow>
                 <TableCell
                   colSpan={defaultHeadCells.length + 1}
-                  sx={{ textAlign: 'center', border: 'none', py: 10 }}
+                  sx={{ textAlign: "center", border: "none", py: 10 }}
                 >
                   <Box
                     sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
                       gap: 2,
-                      color: 'text.secondary',
+                      color: "text.secondary",
                     }}
                   >
                     <Typography variant="h6">No users found</Typography>

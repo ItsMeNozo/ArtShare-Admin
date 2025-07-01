@@ -1,4 +1,4 @@
-import React, { useRef, ChangeEvent } from 'react';
+import React, { useRef, ChangeEvent, useState } from "react";
 import {
   Box,
   Button,
@@ -9,15 +9,16 @@ import {
   Alert,
   Paper,
   Chip,
-} from '@mui/material';
+  CircularProgress,
+} from "@mui/material";
 import {
   PhotoCameraOutlined as CameraIcon,
   Close as CloseIcon,
   Image as ImageIcon,
   CloudUpload as UploadIcon,
-} from '@mui/icons-material';
-import { FormikProps } from 'formik';
-import { CategoryFormData } from '../hooks/useCategoryForm';
+} from "@mui/icons-material";
+import { FormikProps } from "formik";
+import { CategoryFormData } from "../hooks/useCategoryForm";
 
 interface CategoryImageManagerProps {
   formik: FormikProps<CategoryFormData>;
@@ -25,12 +26,56 @@ interface CategoryImageManagerProps {
 }
 
 const MAX_IMAGES = 4;
+const MAX_IMAGE_WIDTH = 800; // Maximum width for compressed images
+const MAX_IMAGE_HEIGHT = 600; // Maximum height for compressed images
+const JPEG_QUALITY = 0.8; // JPEG compression quality (0.1 to 1.0)
+
+// Helper function to compress image
+const compressImage = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    img.onload = () => {
+      // Calculate new dimensions while maintaining aspect ratio
+      let { width, height } = img;
+
+      if (width > MAX_IMAGE_WIDTH || height > MAX_IMAGE_HEIGHT) {
+        const aspectRatio = width / height;
+
+        if (width > height) {
+          width = MAX_IMAGE_WIDTH;
+          height = width / aspectRatio;
+        } else {
+          height = MAX_IMAGE_HEIGHT;
+          width = height * aspectRatio;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      // Draw and compress
+      ctx?.drawImage(img, 0, 0, width, height);
+
+      // Convert to base64 with compression
+      const compressedDataUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+      resolve(compressedDataUrl);
+    };
+
+    img.onerror = () =>
+      reject(new Error("Failed to load image for compression"));
+    img.src = URL.createObjectURL(file);
+  });
+};
 
 export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
   formik,
   isEditing,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleImageAdd = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -40,69 +85,75 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
 
       if (files.length > availableSlots) {
         formik.setFieldError(
-          'example_images',
+          "example_images",
           `You can only add ${availableSlots} more image(s). Maximum ${MAX_IMAGES} images allowed.`,
         );
         return;
       }
 
-      const newImageUrls: string[] = [];
-      let hasError = false;
+      // Process files individually and collect results
+      const processFiles = async () => {
+        setIsProcessing(true);
+        const validImages: string[] = [];
+        const errors: string[] = [];
 
-      for (const file of files) {
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          formik.setFieldError(
-            'example_images',
-            `Image "${file.name}" is too large. Max size is 5MB.`,
-          );
-          hasError = true;
-          break;
+        for (const file of files) {
+          try {
+            // Validate file size (max 5MB per file)
+            if (file.size > 5 * 1024 * 1024) {
+              errors.push(
+                `"${file.name}" is too large (${Math.round(file.size / (1024 * 1024))}MB). Max size is 5MB per image.`,
+              );
+              continue;
+            }
+
+            // Validate file type
+            if (!file.type.startsWith("image/")) {
+              errors.push(`"${file.name}" is not a valid image file.`);
+              continue;
+            }
+
+            // Convert to compressed base64
+            const base64Image = await compressImage(file);
+
+            validImages.push(base64Image);
+          } catch (error) {
+            errors.push(
+              `Failed to process "${file.name}": ${error instanceof Error ? error.message : "Unknown error"}`,
+            );
+          }
         }
 
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-          formik.setFieldError(
-            'example_images',
-            `"${file.name}" is not a valid image file.`,
-          );
-          hasError = true;
-          break;
+        // Update form with valid images
+        if (validImages.length > 0) {
+          formik.setFieldValue("example_images", [
+            ...currentImages,
+            ...validImages,
+          ]);
         }
 
-        // Create a temporary URL for the image
-        const newImageUrl = URL.createObjectURL(file);
-        newImageUrls.push(newImageUrl);
-      }
-
-      if (!hasError) {
-        formik.setFieldValue('example_images', [
-          ...currentImages,
-          ...newImageUrls,
-        ]);
-
-        // Clear any previous errors
-        if (formik.errors.example_images) {
-          formik.setFieldError('example_images', undefined);
+        // Show errors if any, but don't prevent valid images from being added
+        if (errors.length > 0) {
+          formik.setFieldError("example_images", errors.join(". "));
+        } else if (formik.errors.example_images) {
+          // Clear errors if all files were processed successfully
+          formik.setFieldError("example_images", undefined);
         }
-      }
+
+        setIsProcessing(false);
+      };
+
+      processFiles();
     }
     // Reset file input
-    event.target.value = '';
+    event.target.value = "";
   };
 
   const handleImageRemove = (indexToRemove: number) => {
-    const imageToRemove = formik.values.example_images[indexToRemove];
-
-    // Revoke the object URL to prevent memory leaks
-    if (imageToRemove.startsWith('blob:')) {
-      URL.revokeObjectURL(imageToRemove);
-    }
-
     const updatedImages = formik.values.example_images.filter(
       (_, index) => index !== indexToRemove,
     );
-    formik.setFieldValue('example_images', updatedImages);
+    formik.setFieldValue("example_images", updatedImages);
   };
 
   const triggerImageUpload = () => fileInputRef.current?.click();
@@ -119,13 +170,14 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
     if (!isEditing) return;
 
     const files = Array.from(e.dataTransfer.files);
-    const imageFiles = files.filter((file) => file.type.startsWith('image/'));
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
 
     if (imageFiles.length > 0) {
-      const event = {
-        target: { files: imageFiles, value: '' },
-      } as any;
-      handleImageAdd(event);
+      // Create a synthetic event to reuse the handleImageAdd logic
+      const syntheticEvent = {
+        target: { files: imageFiles, value: "" },
+      } as unknown as ChangeEvent<HTMLInputElement>;
+      handleImageAdd(syntheticEvent);
     }
   };
 
@@ -139,7 +191,7 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
             size="small"
             sx={{ ml: 1 }}
             color={
-              formik.values.example_images.length > 0 ? 'primary' : 'default'
+              formik.values.example_images.length > 0 ? "primary" : "default"
             }
           />
         </Typography>
@@ -151,40 +203,59 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
         </Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {/* Image Upload Area */}
         {isEditing && formik.values.example_images.length < MAX_IMAGES && (
           <Paper
             variant="outlined"
             sx={{
               p: 2,
-              textAlign: 'center',
-              border: '2px dashed',
-              borderColor: 'grey.300',
+              textAlign: "center",
+              border: "2px dashed",
+              borderColor: "grey.300",
               borderRadius: 2,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                borderColor: 'primary.main',
-                bgcolor: 'primary.50',
-              },
+              cursor: isProcessing ? "default" : "pointer",
+              transition: "all 0.2s ease",
+              "&:hover": !isProcessing
+                ? {
+                    borderColor: "primary.main",
+                    bgcolor: "primary.50",
+                  }
+                : {},
+              opacity: isProcessing ? 0.7 : 1,
             }}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onClick={triggerImageUpload}
+            onDragOver={!isProcessing ? handleDragOver : undefined}
+            onDrop={!isProcessing ? handleDrop : undefined}
+            onClick={!isProcessing ? triggerImageUpload : undefined}
           >
-            <UploadIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
-            <Typography variant="h6" gutterBottom>
-              Drop images here or click to browse
-            </Typography>
-            <Button
-              variant="outlined"
-              startIcon={<CameraIcon />}
-              onClick={triggerImageUpload}
-              sx={{ mt: 1 }}
-            >
-              Choose Images
-            </Button>
+            {isProcessing ? (
+              <>
+                <CircularProgress sx={{ mb: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  Processing images...
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Compressing and uploading your images
+                </Typography>
+              </>
+            ) : (
+              <>
+                <UploadIcon
+                  sx={{ fontSize: 48, color: "text.secondary", mb: 1 }}
+                />
+                <Typography variant="h6" gutterBottom>
+                  Drop images here or click to browse
+                </Typography>
+                <Button
+                  variant="outlined"
+                  startIcon={<CameraIcon />}
+                  onClick={triggerImageUpload}
+                  sx={{ mt: 1 }}
+                >
+                  Choose Images
+                </Button>
+              </>
+            )}
           </Paper>
         )}
 
@@ -195,7 +266,7 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
           multiple
           ref={fileInputRef}
           onChange={handleImageAdd}
-          style={{ display: 'none' }}
+          style={{ display: "none" }}
         />
 
         {/* Display Current Images */}
@@ -206,11 +277,11 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
                 <Paper
                   elevation={2}
                   sx={{
-                    position: 'relative',
+                    position: "relative",
                     borderRadius: 2,
-                    overflow: 'hidden',
-                    '&:hover': {
-                      '& .delete-button': {
+                    overflow: "hidden",
+                    "&:hover": {
+                      "& .delete-button": {
                         opacity: 1,
                       },
                     },
@@ -220,10 +291,10 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
                     src={imageUrl}
                     variant="rounded"
                     sx={{
-                      width: '100%',
+                      width: "100%",
                       height: 120,
-                      '& img': {
-                        objectFit: 'cover',
+                      "& img": {
+                        objectFit: "cover",
                       },
                     }}
                   >
@@ -235,15 +306,15 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
                       className="delete-button"
                       onClick={() => handleImageRemove(index)}
                       sx={{
-                        position: 'absolute',
+                        position: "absolute",
                         top: 4,
                         right: 4,
-                        bgcolor: 'rgba(0, 0, 0, 0.7)',
-                        color: 'white',
+                        bgcolor: "rgba(0, 0, 0, 0.7)",
+                        color: "white",
                         opacity: 0,
-                        transition: 'opacity 0.2s ease',
-                        '&:hover': {
-                          bgcolor: 'error.main',
+                        transition: "opacity 0.2s ease",
+                        "&:hover": {
+                          bgcolor: "error.main",
                         },
                       }}
                     >
@@ -252,12 +323,12 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
                   )}
                   <Box
                     sx={{
-                      position: 'absolute',
+                      position: "absolute",
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      bgcolor: 'rgba(0, 0, 0, 0.7)',
-                      color: 'white',
+                      bgcolor: "rgba(0, 0, 0, 0.7)",
+                      color: "white",
                       p: 0.5,
                     }}
                   >
@@ -279,13 +350,13 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
               variant="outlined"
               sx={{
                 p: 4,
-                textAlign: 'center',
-                borderStyle: 'dashed',
-                borderColor: 'grey.300',
+                textAlign: "center",
+                borderStyle: "dashed",
+                borderColor: "grey.300",
               }}
             >
               <ImageIcon
-                sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }}
+                sx={{ fontSize: 48, color: "text.secondary", mb: 1 }}
               />
               <Typography variant="body1" color="text.secondary">
                 No example images added

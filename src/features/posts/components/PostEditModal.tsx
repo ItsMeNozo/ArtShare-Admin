@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogActions,
@@ -20,16 +20,16 @@ import {
   Card,
   CardActionArea,
   CardMedia,
-} from '@mui/material';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
+} from "@mui/material";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
-import { usePostsUI } from '../context/PostsUIContext';
+import { usePostsUI } from "../context/PostsUIContext";
 import {
   useGetAdminPostById,
   useUpdateAdminPost,
-} from '../hooks/usePostQueries';
-import { useGetCategories } from '../hooks/useCategoryQueries';
+} from "../hooks/usePostQueries";
+import { useGetCategories } from "../hooks/useCategoryQueries";
 
 interface AdminPostEditModalProps {
   onPostUpdated: () => void;
@@ -58,8 +58,8 @@ const StyledFormField: React.FC<{
         component="label"
         htmlFor={id}
         sx={{
-          display: 'block',
-          color: 'text.secondary',
+          display: "block",
+          color: "text.secondary",
           fontWeight: 500,
           mb: 0.5,
         }}
@@ -73,7 +73,7 @@ const StyledFormField: React.FC<{
         variant="outlined"
         name={id}
         id={id}
-        value={value || ''}
+        value={value || ""}
         onChange={onChange}
         onBlur={onBlur}
         error={error}
@@ -103,13 +103,13 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
 
   const formik = useFormik({
     initialValues: {
-      title: '',
-      description: '',
+      title: "",
+      description: "",
       cate_ids: [] as number[],
       thumbnail_url: null as string | null,
     },
     validationSchema: Yup.object({
-      title: Yup.string().required('Title is required'),
+      title: Yup.string().required("Title is required"),
       description: Yup.string().nullable(),
       cate_ids: Yup.array().of(Yup.number()),
       thumbnail_url: Yup.string().nullable(),
@@ -127,8 +127,8 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
   useEffect(() => {
     if (post) {
       formik.setValues({
-        title: post.title || '',
-        description: post.description || '',
+        title: post.title || "",
+        description: post.description || "",
         cate_ids: post.categories.map((c) => c.id),
         thumbnail_url: post.thumbnail_url || post.medias?.[0]?.url || null,
       });
@@ -153,7 +153,7 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
       <form onSubmit={formik.handleSubmit}>
         <DialogContent>
           {isPostLoading && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", my: 3 }}>
               <CircularProgress />
             </Box>
           )}
@@ -219,8 +219,8 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                     component="label"
                     htmlFor="cate_ids-select"
                     sx={{
-                      display: 'block',
-                      color: 'text.secondary',
+                      display: "block",
+                      color: "text.secondary",
                       fontWeight: 500,
                       mb: 0.5,
                     }}
@@ -235,11 +235,11 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                     multiple
                     value={formik.values.cate_ids}
                     onChange={(event) =>
-                      formik.setFieldValue('cate_ids', event.target.value)
+                      formik.setFieldValue("cate_ids", event.target.value)
                     }
                     input={<OutlinedInput size="small" />}
                     renderValue={(selected) => (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                         {selected.map((id) => (
                           <Chip
                             key={id}
@@ -278,8 +278,8 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                   variant="caption"
                   component="div"
                   sx={{
-                    display: 'block',
-                    color: 'text.secondary',
+                    display: "block",
+                    color: "text.secondary",
                     fontWeight: 500,
                     mb: 0.5,
                   }}
@@ -289,14 +289,14 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                 <Paper
                   variant="outlined"
                   sx={{
-                    width: '100%',
-                    aspectRatio: '16/9',
-                    bgcolor: 'grey.200',
+                    width: "100%",
+                    aspectRatio: "16/9",
+                    bgcolor: "grey.200",
                     borderRadius: 1,
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    overflow: "hidden",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     mb: 2,
                   }}
                 >
@@ -305,13 +305,13 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                       src={formik.values.thumbnail_url}
                       alt="Selected Thumbnail"
                       style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
                       }}
                     />
                   ) : (
-                    <Typography sx={{ color: 'text.secondary' }}>
+                    <Typography sx={{ color: "text.secondary" }}>
                       No Thumbnail Selected
                     </Typography>
                   )}
@@ -321,8 +321,8 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                   variant="caption"
                   component="div"
                   sx={{
-                    display: 'block',
-                    color: 'text.secondary',
+                    display: "block",
+                    color: "text.secondary",
                     fontWeight: 500,
                     mb: 0.5,
                   }}
@@ -332,32 +332,32 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                 {post.medias && post.medias.length > 0 ? (
                   <Box
                     sx={{
-                      display: 'flex',
-                      overflowX: 'auto',
+                      display: "flex",
+                      overflowX: "auto",
                       py: 1,
                       gap: 1,
-                      border: '1px solid',
-                      borderColor: 'divider',
+                      border: "1px solid",
+                      borderColor: "divider",
                       borderRadius: 1,
-                      bgcolor: 'action.hover',
+                      bgcolor: "action.hover",
                     }}
                   >
                     {post.medias.map((media) => (
                       <Card
                         key={media.id}
                         onClick={() =>
-                          formik.setFieldValue('thumbnail_url', media.url)
+                          formik.setFieldValue("thumbnail_url", media.url)
                         }
                         sx={{
                           minWidth: 100,
                           maxWidth: 100,
-                          cursor: 'pointer',
-                          border: '2px solid',
+                          cursor: "pointer",
+                          border: "2px solid",
                           borderColor:
                             selectedMediaIdForThumbnail === media.id
-                              ? 'primary.main'
-                              : 'transparent',
-                          transition: 'border-color 0.2s',
+                              ? "primary.main"
+                              : "transparent",
+                          transition: "border-color 0.2s",
                         }}
                       >
                         <CardActionArea>
@@ -366,7 +366,7 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                             height="80"
                             image={media.url}
                             alt={`Media ${media.id}`}
-                            sx={{ objectFit: 'cover' }}
+                            sx={{ objectFit: "cover" }}
                           />
                         </CardActionArea>
                       </Card>
@@ -374,7 +374,7 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                   </Box>
                 ) : (
                   <Typography
-                    sx={{ color: 'text.secondary', fontStyle: 'italic', mt: 1 }}
+                    sx={{ color: "text.secondary", fontStyle: "italic", mt: 1 }}
                   >
                     No media items available in this post.
                   </Typography>
@@ -400,7 +400,7 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
             {updatePostMutation.isPending ? (
               <CircularProgress size={24} />
             ) : (
-              'Save Changes'
+              "Save Changes"
             )}
           </Button>
         </DialogActions>

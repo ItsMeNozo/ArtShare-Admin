@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Table,
   TableBody,
@@ -13,13 +13,13 @@ import {
   Typography,
   useTheme,
   Box,
-} from '@mui/material';
-import AdminPostTableRow from './PostTableRow';
-import { usePostsData } from '../context/PostsDataContext';
-import { usePostsUI } from '../context/PostsUIContext';
-import { SortableFields } from '../types/table.types';
-import { headCells } from '../constants/postsTable.constants';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+} from "@mui/material";
+import AdminPostTableRow from "./PostTableRow";
+import { usePostsData } from "../context/PostsDataContext";
+import { usePostsUI } from "../context/PostsUIContext";
+import { SortableFields } from "../types/table.types";
+import { headCells } from "../constants/postsTable.constants";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 
 export const PostsTable: React.FC = () => {
   const theme = useTheme();
@@ -41,7 +41,7 @@ export const PostsTable: React.FC = () => {
           <TableHead
             sx={{
               backgroundColor:
-                theme.palette.mode === 'dark'
+                theme.palette.mode === "dark"
                   ? theme.palette.grey[800]
                   : theme.palette.grey[100],
             }}
@@ -50,12 +50,12 @@ export const PostsTable: React.FC = () => {
               {headCells.map((headCell) => (
                 <TableCell
                   key={headCell.id}
-                  align={headCell.align || 'left'}
-                  padding={headCell.id === 'select' ? 'checkbox' : 'normal'}
+                  align={headCell.align || "left"}
+                  padding={headCell.id === "select" ? "checkbox" : "normal"}
                   style={{
                     minWidth: headCell.minWidth,
                     maxWidth: headCell.maxWidth || headCell.cellMaxWidth,
-                    fontWeight: 'bold',
+                    fontWeight: "bold",
                   }}
                   sortDirection={
                     tableControls.sortBy === headCell.id
@@ -63,7 +63,7 @@ export const PostsTable: React.FC = () => {
                       : false
                   }
                 >
-                  {headCell.id === 'select' ? (
+                  {headCell.id === "select" ? (
                     <Checkbox
                       color="primary"
                       indeterminate={
@@ -77,7 +77,7 @@ export const PostsTable: React.FC = () => {
                       onChange={(e) => handleSelectAllClick(e, postIdsOnPage)}
                       disabled={rowCountOnPage === 0}
                       inputProps={{
-                        'aria-label': 'select all posts on this page',
+                        "aria-label": "select all posts on this page",
                       }}
                     />
                   ) : headCell.sortable ? (
@@ -86,7 +86,7 @@ export const PostsTable: React.FC = () => {
                       direction={
                         tableControls.sortBy === headCell.id
                           ? tableControls.sortOrder
-                          : 'asc'
+                          : "asc"
                       }
                       onClick={(e) =>
                         tableControls.handleRequestSort(
@@ -111,9 +111,9 @@ export const PostsTable: React.FC = () => {
               <TableRow>
                 <TableCell
                   colSpan={headCells.length}
-                  sx={{ border: 'none', py: 10 }}
+                  sx={{ border: "none", py: 10 }}
                 >
-                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Box sx={{ display: "flex", justifyContent: "center" }}>
                     <CircularProgress />
                   </Box>
                 </TableCell>
@@ -122,15 +122,15 @@ export const PostsTable: React.FC = () => {
               <TableRow>
                 <TableCell
                   colSpan={headCells.length}
-                  sx={{ border: 'none', py: 10, textAlign: 'center' }}
+                  sx={{ border: "none", py: 10, textAlign: "center" }}
                 >
                   <Box
                     sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
                       gap: 2,
-                      color: 'error.main',
+                      color: "error.main",
                     }}
                   >
                     <ErrorOutlineIcon sx={{ fontSize: 64 }} />
@@ -143,15 +143,15 @@ export const PostsTable: React.FC = () => {
               <TableRow>
                 <TableCell
                   colSpan={headCells.length}
-                  sx={{ border: 'none', py: 10, textAlign: 'center' }}
+                  sx={{ border: "none", py: 10, textAlign: "center" }}
                 >
                   <Box
                     sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
                       gap: 2,
-                      color: 'text.secondary',
+                      color: "text.secondary",
                     }}
                   >
                     <Typography variant="h6">No posts found</Typography>

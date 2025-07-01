@@ -4,16 +4,16 @@ import React, {
   useState,
   useEffect,
   useMemo,
-} from 'react';
-import { Category, CategoryType } from '../../../types/category';
-import { fetchCategories, deleteCategory } from '../categoryAPI';
+} from "react";
+import { Category, CategoryType } from "../../../types/category";
+import { fetchCategories, deleteCategory } from "../categoryAPI";
 
 interface CategoryDataContextType {
   categories: Category[];
   loading: boolean;
   error: string | null;
   searchTerm: string;
-  typeFilter: CategoryType | 'ALL';
+  typeFilter: CategoryType | "ALL";
   filteredCategories: Category[];
 
   // Data operations
@@ -23,7 +23,7 @@ interface CategoryDataContextType {
 
   // Filter handlers
   setSearchTerm: (term: string) => void;
-  setTypeFilter: (type: CategoryType | 'ALL') => void;
+  setTypeFilter: (type: CategoryType | "ALL") => void;
 }
 
 const CategoryDataContext = createContext<CategoryDataContextType | undefined>(
@@ -36,8 +36,8 @@ export const CategoryDataProvider: React.FC<{ children: React.ReactNode }> = ({
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [typeFilter, setTypeFilter] = useState<CategoryType | 'ALL'>('ALL');
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [typeFilter, setTypeFilter] = useState<CategoryType | "ALL">("ALL");
 
   const filteredCategories = useMemo(
     () =>
@@ -46,7 +46,7 @@ export const CategoryDataProvider: React.FC<{ children: React.ReactNode }> = ({
           .toLowerCase()
           .includes(searchTerm.toLowerCase());
         const matchesType =
-          typeFilter === 'ALL' || category.type === typeFilter;
+          typeFilter === "ALL" || category.type === typeFilter;
         return matchesSearch && matchesType;
       }),
     [categories, searchTerm, typeFilter],
@@ -59,8 +59,8 @@ export const CategoryDataProvider: React.FC<{ children: React.ReactNode }> = ({
       const data = await fetchCategories();
       setCategories(data);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch categories.');
-      console.error('Error fetching categories:', err);
+      setError(err.message || "Failed to fetch categories.");
+      console.error("Error fetching categories:", err);
     } finally {
       setLoading(false);
     }
@@ -71,7 +71,7 @@ export const CategoryDataProvider: React.FC<{ children: React.ReactNode }> = ({
       await deleteCategory(id);
       await refreshCategories();
     } catch (err: any) {
-      throw new Error(err.message || 'Failed to delete category.');
+      throw new Error(err.message || "Failed to delete category.");
     }
   };
 
@@ -80,7 +80,7 @@ export const CategoryDataProvider: React.FC<{ children: React.ReactNode }> = ({
       await Promise.all(ids.map((id) => deleteCategory(id)));
       await refreshCategories();
     } catch (err: any) {
-      throw new Error(err.message || 'Failed to delete categories.');
+      throw new Error(err.message || "Failed to delete categories.");
     }
   };
 
@@ -113,7 +113,7 @@ export const useCategoryData = (): CategoryDataContextType => {
   const context = useContext(CategoryDataContext);
   if (context === undefined) {
     throw new Error(
-      'useCategoryData must be used within a CategoryDataProvider',
+      "useCategoryData must be used within a CategoryDataProvider",
     );
   }
   return context;

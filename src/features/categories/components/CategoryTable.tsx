@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Paper,
   Table,
@@ -16,16 +16,16 @@ import {
   CircularProgress,
   Tooltip,
   useTheme,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Image as ImageIcon,
-} from '@mui/icons-material';
-import { format } from 'date-fns';
-import { useCategoryData } from '../context/CategoryDataContext';
-import { useCategoryInterface } from '../context/CategoryInterfaceContext';
-import { Category, CategoryTypeValues } from '../../../types/category';
+} from "@mui/icons-material";
+import { format } from "date-fns";
+import { useCategoryData } from "../context/CategoryDataContext";
+import { useCategoryInterface } from "../context/CategoryInterfaceContext";
+import { Category, CategoryTypeValues } from "../../../types/category";
 
 const categoryTypeTooltips = {
   [CategoryTypeValues.ATTRIBUTE]:
@@ -34,8 +34,8 @@ const categoryTypeTooltips = {
     "Medium: Refers to the art medium or material used. Helps classify artworks by their physical composition (e.g., 'Oil Painting', 'Sculpture', 'Digital Art').",
 };
 
-const getCategoryTypeColor = (type: string): 'primary' | 'secondary' => {
-  return type === CategoryTypeValues.ATTRIBUTE ? 'primary' : 'secondary';
+const getCategoryTypeColor = (type: string): "primary" | "secondary" => {
+  return type === CategoryTypeValues.ATTRIBUTE ? "primary" : "secondary";
 };
 
 export const CategoryTable: React.FC = () => {
@@ -69,7 +69,7 @@ export const CategoryTable: React.FC = () => {
         <TableHead
           sx={{
             backgroundColor:
-              theme.palette.mode === 'dark'
+              theme.palette.mode === "dark"
                 ? theme.palette.grey[800]
                 : theme.palette.grey[100],
           }}
@@ -96,20 +96,20 @@ export const CategoryTable: React.FC = () => {
         <TableBody>
           {loading ? (
             <TableRow>
-              <TableCell colSpan={8} sx={{ textAlign: 'center', py: 10 }}>
+              <TableCell colSpan={8} sx={{ textAlign: "center", py: 10 }}>
                 <CircularProgress />
               </TableCell>
             </TableRow>
           ) : filteredCategories.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} sx={{ textAlign: 'center', py: 10 }}>
+              <TableCell colSpan={8} sx={{ textAlign: "center", py: 10 }}>
                 <Box
                   sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
                     gap: 2,
-                    color: 'text.secondary',
+                    color: "text.secondary",
                   }}
                 >
                   <Typography variant="h6">No categories found</Typography>
@@ -160,12 +160,12 @@ export const CategoryTable: React.FC = () => {
                       variant="body2"
                       sx={{
                         maxWidth: 200,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      {category.description || '-'}
+                      {category.description || "-"}
                     </Typography>
                   </TableCell>
                   <TableCell align="center">
@@ -177,15 +177,15 @@ export const CategoryTable: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" color="text.secondary">
-                      {format(category.created_at, 'MMM dd, yyyy')}
+                      {format(category.created_at, "MMM dd, yyyy")}
                     </Typography>
                   </TableCell>
                   <TableCell align="center">
                     <Box
                       sx={{
-                        display: 'flex',
+                        display: "flex",
                         gap: 0.5,
-                        justifyContent: 'center',
+                        justifyContent: "center",
                       }}
                     >
                       <Tooltip title="Edit">
@@ -200,7 +200,7 @@ export const CategoryTable: React.FC = () => {
                         <IconButton
                           size="small"
                           onClick={() => handleDeleteClick(category)}
-                          sx={{ color: 'error.main' }}
+                          sx={{ color: "error.main" }}
                         >
                           <DeleteIcon fontSize="small" />
                         </IconButton>

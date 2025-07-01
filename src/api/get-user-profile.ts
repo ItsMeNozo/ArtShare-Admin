@@ -1,5 +1,5 @@
-import api from './baseApi';
-import type { User } from '../types/user';
+import api from "./baseApi";
+import type { User } from "../types/user";
 /**
  * GET /users/profile
  *
@@ -9,7 +9,7 @@ import type { User } from '../types/user';
  */
 export const getUserProfile = async (): Promise<User> => {
   try {
-    const response = await api.get<any>('/users/profile');
+    const response = await api.get<any>("/users/profile");
     const userData = response.data;
 
     // Transform snake_case fields to camelCase to match User interface
@@ -36,7 +36,7 @@ export const getUserProfile = async (): Promise<User> => {
 
     return transformedUser;
   } catch (error) {
-    console.error('getUserProfile error:', error);
+    console.error("getUserProfile error:", error);
     throw error;
   }
 };

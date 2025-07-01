@@ -1,29 +1,38 @@
-import api from '../../../api/baseApi';
+import api from "../../../api/baseApi";
 import {
   GetAllPostsAdminParams,
   PostsResponse,
   PostDetailsResponseDto,
   AdminUpdatePostDto,
-} from '../types/post-api.types';
+} from "../types/post-api.types";
 
 export const fetchAdminPosts = async (
   params: GetAllPostsAdminParams,
 ): Promise<PostsResponse> => {
-  const queryParams: any = { ...params };
-  if (params.isPublished === true) queryParams.isPublished = 'true';
-  else if (params.isPublished === false) queryParams.isPublished = 'false';
-  else delete queryParams.isPublished;
+  const queryParams: Record<string, any> = {};
 
-  if (params.isPrivate === true) queryParams.isPrivate = 'true';
-  else if (params.isPrivate === false) queryParams.isPrivate = 'false';
-  else delete queryParams.isPrivate;
+  if (params.page) queryParams.page = params.page;
+  if (params.limit) queryParams.limit = params.limit;
+  if (params.search) queryParams.search = params.search;
+  if (params.sortBy) queryParams.sortBy = params.sortBy;
+  if (params.sortOrder) queryParams.sortOrder = params.sortOrder;
 
-  if (queryParams.page === undefined) delete queryParams.page;
-  if (queryParams.pageSize === undefined) delete queryParams.pageSize;
+  if (params.filter) {
+    const activeFilters = Object.fromEntries(
+      Object.entries(params.filter).filter(
+        ([_key, value]) => value !== null && value !== undefined,
+      ),
+    );
 
-  const { data } = await api.get('/posts/admin/all', {
+    if (Object.keys(activeFilters).length > 0) {
+      queryParams.filter = JSON.stringify(activeFilters);
+    }
+  }
+
+  const { data } = await api.get("/posts/admin/all", {
     params: queryParams,
   });
+
   return data;
 };
 
@@ -49,7 +58,7 @@ export const adminDeletePost = async (postId: number): Promise<void> => {
 export const bulkDeleteAdminPosts = async (
   postIds: number[],
 ): Promise<{ count: number }> => {
-  const { data } = await api.delete('/posts/admin/bulk-delete', {
+  const { data } = await api.delete("/posts/admin/bulk-delete", {
     data: { postIds },
   });
   return data;
