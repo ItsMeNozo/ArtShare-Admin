@@ -1,11 +1,11 @@
-import api from "../../api/baseApi";
+import api from '../../api/baseApi';
 import type {
   Category,
   CreateCategoryDto,
   UpdateCategoryDto,
-} from "../../types/category"; // Adjust the import path as necessary
+} from '../../types/category'; // Adjust the import path as necessary
 
-const CATEGORIES_ENDPOINT = "/categories"; // Your NestJS categories endpoint
+const CATEGORIES_ENDPOINT = '/categories'; // Your NestJS categories endpoint
 
 export const fetchCategories = async (): Promise<Category[]> => {
   try {
@@ -17,7 +17,7 @@ export const fetchCategories = async (): Promise<Category[]> => {
       updated_at: cat.updated_at ? new Date(cat.updated_at) : null,
     }));
   } catch (error) {
-    console.error("Error fetching categories:", error);
+    console.error('Error fetching categories:', error);
     // You might want to throw the error or return a specific error object
     throw error;
   }
@@ -43,9 +43,16 @@ export const addCategory = async (
   categoryData: CreateCategoryDto,
 ): Promise<Category> => {
   try {
+    // Use longer timeout for operations with images
+    const timeout =
+      categoryData.example_images && categoryData.example_images.length > 0
+        ? 60000
+        : 10000; // 60s if images, 10s otherwise
+
     const response = await api.post<Category>(
       CATEGORIES_ENDPOINT,
       categoryData,
+      { timeout },
     );
     return {
       ...response.data,
@@ -55,7 +62,7 @@ export const addCategory = async (
         : null,
     };
   } catch (error) {
-    console.error("Error adding category:", error);
+    console.error('Error adding category:', error);
     throw error;
   }
 };
@@ -65,9 +72,16 @@ export const updateCategory = async (
   categoryData: UpdateCategoryDto,
 ): Promise<Category> => {
   try {
+    // Use longer timeout for operations with images
+    const timeout =
+      categoryData.example_images && categoryData.example_images.length > 0
+        ? 60000
+        : 10000; // 60s if images, 10s otherwise
+
     const response = await api.patch<Category>(
       `${CATEGORIES_ENDPOINT}/${id}`,
       categoryData,
+      { timeout },
     ); // Assuming PATCH for updates
     return {
       ...response.data,

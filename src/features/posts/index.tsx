@@ -1,359 +1,216 @@
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import {
   Container,
   Typography,
   Alert,
-  MenuItem,
   Menu,
+  MenuItem,
   Snackbar,
-  AlertColor,
+  Box,
+  CircularProgress,
+  Paper,
 } from '@mui/material';
 import {
-  Delete as DeleteIcon,
   Edit as EditIcon,
   Visibility as VisibilityIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
-import { format } from 'date-fns';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
-import {
-  bulkDeleteAdminPosts,
-  AdminPostListItemDto,
-  adminDeletePost,
-} from './api/post.api';
-import ConfirmationDialog from './components/ConfirmationDialog';
-import AdminPostEditModal from './components/AdminPostEditModal';
+import { PostsDataProvider, usePostsData } from './context/PostsDataContext';
+import { PostsUIProvider, usePostsUI } from './context/PostsUIContext';
+
+import AdminPostsTable from './components/PostsTable';
 import PostTableToolbar from './components/PostTableToolbar';
-import AdminPostsTable from './components/AdminPostsTable';
+import ConfirmationDialog from './components/ConfirmationDialog';
+import AdminPostEditModal from './components/PostEditModal';
+import {
+  useDeleteAdminPost,
+  useBulkDeleteAdminPosts,
+} from './hooks/usePostQueries';
 
-import { useAdminPosts } from './hooks/useAdminPosts';
-import { useTableSelection } from './hooks/useTableSelection';
-import { useRowActionMenu } from './hooks/useRowActionMenu';
-import { useConfirmationDialog } from './hooks/useConfirmationDialog';
-import { useEditModal } from './hooks/useEditModal';
-
-const AdminPostsPage: React.FC = () => {
-  const {
-    posts,
-    totalPosts,
-    page,
-    rowsPerPage,
-    orderBy,
-    order,
-    loading,
-    error: fetchError,
-    searchTerm,
-    debouncedSearchTerm,
-    setSearchTerm,
-    handleChangePage,
-    handleChangeRowsPerPage,
-    handleRequestSort,
-    refreshPosts,
-  } = useAdminPosts();
-
+const AdminPostsView: React.FC = () => {
+  const { posts, isLoading, error: fetchError } = usePostsData();
   const {
     selected,
-    setSelected,
-    handleSelectAllClick,
-    handleClick: handleSelectRow,
-    isSelected,
     handleDeselectAll,
-    numSelected,
-  } = useTableSelection();
-
-  const {
-    anchorEl,
-    currentMenuOpenItem: currentPostForMenu,
-    isMenuOpen: menuOpen,
-    handleMenuOpen,
-    handleMenuClose,
-  } = useRowActionMenu<AdminPostListItemDto>();
-
-  const {
-    dialogState: confirmDialogState,
+    confirmDialogState,
     showConfirmation,
     closeConfirmation,
-  } = useConfirmationDialog();
+    snackbar,
+    showSnackbar,
+    closeSnackbar,
+    anchorEl,
+    currentPostForMenu,
+    handleMenuClose,
+    openEditModal,
+    closeEditModal,
+    editingPostId,
+  } = usePostsUI();
 
-  const {
-    isModalOpen: editModalOpen,
-    editingItemId: editingPostId,
-    openModal: openEditModal,
-    closeModal: closeEditModal,
-  } = useEditModal<number>();
+  const deletePostMutation = useDeleteAdminPost();
+  const bulkDeletePostsMutation = useBulkDeleteAdminPosts();
 
-  const [actionLoading, setActionLoading] = useState(false);
+  const isActionLoading =
+    deletePostMutation.isPending || bulkDeletePostsMutation.isPending;
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] =
-    useState<AlertColor>('success');
+  const handleBulkDelete = useCallback(() => {
+    if (selected.length === 0) return;
+    showConfirmation(
+      'Confirm Bulk Deletion',
+      `Are you sure you want to delete ${selected.length} selected post(s)? This action cannot be undone.`,
+      () => {
+        bulkDeletePostsMutation.mutate(selected as number[], {
+          onSuccess: (data) => {
+            showSnackbar(
+              `${data.count} post(s) deleted successfully!`,
+              'success',
+            );
+            handleDeselectAll();
+          },
+          onError: (err) =>
+            showSnackbar(`Failed to delete posts: ${err.message}`, 'error'),
+          onSettled: () => closeConfirmation(),
+        });
+      },
+    );
+  }, [
+    selected,
+    bulkDeletePostsMutation,
+    showConfirmation,
+    showSnackbar,
+    handleDeselectAll,
+    closeConfirmation,
+  ]);
 
-  const handleSnackbarClose = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string,
-  ) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
-
-  const handleBulkDelete = async () => {
-    if (numSelected === 0) return;
-
-    const performAction = async () => {
-      setActionLoading(true);
-
-      try {
-        await bulkDeleteAdminPosts(selected);
-        setSnackbarMessage(`${selected.length} post(s) deleted successfully!`);
-        setSnackbarSeverity('success');
-        setSelected([]);
-        await refreshPosts();
-      } catch (err) {
-        const errorMsg = `Failed to delete ${selected.length} selected post(s).`;
-        setSnackbarMessage(errorMsg);
-        setSnackbarSeverity('error');
-        console.error('Bulk delete failed:', err);
-      } finally {
-        setActionLoading(false);
-        closeConfirmation();
-        setSnackbarOpen(true);
-      }
-    };
-
+  const handleDeleteFromMenu = useCallback(() => {
+    if (!currentPostForMenu) return;
+    const { id, title } = currentPostForMenu;
+    handleMenuClose();
     showConfirmation(
       'Confirm Deletion',
-      `Are you sure you want to delete ${numSelected} selected post(s)? This action cannot be undone.`,
-      performAction,
-    );
-  };
-
-  const handleEditPostFromMenu = () => {
-    if (currentPostForMenu) {
-      openEditModal(currentPostForMenu.id);
-    }
-    handleMenuClose();
-  };
-
-  const handleDeletePostFromMenu = () => {
-    if (currentPostForMenu) {
-      const { id, title } = currentPostForMenu;
-      const performDelete = async () => {
-        setActionLoading(true);
-
-        try {
-          await adminDeletePost(id);
-          setSnackbarMessage(`Post "${title}" deleted successfully!`);
-          setSnackbarSeverity('success');
-          await refreshPosts();
-          setSelected((prevSelected) =>
-            prevSelected.filter((selId) => selId !== id),
-          );
-        } catch (err) {
-          const errorMsg = `Failed to delete post "${title}".`;
-          setSnackbarMessage(errorMsg);
-          setSnackbarSeverity('error');
-          console.error(`Delete post ${id} failed:`, err);
-        } finally {
-          setActionLoading(false);
-          closeConfirmation();
-          setSnackbarOpen(true);
-        }
-      };
-      showConfirmation(
-        'Confirm Deletion',
-        `Are you sure you want to delete post "${title}" (ID: ${id})? This action cannot be undone.`,
-        performDelete,
-      );
-    }
-    handleMenuClose();
-  };
-
-  const getDataForExport = useCallback(() => {
-    return numSelected > 0
-      ? posts.filter((p) => selected.includes(p.id))
-      : posts;
-  }, [posts, selected, numSelected]);
-
-  const csvFormattedData = useMemo(() => {
-    const dataToExport = getDataForExport();
-    return dataToExport.map((post) => ({
-      ID: post.id,
-      Title: post.title,
-      Author: post.user.username || String(post.user_id),
-      CreatedAt: format(new Date(post.created_at), 'yyyy-MM-dd HH:mm:ss'),
-    }));
-  }, [getDataForExport]);
-
-  const handleExportPDF = () => {
-    const doc = new jsPDF('landscape');
-    const dataToExport = getDataForExport();
-    const pdfData = dataToExport.map((post) => [
-      post.id,
-      post.title,
-      post.user.username || String(post.user_id),
-      format(new Date(post.created_at), 'MMM dd, yyyy HH:mm'),
-    ]);
-    autoTable(doc, {
-      head: [['ID', 'Title', 'Author', 'Created At']],
-      body: pdfData,
-      startY: 20,
-      didDrawPage: (data) => {
-        doc.setFontSize(16);
-        doc.text('Admin Posts Report', data.settings.margin.left, 15);
+      `Are you sure you want to delete post "${title}" (ID: ${id})?`,
+      () => {
+        deletePostMutation.mutate(id, {
+          onSuccess: () =>
+            showSnackbar(`Post "${title}" deleted successfully.`, 'success'),
+          onError: (err) =>
+            showSnackbar(`Failed to delete post: ${err.message}`, 'error'),
+          onSettled: () => closeConfirmation(),
+        });
       },
-    });
-    doc.save('admin-posts-report.pdf');
-  };
+    );
+  }, [
+    currentPostForMenu,
+    deletePostMutation,
+    showConfirmation,
+    showSnackbar,
+    handleMenuClose,
+    closeConfirmation,
+  ]);
 
-  const postIdsOnPage = useMemo(() => posts.map((p) => p.id), [posts]);
+  const handlePostUpdated = useCallback(() => {
+    closeEditModal();
+    showSnackbar('Post updated successfully!', 'success');
+  }, [closeEditModal, showSnackbar]);
 
-  return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 3 }}>
-        Admin - Post Management
-      </Typography>
-      {fetchError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {fetchError}
-        </Alert>
-      )}
-      {/* 
-        Removed actionError Alert as Snackbar will handle this feedback for delete operations
-        {actionError && (
-          <Alert
-            severity="error"
-            sx={{ mb: 2 }}
-            onClose={() => setActionError(null)}
-          >
-            {actionError}
-          </Alert>
-        )} 
-      */}
-      <PostTableToolbar
-        searchTerm={searchTerm}
-        onSearchChange={(e) => setSearchTerm(e.target.value)}
-        selectedPostsCount={numSelected}
-        onBulkDelete={handleBulkDelete}
-        onDeselectAll={handleDeselectAll}
-        onExportPDF={handleExportPDF}
-        csvFormattedData={csvFormattedData}
-        isActionLoading={actionLoading}
-      />
-      <AdminPostsTable
-        posts={posts}
-        loading={loading}
-        fetchError={fetchError}
-        totalPosts={totalPosts}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        orderBy={orderBy}
-        order={order}
-        numSelected={numSelected}
-        postIdsOnPage={postIdsOnPage}
-        debouncedSearchTerm={debouncedSearchTerm}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        onRequestSort={handleRequestSort}
-        onSelectAllClick={handleSelectAllClick}
-        onSelectRow={handleSelectRow}
-        isSelected={isSelected}
-        onMenuOpen={handleMenuOpen}
-        menuOpen={menuOpen}
-        currentMenuPostId={currentPostForMenu?.id}
-      />
-      <Menu
-        id={
-          currentPostForMenu
-            ? `actions-menu-for-post-${currentPostForMenu.id}`
-            : undefined
-        }
-        anchorEl={anchorEl}
-        open={menuOpen}
-        onClose={handleMenuClose}
-        MenuListProps={{
-          'aria-labelledby': currentPostForMenu
-            ? `actions-button-for-post-${currentPostForMenu.id}`
-            : undefined,
+  if (isLoading && !posts.length) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '80vh',
         }}
       >
-        <MenuItem onClick={handleEditPostFromMenu}>
-          <EditIcon fontSize="small" sx={{ mr: 1.5 }} /> Edit
-        </MenuItem>
-        {currentPostForMenu && (
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Loading Posts...</Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <Container
+      maxWidth="xl"
+      sx={{ px: { xs: 1, md: 4 }, py: { xs: 2, md: 4 } }}
+    >
+      <Paper sx={{ p: 3 }}>
+        {fetchError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {fetchError}
+          </Alert>
+        )}
+
+        <PostTableToolbar
+          title="Post Management"
+          onBulkDelete={handleBulkDelete}
+          isActionLoading={isActionLoading}
+        />
+
+        <AdminPostsTable />
+
+        <Menu
+          anchorEl={anchorEl}
+          open={!!anchorEl}
+          onClose={handleMenuClose}
+          MenuListProps={{
+            'aria-labelledby': `actions-button-for-post-${currentPostForMenu?.id}`,
+          }}
+        >
+          <MenuItem onClick={() => openEditModal(currentPostForMenu!.id)}>
+            <EditIcon fontSize="small" sx={{ mr: 1.5 }} /> Edit
+          </MenuItem>
           <MenuItem
-            onClick={() => {
-              const userUrl = import.meta.env.VITE_FE_USER_URL || '';
-              window.open(
-                `${userUrl}/posts/${currentPostForMenu.id}`,
-                '_blank',
-              );
-              handleMenuClose();
-            }}
+            onClick={() =>
+              window.open(`/posts/${currentPostForMenu!.id}`, '_blank')
+            }
           >
             <VisibilityIcon fontSize="small" sx={{ mr: 1.5 }} /> View Public
           </MenuItem>
-        )}
-        <MenuItem
-          onClick={handleDeletePostFromMenu}
-          sx={{ color: 'error.main' }}
-        >
-          <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} /> Delete
-        </MenuItem>
-      </Menu>
-      <ConfirmationDialog
-        open={confirmDialogState.open}
-        onClose={() => {
-          if (!actionLoading) {
-            closeConfirmation();
-          }
-        }}
-        onConfirm={() => {
-          if (confirmDialogState.onConfirmAction) {
-            confirmDialogState.onConfirmAction();
-          }
-        }}
-        title={confirmDialogState.title}
-        message={confirmDialogState.message}
-        isActionLoading={actionLoading}
-      />
-      {editingPostId && (
-        <AdminPostEditModal
-          open={editModalOpen}
-          onClose={closeEditModal}
-          postId={editingPostId}
-          onPostUpdated={async () => {
-            closeEditModal();
-            await refreshPosts();
+          <MenuItem onClick={handleDeleteFromMenu} sx={{ color: 'error.main' }}>
+            <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} /> Delete
+          </MenuItem>
+        </Menu>
 
-            setSnackbarMessage('Post updated successfully!');
-            setSnackbarSeverity('success');
-            setSnackbarOpen(true);
-          }}
+        <ConfirmationDialog
+          {...confirmDialogState}
+          isActionLoading={isActionLoading}
+          onClose={closeConfirmation}
+          onConfirm={() => confirmDialogState.onConfirmAction?.()}
         />
-      )}
 
-      {/* Snackbar for success/failure messages */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
+        {editingPostId && (
+          <AdminPostEditModal onPostUpdated={handlePostUpdated} />
+        )}
+
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={closeSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+          <Alert
+            onClose={closeSnackbar}
+            severity={snackbar.severity}
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Paper>
     </Container>
   );
 };
 
-export default AdminPostsPage;
+const PostManagementPage: React.FC = () => {
+  return (
+    <PostsDataProvider>
+      <PostsUIProvider>
+        <AdminPostsView />
+      </PostsUIProvider>
+    </PostsDataProvider>
+  );
+};
+
+export default PostManagementPage;

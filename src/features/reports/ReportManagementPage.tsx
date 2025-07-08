@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'; // Import useMemo
+import React, { useState, useMemo, useEffect } from 'react'; // Import useMemo
 import {
   Box,
   Typography,
@@ -30,6 +30,7 @@ import ResolveReportDialog from './components/ResolveReportDialog ';
 import { type Report, type ReportStatus } from './reportAPI'; // Assuming these are in reportAPI.ts
 import ReportDetailDialog from './components/ReportDetailDialog';
 import { useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'react-router-dom';
 
 // Define styles for status chips (can be moved to a utils file)
 export const statusDisplayInfo: Record<
@@ -45,6 +46,7 @@ const ReportManagementPage: React.FC = () => {
   const theme = useTheme();
   const [search, setSearch] = useState('');
   const queryClient = useQueryClient();
+  const location = useLocation();
 
   const [statusFilter, setStatusFilter] = useState<ReportStatus | ''>(''); // '' for 'All'
 
@@ -69,6 +71,18 @@ const ReportManagementPage: React.FC = () => {
   const [activeReportId, setActiveReportId] = useState<number | null>(null);
   const [activeReport, setActiveReport] = useState<Report | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    if (location.state?.report_id) {
+      const report_id = location.state.report_id;
+
+      setActiveReport(
+        reports?.find((report) => report.id === report_id) || null,
+      );
+      setActiveReportId(report_id);
+      setDrawerOpen(true);
+    }
+  }, [location.state]);
 
   const handleView = (r: Report) => {
     setActiveReport(r);
@@ -155,6 +169,11 @@ const ReportManagementPage: React.FC = () => {
               value={statusFilter}
               label="Filter by Status"
               onChange={handleStatusFilterChange}
+              sx={{
+                backgroundColor:
+                  theme.palette.mode === 'dark' ? '#1f2937' : '#f9fafb',
+                borderRadius: 2,
+              }}
             >
               <MenuItem value="">
                 <em>All Statuses</em>
@@ -162,7 +181,24 @@ const ReportManagementPage: React.FC = () => {
               {(Object.keys(statusDisplayInfo) as ReportStatus[]).map(
                 (statusKey) => (
                   <MenuItem key={statusKey} value={statusKey}>
-                    {statusDisplayInfo[statusKey].label}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          backgroundColor:
+                            statusKey === 'RESOLVED'
+                              ? theme.palette.success.main
+                              : statusKey === 'PENDING'
+                                ? theme.palette.warning.main
+                                : statusKey === 'DISMISSED'
+                                  ? theme.palette.grey[500]
+                                  : theme.palette.grey[500],
+                        }}
+                      />
+                      {statusDisplayInfo[statusKey].label}
+                    </Box>
                   </MenuItem>
                 ),
               )}
@@ -218,7 +254,7 @@ const ReportManagementPage: React.FC = () => {
               </TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
               <TableCell
-                align="left"
+                align="center"
                 sx={{
                   fontWeight: 'bold',
                   width: '1%', // For shrink-to-fit
@@ -259,35 +295,44 @@ const ReportManagementPage: React.FC = () => {
                   {new Date(r.created_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell
-                  align="left"
-                  className="px-0" // Keep if this Tailwind/utility class is used
-                  sx={{ whiteSpace: 'nowrap' }}
+                  align="center"
+                  sx={{
+                    whiteSpace: 'nowrap',
+                    textAlign: 'center',
+                    padding: '8px',
+                  }}
                 >
-                  <Button
-                    size="small"
-                    color="primary"
-                    onClick={() => handleView(r)}
-                    sx={{ mr: 0.5 }} // Add a small margin if buttons are too close
-                  >
-                    View
-                  </Button>
-                  <Button
-                    size="small"
-                    color="error"
-                    style={{
-                      visibility:
-                        r.status === 'DISMISSED' || r.status === 'RESOLVED'
-                          ? 'hidden'
-                          : undefined,
-                    }}
-                    onClick={() => {
-                      setActiveReportId(r.id);
-                      setActiveReport(r); // Also set activeReport for ResolveReportDialog
-                      setDialogOpen(true);
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: 0.5,
                     }}
                   >
-                    Resolve
-                  </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                      onClick={() => handleView(r)}
+                    >
+                      View
+                    </Button>
+                    {r.status !== 'DISMISSED' && r.status !== 'RESOLVED' && (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="error"
+                        onClick={() => {
+                          setActiveReportId(r.id);
+                          setActiveReport(r); // Also set activeReport for ResolveReportDialog
+                          setDialogOpen(true);
+                        }}
+                      >
+                        Resolve
+                      </Button>
+                    )}
+                  </Box>
                 </TableCell>
               </TableRow>
             ))}

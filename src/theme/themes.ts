@@ -403,6 +403,26 @@ export const darkTheme = createTheme({
         }),
       },
     },
+    MuiButton: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          // Override button text color in dark mode for better visibility
+          ...(theme.palette.mode === 'dark' && {
+            '&.MuiButton-text': {
+              color: theme.palette.text.primary, // Use primary text color instead of purple
+            },
+            '&.MuiButton-outlined': {
+              color: theme.palette.text.primary, // Use primary text color for outlined buttons
+              borderColor: theme.palette.divider,
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover,
+                borderColor: theme.palette.text.secondary,
+              },
+            },
+          }),
+        }),
+      },
+    },
   },
   typography: {
     fontFamily: "'Inter', sans-serif",

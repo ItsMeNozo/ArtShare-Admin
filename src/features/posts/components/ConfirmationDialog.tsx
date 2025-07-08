@@ -57,7 +57,6 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         </DialogContentText>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        {/* Added some padding to actions */}
         <Button
           onClick={onClose}
           color="inherit"

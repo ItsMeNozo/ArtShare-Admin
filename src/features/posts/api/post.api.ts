@@ -1,110 +1,38 @@
 import api from '../../../api/baseApi';
-
-export interface AdminPostListItemUserDto {
-  id: string;
-  username: string;
-  profile_picture_url?: string | null;
-}
-
-export interface AdminPostListItemDto {
-  id: number;
-  user_id: string;
-  title: string;
-  description?: string;
-  thumbnail_url: string;
-  is_published: boolean;
-  is_private: boolean;
-  like_count: number;
-  share_count: number;
-  comment_count: number;
-  view_count: number;
-  created_at: string;
-  user: AdminPostListItemUserDto;
-}
-
-export interface GetAllPostsAdminParams {
-  page?: number;
-  pageSize?: number;
-  searchTerm?: string;
-  userId?: string;
-  isPublished?: boolean | null;
-  isPrivate?: boolean | null;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
-
-export interface AdminPostsResponse {
-  posts: AdminPostListItemDto[];
-  total: number;
-}
-
-export interface AdminUpdatePostDto {
-  title?: string;
-  description?: string;
-  is_mature?: boolean;
-  ai_created?: boolean;
-  thumbnail_url?: string;
-
-  cate_ids?: number[];
-
-  thumbnail_crop_meta?: string;
-
-  is_published?: boolean;
-  is_private?: boolean;
-}
-
-export interface PostDetailsResponseDto {
-  id: number;
-  user_id: string;
-  title: string;
-  description?: string;
-  thumbnail_url: string;
-  is_published: boolean;
-  is_private: boolean;
-  like_count: number;
-  share_count: number;
-  comment_count: number;
-  created_at: string;
-  medias: {
-    id: number;
-    media_type: string;
-    description?: string;
-    url: string;
-    creator_id: string;
-    downloads: number;
-    created_at: string;
-  }[];
-  user: {
-    id: string;
-    username: string;
-    full_name: string;
-    profile_picture_url: string;
-  };
-  categories: {
-    id: number;
-    name: string;
-    type: string;
-  }[];
-}
+import {
+  GetAllPostsAdminParams,
+  PostsResponse,
+  PostDetailsResponseDto,
+  AdminUpdatePostDto,
+} from '../types/post-api.types';
 
 export const fetchAdminPosts = async (
   params: GetAllPostsAdminParams,
-): Promise<AdminPostsResponse> => {
-  const queryParams: any = { ...params };
-  if (params.isPublished === true) queryParams.isPublished = 'true';
-  else if (params.isPublished === false) queryParams.isPublished = 'false';
-  else delete queryParams.isPublished;
+): Promise<PostsResponse> => {
+  const queryParams: Record<string, any> = {};
 
-  if (params.isPrivate === true) queryParams.isPrivate = 'true';
-  else if (params.isPrivate === false) queryParams.isPrivate = 'false';
-  else delete queryParams.isPrivate;
+  if (params.page) queryParams.page = params.page;
+  if (params.limit) queryParams.limit = params.limit;
+  if (params.search) queryParams.search = params.search;
+  if (params.sortBy) queryParams.sortBy = params.sortBy;
+  if (params.sortOrder) queryParams.sortOrder = params.sortOrder;
 
-  if (queryParams.page === undefined) delete queryParams.page;
-  if (queryParams.pageSize === undefined) delete queryParams.pageSize;
+  if (params.filter) {
+    const activeFilters = Object.fromEntries(
+      Object.entries(params.filter).filter(
+        ([_key, value]) => value !== null && value !== undefined,
+      ),
+    );
+
+    if (Object.keys(activeFilters).length > 0) {
+      queryParams.filter = JSON.stringify(activeFilters);
+    }
+  }
 
   const { data } = await api.get('/posts/admin/all', {
     params: queryParams,
   });
+
   return data;
 };
 
@@ -125,17 +53,6 @@ export const adminUpdatePost = async (
 
 export const adminDeletePost = async (postId: number): Promise<void> => {
   await api.delete(`/posts/admin/${postId}`);
-};
-
-export const bulkPublishAdminPosts = async (
-  postIds: number[],
-  publish: boolean,
-): Promise<{ count: number }> => {
-  const { data } = await api.patch('/posts/admin/bulk-publish', {
-    postIds,
-    publish,
-  });
-  return data;
 };
 
 export const bulkDeleteAdminPosts = async (

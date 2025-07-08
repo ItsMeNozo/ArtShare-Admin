@@ -1,15 +1,16 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import ProtectedRoute from './lib/ProtectedRoute';
 import LoginPage from './features/auth/components/login';
-import Dashboard from './features/analytics/Dashboard';
+import Dashboard from './features/statistics/Dashboard';
 import AdminLayout from './components/layout/AdminLayout';
 import CategoryManagementPage from './features/categories/CategoryManagementPage';
 import UserManagementPage from './features/users';
 import ReportManagementPage from './features/reports/ReportManagementPage';
 import PostManagementPage from './features/posts';
-import AnalyticsPage from './features/analytics';
-import StatisticDashboardPage from './features/analytics/AIStatistics';
+import StatisticsPage from './features/statistics';
+import StatisticDashboardPage from './features/statistics/AIStatistics';
 import ProfilePage from './features/profile/ProfilePage';
+import BlogManagementPage from './features/blogs/BlogManagementPage';
 
 export const router = createBrowserRouter([
   {
@@ -29,10 +30,11 @@ export const router = createBrowserRouter([
       { path: 'categories', element: <CategoryManagementPage /> },
       { path: 'posts', element: <PostManagementPage /> },
       { path: 'users', element: <UserManagementPage /> },
-      { path: 'analytics', element: <AnalyticsPage /> },
+      { path: 'statistics', element: <StatisticsPage /> },
       { path: 'reports', element: <ReportManagementPage /> },
-      { path: 'statistics', element: <StatisticDashboardPage /> },
+      { path: 'ai', element: <StatisticDashboardPage /> },
       { path: 'profile', element: <ProfilePage /> },
+      { path: 'blogs', element: <BlogManagementPage /> },
     ],
   },
   {

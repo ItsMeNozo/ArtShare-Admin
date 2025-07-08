@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import {
   Box,
   Typography,
@@ -8,52 +8,87 @@ import {
   Menu,
   MenuItem,
   useTheme,
-  IconButton,
   InputAdornment,
   CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
 } from '@mui/material';
 import {
   Delete as DeleteIcon,
   UndoOutlined as UndoOutlinedIcon,
-  MoreVertOutlined as MoreVertOutlinedIcon,
   FileDownloadOutlined as FileDownloadOutlinedIcon,
   Search as SearchIcon,
+  MoreVertOutlined,
 } from '@mui/icons-material';
 import { CSVLink } from 'react-csv';
+import { format } from 'date-fns';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
-export interface PostTableToolbarProps {
-  searchTerm: string;
-  onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  selectedPostsCount: number;
+import { usePostsData } from '../context/PostsDataContext';
+import { usePostsUI } from '../context/PostsUIContext';
+import { useGetCategories } from '../hooks/useCategoryQueries';
+
+interface TableToolbarProps {
   onBulkDelete: () => void;
-  onDeselectAll: () => void;
-  onExportPDF: () => void;
-  csvFormattedData: Array<Record<string, any>>;
   title?: string;
   isActionLoading?: boolean;
 }
 
-const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
-  searchTerm,
-  onSearchChange,
-  selectedPostsCount,
+export const TableToolbar: React.FC<TableToolbarProps> = ({
   onBulkDelete,
-  onDeselectAll,
-  onExportPDF,
-  csvFormattedData,
   title,
-  isActionLoading,
+  isActionLoading = false,
 }) => {
   const theme = useTheme();
-  const [moreAnchor, setMoreAnchor] = React.useState<null | HTMLElement>(null);
+  const { posts, tableControls } = usePostsData();
+  const { selected, handleDeselectAll } = usePostsUI();
+  const { data: categories = [] } = useGetCategories();
+  const [moreAnchor, setMoreAnchor] = useState<null | HTMLElement>(null);
 
   const handleMoreMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setMoreAnchor(event.currentTarget);
   };
-
   const handleMoreMenuClose = () => {
     setMoreAnchor(null);
   };
+
+  const getDataForExport = useCallback(() => {
+    return selected.length > 0
+      ? posts.filter((p) => selected.includes(p.id))
+      : posts;
+  }, [posts, selected]);
+
+  const csvFormattedData = useMemo(() => {
+    const dataToExport = getDataForExport();
+    return dataToExport.map((post) => ({
+      ID: post.id,
+      Title: post.title,
+      Author: post.user.username,
+      CreatedAt: format(new Date(post.created_at), 'yyyy-MM-dd HH:mm:ss'),
+    }));
+  }, [getDataForExport]);
+
+  const handleExportPDF = useCallback(() => {
+    const doc = new jsPDF('landscape');
+    const dataToExport = getDataForExport();
+    autoTable(doc, {
+      head: [['ID', 'Title', 'Author', 'Created At']],
+      body: dataToExport.map((p) => [
+        p.id,
+        p.title,
+        p.user.username,
+        format(new Date(p.created_at), 'MMM dd, yyyy'),
+      ]),
+      startY: 20,
+      didDrawPage: (data) => {
+        doc.setFontSize(16);
+        doc.text('Admin Posts Report', data.settings.margin.left || 15, 15);
+      },
+    });
+    doc.save('admin-posts-report.pdf');
+  }, [getDataForExport]);
 
   const csvHeaders = [
     { label: 'ID', key: 'ID' },
@@ -62,11 +97,8 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
     { label: 'Created At', key: 'CreatedAt' },
   ];
 
-  const numSelected = selectedPostsCount;
-
   return (
     <>
-      {/* Top section: Title (optional) on left, Search Bar and other primary actions on right */}
       <Box
         sx={{
           display: 'flex',
@@ -74,33 +106,71 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
           alignItems: 'center',
           flexWrap: 'wrap',
           gap: 2,
-          mb: numSelected > 0 ? 2 : 3,
-          px: { xs: 1, sm: 0 },
+          mb: 2,
         }}
       >
-        {/* Left side: Optional Title or a spacer */}
         {title ? (
-          <Typography variant="h6" component="div" sx={{}}>
-            {title} {/* Actually render the title text */}
+          <Typography variant="h5" component="h1" fontWeight="bold">
+            {title}
           </Typography>
         ) : (
           <Box sx={{ flexGrow: 1 }} />
         )}
 
-        {/* Right side: Search Bar */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-          }}
-        >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <FormControl sx={{ minWidth: 150 }} size="small">
+            <InputLabel id="ai-filter-label">Content type</InputLabel>
+            <Select
+              labelId="ai-filter-label"
+              value={
+                tableControls.aiCreated === null
+                  ? ''
+                  : String(tableControls.aiCreated)
+              }
+              label="Content type"
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === 'true') tableControls.setAiCreated(true);
+                else if (value === 'false') tableControls.setAiCreated(false);
+                else tableControls.setAiCreated(null);
+              }}
+            >
+              <MenuItem value="">
+                <em>All content</em>
+              </MenuItem>
+              <MenuItem value="true">AI Created</MenuItem>
+              <MenuItem value="false">Human Created</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl sx={{ minWidth: 180 }} size="small">
+            <InputLabel id="category-filter-label">Category</InputLabel>
+            <Select
+              labelId="category-filter-label"
+              id="category-filter-select"
+              value={tableControls.categoryId ?? ''}
+              label="Category"
+              onChange={(e) => {
+                const value = e.target.value;
+                tableControls.setCategoryId(value ? Number(value) : null);
+              }}
+            >
+              <MenuItem value="">
+                <em>All categories</em>
+              </MenuItem>
+              {categories.map((category) => (
+                <MenuItem key={category.id} value={category.id}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
           <TextField
             size="small"
             variant="outlined"
             placeholder="Search posts..."
-            value={searchTerm}
-            onChange={onSearchChange}
+            value={tableControls.searchTerm}
+            onChange={(e) => tableControls.setSearchTerm(e.target.value)}
             sx={{
               minWidth: { xs: '100%', sm: 200, md: 250 },
               maxWidth: { sm: 400 },
@@ -113,9 +183,7 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
                   borderColor:
                     theme.palette.mode === 'dark' ? 'grey.700' : 'grey.300',
                 },
-                '&:hover fieldset': {
-                  borderColor: theme.palette.primary.main,
-                },
+                '&:hover fieldset': { borderColor: theme.palette.primary.main },
               },
             }}
             InputProps={{
@@ -129,41 +197,32 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
               ),
             }}
           />
-          {/* Example: Add New Post Button could go here */}
-          {/* <Button variant="contained" startIcon={<AddIcon />}>Add Post</Button> */}
         </Box>
       </Box>
 
-      {/* Conditional section: Appears when posts are selected */}
-      {numSelected > 0 && (
+      {selected.length > 0 && (
         <Box
           sx={{
-            mb: 2.5,
+            mb: 2,
             px: 2,
-            py: 1.5,
+            py: 1,
             borderRadius: 2,
-            backgroundColor: theme.palette.action.selected,
-
-            color: theme.palette.getContrastText(theme.palette.action.selected),
+            backgroundColor:
+              theme.palette.mode === 'dark'
+                ? theme.palette.grey[700]
+                : theme.palette.grey[200],
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             flexWrap: 'wrap',
-            gap: 2,
+            gap: 1,
           }}
         >
           <Typography variant="subtitle1" fontWeight="medium">
-            {numSelected} post(s) selected
+            {selected.length} post(s) selected
           </Typography>
 
-          <Stack
-            direction="row"
-            spacing={1}
-            flexWrap="wrap"
-            alignItems="center"
-            useFlexGap
-            gap={1}
-          >
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap gap={1}>
             <Button
               startIcon={
                 isActionLoading ? (
@@ -179,52 +238,32 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
               sx={{ textTransform: 'none' }}
               disabled={isActionLoading}
             >
-              Delete Selected
+              Delete
             </Button>
             <Button
-              onClick={onDeselectAll}
+              onClick={handleDeselectAll}
               startIcon={<UndoOutlinedIcon />}
               variant="outlined"
               size="small"
-              sx={{
-                textTransform: 'none',
-
-                borderColor: theme.palette.divider,
-                color: theme.palette.text.primary,
-                '&:hover': {
-                  backgroundColor: theme.palette.action.hover,
-                },
-              }}
               disabled={isActionLoading}
             >
               Deselect all
             </Button>
-            <IconButton
+            <Button
+              variant="outlined"
+              startIcon={<MoreVertOutlined />}
               onClick={handleMoreMenuOpen}
-              size="small"
-              sx={{ color: 'inherit' }}
-              aria-controls={Boolean(moreAnchor) ? 'export-menu' : undefined}
-              aria-haspopup="true"
-              aria-expanded={Boolean(moreAnchor) ? 'true' : undefined}
-              aria-label="More actions including export"
               disabled={isActionLoading}
             >
-              <MoreVertOutlinedIcon />
-            </IconButton>
+              More
+            </Button>
             <Menu
               id="export-menu"
               anchorEl={moreAnchor}
               open={Boolean(moreAnchor)}
               onClose={handleMoreMenuClose}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-              MenuListProps={{ 'aria-labelledby': 'export-button' }}
             >
-              <MenuItem
-                onClick={() => {
-                  handleMoreMenuClose();
-                }}
-              >
+              <MenuItem onClick={handleMoreMenuClose}>
                 <CSVLink
                   data={csvFormattedData}
                   headers={csvHeaders}
@@ -232,9 +271,9 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
                   style={{
                     textDecoration: 'none',
                     color: 'inherit',
-                    width: '100%',
                     display: 'flex',
                     alignItems: 'center',
+                    width: '100%',
                   }}
                   target="_blank"
                 >
@@ -244,7 +283,7 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
               </MenuItem>
               <MenuItem
                 onClick={() => {
-                  onExportPDF();
+                  handleExportPDF();
                   handleMoreMenuClose();
                 }}
                 disabled={isActionLoading}
@@ -260,4 +299,4 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
   );
 };
 
-export default PostTableToolbar;
+export default TableToolbar;

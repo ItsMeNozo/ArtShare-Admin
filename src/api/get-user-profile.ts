@@ -31,6 +31,7 @@ export const getUserProfile = async (): Promise<User> => {
         userData.stripe_customer_id || userData.stripeCustomerId || null,
       roles: userData.roles || [],
       userAccess: userData.userAccess || userData.user_access || null,
+      status: userData.status || null,
     };
 
     return transformedUser;
