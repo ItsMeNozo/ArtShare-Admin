@@ -218,13 +218,13 @@ const StatisticsPage: React.FC = () => {
     return [
       {
         metric: "Avg Likes",
-        aiValue: ai.averageLikes_AiPosts,
-        humanValue: ai.averageLikes_NonAiPosts,
+        aiValue: ai.averageLikesAiPosts,
+        humanValue: ai.averageLikesNonAiPosts,
       },
       {
         metric: "Avg Comments",
-        aiValue: ai.averageComments_AiPosts,
-        humanValue: ai.averageComments_NonAiPosts,
+        aiValue: ai.averageCommentsAiPosts,
+        humanValue: ai.averageCommentsNonAiPosts,
       },
     ].filter((item) => item.aiValue > 0 || item.humanValue > 0);
   }, [analyticsData.platformWideStats?.aiContentEngagement]);

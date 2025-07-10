@@ -80,12 +80,12 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
   const handleImageAdd = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       const files = Array.from(event.target.files);
-      const currentImages = formik.values.example_images;
+      const currentImages = formik.values.exampleImages;
       const availableSlots = MAX_IMAGES - currentImages.length;
 
       if (files.length > availableSlots) {
         formik.setFieldError(
-          "example_images",
+          "exampleImages",
           `You can only add ${availableSlots} more image(s). Maximum ${MAX_IMAGES} images allowed.`,
         );
         return;
@@ -126,7 +126,7 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
 
         // Update form with valid images
         if (validImages.length > 0) {
-          formik.setFieldValue("example_images", [
+          formik.setFieldValue("exampleImages", [
             ...currentImages,
             ...validImages,
           ]);
@@ -134,10 +134,10 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
 
         // Show errors if any, but don't prevent valid images from being added
         if (errors.length > 0) {
-          formik.setFieldError("example_images", errors.join(". "));
-        } else if (formik.errors.example_images) {
+          formik.setFieldError("exampleImages", errors.join(". "));
+        } else if (formik.errors.exampleImages) {
           // Clear errors if all files were processed successfully
-          formik.setFieldError("example_images", undefined);
+          formik.setFieldError("exampleImages", undefined);
         }
 
         setIsProcessing(false);
@@ -150,10 +150,10 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
   };
 
   const handleImageRemove = (indexToRemove: number) => {
-    const updatedImages = formik.values.example_images.filter(
+    const updatedImages = formik.values.exampleImages.filter(
       (_, index) => index !== indexToRemove,
     );
-    formik.setFieldValue("example_images", updatedImages);
+    formik.setFieldValue("exampleImages", updatedImages);
   };
 
   const triggerImageUpload = () => fileInputRef.current?.click();
@@ -187,11 +187,11 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
         <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
           Example Images
           <Chip
-            label={`${formik.values.example_images.length}/${MAX_IMAGES}`}
+            label={`${formik.values.exampleImages.length}/${MAX_IMAGES}`}
             size="small"
             sx={{ ml: 1 }}
             color={
-              formik.values.example_images.length > 0 ? "primary" : "default"
+              formik.values.exampleImages.length > 0 ? "primary" : "default"
             }
           />
         </Typography>
@@ -205,7 +205,7 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {/* Image Upload Area */}
-        {isEditing && formik.values.example_images.length < MAX_IMAGES && (
+        {isEditing && formik.values.exampleImages.length < MAX_IMAGES && (
           <Paper
             variant="outlined"
             sx={{
@@ -270,9 +270,9 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
         />
 
         {/* Display Current Images */}
-        {formik.values.example_images.length > 0 ? (
+        {formik.values.exampleImages.length > 0 ? (
           <Grid container spacing={2}>
-            {formik.values.example_images.map((imageUrl, index) => (
+            {formik.values.exampleImages.map((imageUrl, index) => (
               <Grid size={{ xs: 6, sm: 4, md: 3 }} key={index}>
                 <Paper
                   elevation={2}
@@ -366,12 +366,12 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
         )}
 
         {/* Error Message */}
-        {formik.touched.example_images && formik.errors.example_images && (
-          <Alert severity="error">{formik.errors.example_images}</Alert>
+        {formik.touched.exampleImages && formik.errors.exampleImages && (
+          <Alert severity="error">{formik.errors.exampleImages}</Alert>
         )}
 
         {/* Usage Hint */}
-        {isEditing && formik.values.example_images.length > 0 && (
+        {isEditing && formik.values.exampleImages.length > 0 && (
           <Alert severity="info" sx={{ mt: 1 }}>
             <Typography variant="body2">
               <strong>Tip:</strong> These images will help users understand what

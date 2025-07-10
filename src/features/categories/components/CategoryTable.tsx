@@ -133,7 +133,7 @@ export const CategoryTable: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Avatar
-                      src={category.example_images?.[0]}
+                      src={category.exampleImages?.[0]}
                       variant="rounded"
                       sx={{ width: 40, height: 40 }}
                     >
@@ -170,14 +170,14 @@ export const CategoryTable: React.FC = () => {
                   </TableCell>
                   <TableCell align="center">
                     <Chip
-                      label={category.posts_count || 0}
+                      label={category.postsCount || 0}
                       size="small"
                       variant="outlined"
                     />
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" color="text.secondary">
-                      {format(category.created_at, "MMM dd, yyyy")}
+                      {format(category.createdAt, "MMM dd, yyyy")}
                     </Typography>
                   </TableCell>
                   <TableCell align="center">

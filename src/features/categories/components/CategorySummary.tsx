@@ -115,16 +115,16 @@ export const CategorySummary: React.FC<CategorySummaryProps> = ({
             <Typography variant="body2">
               <strong>ID:</strong> {category.id}
             </Typography>{" "}
-            {category.created_at && (
+            {category.createdAt && (
               <Typography variant="body2">
                 <strong>Created:</strong>{" "}
-                {new Date(category.created_at).toLocaleDateString()}
+                {new Date(category.createdAt).toLocaleDateString()}
               </Typography>
             )}
-            {category.updated_at && (
+            {category.updatedAt && (
               <Typography variant="body2">
                 <strong>Last Updated:</strong>{" "}
-                {new Date(category.updated_at).toLocaleDateString()}
+                {new Date(category.updatedAt).toLocaleDateString()}
               </Typography>
             )}
           </Grid>

@@ -11,7 +11,7 @@ export interface CategoryFormData {
   name: string;
   description: string;
   type: CategoryType;
-  example_images: string[];
+  exampleImages: string[];
 }
 
 interface UseCategoryFormProps {
@@ -30,7 +30,7 @@ const getInitialFormData = (
       name: "",
       description: "",
       type: CategoryTypeValues.ATTRIBUTE,
-      example_images: [],
+      exampleImages: [],
     };
   }
 
@@ -38,7 +38,7 @@ const getInitialFormData = (
     name: category.name,
     description: category.description || "",
     type: category.type,
-    example_images: [...(category.example_images || [])],
+    exampleImages: [...(category.exampleImages || [])],
   };
 };
 
@@ -63,7 +63,7 @@ const validationSchema = Yup.object({
       "Please select a valid category type",
     )
     .required("Category type is required"),
-  example_images: Yup.array()
+  exampleImages: Yup.array()
     .of(
       Yup.string().test("valid-url-or-data", "Invalid image URL", (value) => {
         if (!value) return true; // Allow empty values
@@ -122,7 +122,7 @@ export const useCategoryForm = ({
       name: values.name.trim(),
       description: values.description.trim(),
       type: values.type,
-      example_images: values.example_images.filter((img) => img.trim() !== ""),
+      exampleImages: values.exampleImages.filter((img) => img.trim() !== ""),
     };
 
     await addCategory(payload);
@@ -138,7 +138,7 @@ export const useCategoryForm = ({
       name: values.name.trim(),
       description: values.description.trim(),
       type: values.type,
-      example_images: values.example_images.filter((img) => img.trim() !== ""),
+      exampleImages: values.exampleImages.filter((img) => img.trim() !== ""),
     };
 
     await updateCategory(initialCategory.id, payload);

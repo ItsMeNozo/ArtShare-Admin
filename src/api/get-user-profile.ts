@@ -17,20 +17,17 @@ export const getUserProfile = async (): Promise<User> => {
       id: userData.id,
       username: userData.username,
       email: userData.email,
-      fullName: userData.full_name || userData.fullName || null,
-      profilePictureUrl:
-        userData.profile_picture_url || userData.profilePictureUrl || null,
+      fullName: userData.fullName || null,
+      profilePictureUrl: userData.profilePictureUrl || null,
       bio: userData.bio || null,
-      createdAt: userData.created_at || userData.createdAt,
-      updatedAt: userData.updated_at || userData.updatedAt || null,
+      createdAt: userData.createdAt,
+      updatedAt: userData.updatedAt || null,
       birthday: userData.birthday || null,
-      followersCount: userData.followers_count ?? userData.followersCount ?? 0,
-      followingsCount:
-        userData.followings_count ?? userData.followingsCount ?? 0,
-      stripeCustomerId:
-        userData.stripe_customer_id || userData.stripeCustomerId || null,
+      followersCount: userData.followersCount ?? 0,
+      followingsCount: userData.followingsCount ?? 0,
+      stripeCustomerId: userData.stripeCustomerId || null,
       roles: userData.roles || [],
-      userAccess: userData.userAccess || userData.user_access || null,
+      userAccess: userData.userAccess || null,
       status: userData.status || null,
     };
 

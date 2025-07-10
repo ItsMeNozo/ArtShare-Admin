@@ -66,7 +66,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
       ID: post.id,
       Title: post.title,
       Author: post.user.username,
-      CreatedAt: format(new Date(post.created_at), "yyyy-MM-dd HH:mm:ss"),
+      CreatedAt: format(new Date(post.createdAt), "yyyy-MM-dd HH:mm:ss"),
     }));
   }, [getDataForExport]);
 
@@ -79,7 +79,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
         p.id,
         p.title,
         p.user.username,
-        format(new Date(p.created_at), "MMM dd, yyyy"),
+        format(new Date(p.createdAt), "MMM dd, yyyy"),
       ]),
       startY: 20,
       didDrawPage: (data) => {

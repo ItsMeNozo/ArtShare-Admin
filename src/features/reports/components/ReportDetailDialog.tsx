@@ -90,7 +90,7 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
           >
             Report Type:
           </Typography>
-          <Typography variant="body2">{report.target_type}</Typography>
+          <Typography variant="body2">{report.targetType}</Typography>
         </Box>
         {/* Reason */}
         <Box sx={{ mb: 1.5 }}>
@@ -149,7 +149,7 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
             Reported At:
           </Typography>
           <Typography variant="body2">
-            {new Date(report.created_at).toLocaleString()}
+            {new Date(report.createdAt).toLocaleString()}
           </Typography>
         </Box>
 
@@ -178,7 +178,7 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
                 </Typography>
               </Box>
             )}
-            {report.status === "RESOLVED" && report.resolved_at && (
+            {report.status === "RESOLVED" && report.resolvedAt && (
               <Box sx={{ mb: 1 }}>
                 <Typography
                   variant="subtitle2"
@@ -188,12 +188,12 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
                   Resolved At:
                 </Typography>
                 <Typography variant="body2">
-                  {new Date(report.resolved_at).toLocaleString()}
+                  {new Date(report.resolvedAt).toLocaleString()}
                 </Typography>
               </Box>
             )}
-            {/* Assuming resolution_comment is used for both resolve and dismiss comments */}
-            {report.resolution_comment && (
+            {/* Assuming resolutionComment is used for both resolve and dismiss comments */}
+            {report.resolutionComment && (
               <Box sx={{ mb: 1 }}>
                 <Typography
                   variant="subtitle2"
@@ -205,13 +205,13 @@ const ReportDetailDialog: React.FC<ReportDetailDialogProps> = ({
                     : "Admin Comment:"}
                 </Typography>
                 <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-                  {report.resolution_comment}
+                  {report.resolutionComment}
                 </Typography>
               </Box>
             )}
-            {/* Add specific dismissal info if available (e.g., dismissed_at, dismissed_by) */}
+            {/* Add specific dismissal info if available (e.g., dismissedAt, dismissedBy) */}
             {report.status === "DISMISSED" &&
-              !report.resolution_comment && ( // If dismissed without a comment
+              !report.resolutionComment && ( // If dismissed without a comment
                 <Typography variant="body2" sx={{ fontStyle: "italic" }}>
                   This report was dismissed.
                 </Typography>

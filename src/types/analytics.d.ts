@@ -58,13 +58,13 @@ export interface PlanContentInsight {
 }
 
 export interface AiContentEngagement {
-  averageLikes_AiPosts: number;
-  averageComments_AiPosts: number;
-  averageViews_AiPosts: number;
+  averageLikesAiPosts: number;
+  averageCommentsAiPosts: number;
+  averageViewsAiPosts: number;
   aiPostsAnalyzed: number;
-  averageLikes_NonAiPosts: number;
-  averageComments_NonAiPosts: number;
-  averageViews_NonAiPosts: number;
+  averageLikesNonAiPosts: number;
+  averageCommentsNonAiPosts: number;
+  averageViewsNonAiPosts: number;
   nonAiPostsAnalyzed: number;
 }
 

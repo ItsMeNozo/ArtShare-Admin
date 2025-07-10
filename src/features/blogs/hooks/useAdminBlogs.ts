@@ -8,7 +8,7 @@ import {
 } from "../api/blog.api";
 
 type Order = "asc" | "desc";
-export type SortableFields = "title" | "author" | "created_at";
+export type SortableFields = "title" | "author" | "createdAt";
 
 interface UseAdminBlogsProps {
   initialPage?: number;
@@ -38,7 +38,7 @@ export interface UseAdminBlogsReturn {
 export function useAdminBlogs({
   initialPage = 0,
   initialRowsPerPage = 10,
-  initialOrderBy = "created_at",
+  initialOrderBy = "createdAt",
   initialOrder = "desc",
 }: UseAdminBlogsProps = {}): UseAdminBlogsReturn {
   const [page, setPage] = useState(initialPage);
@@ -96,9 +96,9 @@ export function useAdminBlogs({
           aVal = a.title;
           bVal = b.title;
           break;
-        case "created_at":
-          aVal = a.created_at;
-          bVal = b.created_at;
+        case "createdAt":
+          aVal = a.createdAt;
+          bVal = b.createdAt;
           break;
         default:
           aVal = "";

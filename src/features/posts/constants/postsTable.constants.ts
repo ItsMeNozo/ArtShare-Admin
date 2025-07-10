@@ -46,7 +46,7 @@ export const headCells: ReadonlyArray<CustomHeadCell> = [
     align: "center",
   },
   {
-    id: "created_at",
+    id: "createdAt",
     label: "Created At",
     numeric: false,
     sortable: true,

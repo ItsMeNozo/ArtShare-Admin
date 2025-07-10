@@ -70,7 +70,7 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
       <TableCell>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Avatar
-            src={post.thumbnail_url}
+            src={post.thumbnailUrl}
             alt={post.title}
             variant="rounded"
             sx={{ width: 48, height: 48 }}
@@ -89,9 +89,9 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
 
       <TableCell>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {post.user.profile_picture_url && (
+          {post.user.profilePictureUrl && (
             <Avatar
-              src={post.user.profile_picture_url}
+              src={post.user.profilePictureUrl}
               sx={{ width: 24, height: 24 }}
             />
           )}
@@ -141,10 +141,10 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
 
       <TableCell>
         <Tooltip
-          title={format(new Date(post.created_at), "yyyy-MM-dd HH:mm:ss")}
+          title={format(new Date(post.createdAt), "yyyy-MM-dd HH:mm:ss")}
         >
           <Typography variant="body2" color="text.secondary">
-            {format(new Date(post.created_at), "MMM dd, yyyy")}
+            {format(new Date(post.createdAt), "MMM dd, yyyy")}
           </Typography>
         </Tooltip>
       </TableCell>

@@ -58,7 +58,7 @@ const headCells: ReadonlyArray<CustomHeadCell> = [
     truncate: true,
   },
   {
-    id: "created_at",
+    id: "createdAt",
     label: "Created At",
     numeric: false,
     sortable: true,
@@ -133,7 +133,7 @@ const AdminBlogsTable: React.FC<AdminPostsTableProps> = ({
       idCellConfig: headCells.find((hc) => hc.id === "id")!,
       titleCellConfig: headCells.find((hc) => hc.id === "title")!,
       userCellConfig: headCells.find((hc) => hc.id === "user")!,
-      createdAtCellConfig: headCells.find((hc) => hc.id === "created_at")!,
+      createdAtCellConfig: headCells.find((hc) => hc.id === "createdAt")!,
       actionsCellConfig: headCells.find((hc) => hc.id === "actions")!,
     }),
     [],

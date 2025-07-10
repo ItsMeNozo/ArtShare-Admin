@@ -73,13 +73,13 @@ const ReportManagementPage: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
-    if (location.state?.report_id) {
-      const report_id = location.state.report_id;
+    if (location.state?.reportId) {
+      const reportId = location.state.reportId;
 
       setActiveReport(
-        reports?.find((report) => report.id === report_id) || null,
+        reports?.find((report) => report.id === reportId) || null,
       );
-      setActiveReportId(report_id);
+      setActiveReportId(reportId);
       setDrawerOpen(true);
     }
   }, [location.state]);
@@ -116,7 +116,7 @@ const ReportManagementPage: React.FC = () => {
     }
 
     // You could add sorting here if needed, e.g., by date
-    // processedReports.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    // processedReports.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return processedReports;
   }, [reports, search, statusFilter]);
@@ -269,7 +269,7 @@ const ReportManagementPage: React.FC = () => {
             {filteredReports.map((r) => (
               <TableRow key={r.id} hover>
                 <TableCell>{r.reporter.username}</TableCell>
-                <TableCell>{r.target_type}</TableCell>
+                <TableCell>{r.targetType}</TableCell>
                 <TableCell>
                   <Typography
                     variant="body2"
@@ -292,7 +292,7 @@ const ReportManagementPage: React.FC = () => {
                   />
                 </TableCell>
                 <TableCell>
-                  {new Date(r.created_at).toLocaleDateString()}
+                  {new Date(r.createdAt).toLocaleDateString()}
                 </TableCell>
                 <TableCell
                   align="center"
@@ -356,7 +356,7 @@ const ReportManagementPage: React.FC = () => {
         isSubmitting={isResolving}
         error={resolveError?.message}
         onCancel={() => setDialogOpen(false)}
-        onConfirm={({ resolve_date, comment }) => {
+        onConfirm={({ resolveDate, comment }) => {
           if (activeReportId == null) {
             alert("Error: Report ID is missing."); // More user-friendly error
             return;
@@ -364,7 +364,7 @@ const ReportManagementPage: React.FC = () => {
           resolveReport(
             {
               reportId: activeReportId,
-              resolveReportDTO: { resolve_date, resolution_comment: comment },
+              resolveReportDTO: { resolveDate, resolutionComment: comment },
             },
             {
               onSuccess: () => {
@@ -402,7 +402,7 @@ const ReportManagementPage: React.FC = () => {
           )
         }
         onViewContent={(r) => {
-          window.open(r.target_url, "_blank", "noopener,noreferrer");
+          window.open(r.targetUrl, "_blank", "noopener,noreferrer");
         }}
       />
     </Paper>

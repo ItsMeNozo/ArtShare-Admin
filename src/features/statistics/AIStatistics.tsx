@@ -161,19 +161,19 @@ const PieCard = ({
 
 /* ----------  Types  ---------- */
 type AnalyticsData = {
-  posts_by_ai?: { count: number }[];
-  total_ai_images?: { count: number }[];
-  token_usage?: { tokens: number }[];
+  postsByAi?: { count: number }[];
+  totalAiImages?: { count: number }[];
+  tokenUsage?: { tokens: number }[];
   styles?: { key: string; count: number }[];
   aspectRatios?: { key: string; count: number }[];
-  top_posts_by_ai?: {
+  topPostsByAi?: {
     id: string;
     title: string;
-    thumbnail_url: string;
-    created_at: string;
-    like_count: number;
+    thumbnailUrl: string;
+    createdAt: string;
+    likeCount: number;
   }[];
-  trending_prompts?: string[];
+  trendingPrompts?: string[];
 };
 
 /* ============================================================= */
@@ -216,24 +216,24 @@ export default function StatisticDashboardPage() {
         : 0;
     };
     return {
-      postsCount: single("posts_by_ai"),
-      imagesCount: single("total_ai_images"),
-      tokensCount: analytics.token_usage?.[0]?.tokens || 0,
+      postsCount: single("postsByAi"),
+      imagesCount: single("totalAiImages"),
+      tokensCount: analytics.tokenUsage?.[0]?.tokens || 0,
       styles:
         analytics.styles?.map((d) => ({ name: d.key, count: d.count })) || [],
       ratios:
         analytics.aspectRatios?.map((d) => ({ name: d.key, count: d.count })) ||
         [],
-      topPosts: (analytics.top_posts_by_ai || []).map((p) => ({
+      topPosts: (analytics.topPostsByAi || []).map((p) => ({
         ...p,
-        originalDate: parseISO(p.created_at),
+        originalDate: parseISO(p.createdAt),
       })),
-      prompts: (analytics.trending_prompts || []).slice(0, 5),
+      prompts: (analytics.trendingPrompts || []).slice(0, 5),
     };
   }, [analytics]);
 
   const topPostsFiltered = useFilteredData(processed.topPosts, filter)
-    .sort((a, b) => b.like_count - a.like_count)
+    .sort((a, b) => b.likeCount - a.likeCount)
     .slice(0, 5);
 
   /* ----- loading ----- */
@@ -341,7 +341,7 @@ function PageContent({
               label="Total Likes"
               value={
                 processed.topPosts?.reduce(
-                  (s: number, p: any) => s + p.like_count,
+                  (s: number, p: any) => s + p.likeCount,
                   0,
                 ) || 0
               }
@@ -381,7 +381,7 @@ function PageContent({
                     {topPostsFiltered.map((post) => (
                       <ImageListItem key={post.id}>
                         <img
-                          src={post.thumbnail_url}
+                          src={post.thumbnailUrl}
                           alt={post.title}
                           loading="lazy"
                           style={{
@@ -414,12 +414,12 @@ function PageContent({
                               variant="caption"
                               sx={{ color: "#fff" }}
                             >
-                              {format(parseISO(post.created_at), "MMM d")}
+                              {format(parseISO(post.createdAt), "MMM d")}
                             </Typography>
                           }
                           actionIcon={
                             <Badge
-                              badgeContent={post.like_count}
+                              badgeContent={post.likeCount}
                               sx={{
                                 mr: 1,
                                 "& .MuiBadge-badge": {

@@ -8,8 +8,8 @@ export enum ReportTargetType {
 }
 
 export interface CreateReportDto {
-  target_id: number;
-  target_type: ReportTargetType;
+  targetId: number;
+  targetType: ReportTargetType;
   reason: string;
 }
 
@@ -46,20 +46,20 @@ export type ReportStatus = "PENDING" | "RESOLVED" | "DISMISSED";
  */
 export interface Report {
   id: number;
-  reporter_id: string;
-  moderator_id?: string;
+  reporterId: string;
+  moderatorId?: string;
   moderator?: UserSnippet | null;
-  target_id: number;
-  target_type: ReportTargetType;
+  targetId: number;
+  targetType: ReportTargetType;
   reason: string;
   status: ReportStatus;
-  user_id?: string;
-  created_at: string;
-  updated_at?: string;
-  resolved_at?: string;
-  resolution_comment?: string;
+  userId?: string;
+  createdAt: string;
+  updatedAt?: string;
+  resolvedAt?: string;
+  resolutionComment?: string;
   reporter: UserSnippet;
-  target_url?: string;
+  targetUrl?: string;
 }
 
 /**
@@ -104,8 +104,8 @@ export async function updateReportStatus(
 }
 
 export interface ResolveReportDto {
-  resolve_date: string;
-  resolution_comment?: string;
+  resolveDate: string;
+  resolutionComment?: string;
 }
 
 export async function resolveReport(

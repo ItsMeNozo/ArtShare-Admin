@@ -163,16 +163,16 @@ const AdminPostTableRow: React.FC<AdminPostTableRowProps> = React.memo(
                 userCellConfig.align === "center" ? "center" : "flex-start",
             }}
           >
-            {/* {blog.user.profile_picture_url && (
+            {/* {blog.user.profilePictureUrl && (
               <Avatar
-                src={blog.user.profile_picture_url}
+                src={blog.user.profilePictureUrl}
                 sx={{ width: 24, height: 24, mr: 1 }}
               />
             )} */}
             {userCellConfig.truncate ? (
-              <Tooltip title={String(blog?.user_id)}>
+              <Tooltip title={String(blog?.userId)}>
                 <Typography variant="body2" noWrap>
-                  {blog.user?.username ?? blog.user_id}
+                  {blog.user?.username ?? blog.userId}
                 </Typography>
               </Tooltip>
             ) : (
@@ -180,7 +180,7 @@ const AdminPostTableRow: React.FC<AdminPostTableRowProps> = React.memo(
                 variant="body2"
                 sx={{ whiteSpace: userCellConfig.wrap ? "normal" : "nowrap" }}
               >
-                {blog.user_id}
+                {blog.userId}
               </Typography>
             )}
           </Box>
@@ -193,7 +193,7 @@ const AdminPostTableRow: React.FC<AdminPostTableRowProps> = React.memo(
               createdAtCellConfig.maxWidth || createdAtCellConfig.cellMaxWidth,
           }}
         >
-          {format(new Date(blog.created_at), "MMM dd, yyyy HH:mm")}
+          {format(new Date(blog.createdAt), "MMM dd, yyyy HH:mm")}
         </TableCell>
         <TableCell
           align={actionsCellConfig.align}

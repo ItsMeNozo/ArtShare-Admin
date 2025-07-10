@@ -1,4 +1,4 @@
-export type SortableFields = "id" | "title" | "user" | "created_at";
+export type SortableFields = "id" | "title" | "user" | "createdAt";
 
 export interface CustomHeadCell {
   id: SortableFields | "categories" | "actions" | "select";

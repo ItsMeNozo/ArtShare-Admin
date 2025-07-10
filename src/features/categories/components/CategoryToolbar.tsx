@@ -71,11 +71,11 @@ export const CategoryToolbar: React.FC = () => {
       Name: category.name,
       Type: category.type,
       Description: category.description || "",
-      "Posts Count": category.posts_count || 0,
-      "Example Images": category.example_images?.length || 0,
-      "Created Date": new Date(category.created_at).toLocaleDateString(),
-      "Updated Date": category.updated_at
-        ? new Date(category.updated_at).toLocaleDateString()
+      "Posts Count": category.postsCount || 0,
+      "Example Images": category.exampleImages?.length || 0,
+      "Created Date": new Date(category.createdAt).toLocaleDateString(),
+      "Updated Date": category.updatedAt
+        ? new Date(category.updatedAt).toLocaleDateString()
         : "Never",
     }));
   }, [getDataForExport]);
@@ -87,11 +87,11 @@ export const CategoryToolbar: React.FC = () => {
       category.name,
       category.type,
       category.description || "",
-      category.posts_count || 0,
-      category.example_images?.length || 0,
-      new Date(category.created_at).toLocaleDateString(),
-      category.updated_at
-        ? new Date(category.updated_at).toLocaleDateString()
+      category.postsCount || 0,
+      category.exampleImages?.length || 0,
+      new Date(category.createdAt).toLocaleDateString(),
+      category.updatedAt
+        ? new Date(category.updatedAt).toLocaleDateString()
         : "Never",
     ]);
 

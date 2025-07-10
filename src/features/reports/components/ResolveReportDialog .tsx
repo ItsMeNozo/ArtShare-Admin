@@ -34,7 +34,7 @@ interface ResolveReportDialogProps {
   error?: string;
   onCancel: () => void;
   onConfirm: (data: {
-    resolve_date: string; // ISO string
+    resolveDate: string; // ISO string
     comment?: string;
   }) => void;
 }
@@ -61,7 +61,7 @@ const ResolveReportDialog: React.FC<ResolveReportDialogProps> = ({
   }, [open, initialDate]);
 
   const handleConfirm = () => {
-    onConfirm({ resolve_date: new Date(dateTime).toISOString(), comment });
+    onConfirm({ resolveDate: new Date(dateTime).toISOString(), comment });
   };
 
   return (

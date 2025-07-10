@@ -13,8 +13,8 @@ export const fetchCategories = async (): Promise<Category[]> => {
     // Convert date strings to Date objects if necessary
     return response.data.map((cat) => ({
       ...cat,
-      created_at: new Date(cat.created_at),
-      updated_at: cat.updated_at ? new Date(cat.updated_at) : null,
+      createdAt: new Date(cat.createdAt),
+      updatedAt: cat.updatedAt ? new Date(cat.updatedAt) : null,
     }));
   } catch (error) {
     console.error("Error fetching categories:", error);
@@ -28,9 +28,9 @@ export const fetchCategoryById = async (id: number): Promise<Category> => {
     const response = await api.get<Category>(`${CATEGORIES_ENDPOINT}/${id}`);
     return {
       ...response.data,
-      created_at: new Date(response.data.created_at),
-      updated_at: response.data.updated_at
-        ? new Date(response.data.updated_at)
+      createdAt: new Date(response.data.createdAt),
+      updatedAt: response.data.updatedAt
+        ? new Date(response.data.updatedAt)
         : null,
     };
   } catch (error) {
@@ -45,7 +45,7 @@ export const addCategory = async (
   try {
     // Use longer timeout for operations with images
     const timeout =
-      categoryData.example_images && categoryData.example_images.length > 0
+      categoryData.exampleImages && categoryData.exampleImages.length > 0
         ? 60000
         : 10000; // 60s if images, 10s otherwise
 
@@ -56,9 +56,9 @@ export const addCategory = async (
     );
     return {
       ...response.data,
-      created_at: new Date(response.data.created_at),
-      updated_at: response.data.updated_at
-        ? new Date(response.data.updated_at)
+      createdAt: new Date(response.data.createdAt),
+      updatedAt: response.data.updatedAt
+        ? new Date(response.data.updatedAt)
         : null,
     };
   } catch (error) {
@@ -74,7 +74,7 @@ export const updateCategory = async (
   try {
     // Use longer timeout for operations with images
     const timeout =
-      categoryData.example_images && categoryData.example_images.length > 0
+      categoryData.exampleImages && categoryData.exampleImages.length > 0
         ? 60000
         : 10000; // 60s if images, 10s otherwise
 
@@ -85,9 +85,9 @@ export const updateCategory = async (
     ); // Assuming PATCH for updates
     return {
       ...response.data,
-      created_at: new Date(response.data.created_at),
-      updated_at: response.data.updated_at
-        ? new Date(response.data.updated_at)
+      createdAt: new Date(response.data.createdAt),
+      updatedAt: response.data.updatedAt
+        ? new Date(response.data.updatedAt)
         : null,
     };
   } catch (error) {

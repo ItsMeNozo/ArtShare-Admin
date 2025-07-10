@@ -77,8 +77,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     // console.log('Login called.');
     setIsLoading(true); // Indicate an auth operation is in progress
     try {
-      const { access_token } = await apiSignIn(email, password);
-      localStorage.setItem("accessToken", access_token);
+      const { accessToken } = await apiSignIn(email, password);
+      localStorage.setItem("accessToken", accessToken);
 
       // console.log('Signed in, fetching profile with new token.');
       const userProfile = await getUserProfile(); // This also needs to complete

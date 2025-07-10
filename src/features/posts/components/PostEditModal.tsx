@@ -105,14 +105,14 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
     initialValues: {
       title: "",
       description: "",
-      cate_ids: [] as number[],
-      thumbnail_url: null as string | null,
+      categoryIds: [] as number[],
+      thumbnailUrl: null as string | null,
     },
     validationSchema: Yup.object({
       title: Yup.string().required("Title is required"),
       description: Yup.string().nullable(),
-      cate_ids: Yup.array().of(Yup.number()),
-      thumbnail_url: Yup.string().nullable(),
+      categoryIds: Yup.array().of(Yup.number()),
+      thumbnailUrl: Yup.string().nullable(),
     }),
     onSubmit: (values) => {
       updatePostMutation.mutate(
@@ -129,18 +129,17 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
       formik.setValues({
         title: post.title || "",
         description: post.description || "",
-        cate_ids: post.categories.map((c) => c.id),
-        thumbnail_url: post.thumbnail_url || post.medias?.[0]?.url || null,
+        categoryIds: post.categories.map((c) => c.id),
+        thumbnailUrl: post.thumbnailUrl || post.medias?.[0]?.url || null,
       });
     }
   }, [post]);
 
   const selectedMediaIdForThumbnail = useMemo(() => {
     return (
-      post?.medias.find((m) => m.url === formik.values.thumbnail_url)?.id ||
-      null
+      post?.medias.find((m) => m.url === formik.values.thumbnailUrl)?.id || null
     );
-  }, [post?.medias, formik.values.thumbnail_url]);
+  }, [post?.medias, formik.values.thumbnailUrl]);
 
   return (
     <Dialog
@@ -211,13 +210,14 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                   fullWidth
                   sx={{ mb: 2 }}
                   error={
-                    formik.touched.cate_ids && Boolean(formik.errors.cate_ids)
+                    formik.touched.categoryIds &&
+                    Boolean(formik.errors.categoryIds)
                   }
                 >
                   <Typography
                     variant="caption"
                     component="label"
-                    htmlFor="cate_ids-select"
+                    htmlFor="categoryIds-select"
                     sx={{
                       display: "block",
                       color: "text.secondary",
@@ -230,12 +230,12 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                   </Typography>
                   <Select
                     labelId="categories-label-id-placeholder"
-                    id="cate_ids-select"
-                    name="cate_ids"
+                    id="categoryIds-select"
+                    name="categoryIds"
                     multiple
-                    value={formik.values.cate_ids}
+                    value={formik.values.categoryIds}
                     onChange={(event) =>
-                      formik.setFieldValue("cate_ids", event.target.value)
+                      formik.setFieldValue("categoryIds", event.target.value)
                     }
                     input={<OutlinedInput size="small" />}
                     renderValue={(selected) => (
@@ -262,14 +262,14 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                       </MenuItem>
                     ))}
                   </Select>
-                  {formik.touched.cate_ids && formik.errors.cate_ids && (
+                  {formik.touched.categoryIds && formik.errors.categoryIds && (
                     <Typography variant="caption" color="error">
-                      {formik.errors.cate_ids}
+                      {formik.errors.categoryIds}
                     </Typography>
                   )}
                 </FormControl>
                 <Typography variant="caption" color="textSecondary">
-                  User ID: {post.user_id} | Username: {post.user.username}
+                  User ID: {post.userId} | Username: {post.user.username}
                 </Typography>
               </Grid>
 
@@ -300,9 +300,9 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                     mb: 2,
                   }}
                 >
-                  {formik.values.thumbnail_url ? (
+                  {formik.values.thumbnailUrl ? (
                     <img
-                      src={formik.values.thumbnail_url}
+                      src={formik.values.thumbnailUrl}
                       alt="Selected Thumbnail"
                       style={{
                         width: "100%",
@@ -346,7 +346,7 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                       <Card
                         key={media.id}
                         onClick={() =>
-                          formik.setFieldValue("thumbnail_url", media.url)
+                          formik.setFieldValue("thumbnailUrl", media.url)
                         }
                         sx={{
                           minWidth: 100,

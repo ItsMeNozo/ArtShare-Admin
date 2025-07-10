@@ -166,8 +166,8 @@ const BlogManagementPage: React.FC = () => {
     return dataToExport.map((post) => ({
       ID: post.id,
       Title: post.title,
-      Author: post.user_id || String(post.user_id),
-      CreatedAt: format(new Date(post.created_at), "yyyy-MM-dd HH:mm:ss"),
+      Author: post.userId || String(post.userId),
+      CreatedAt: format(new Date(post.createdAt), "yyyy-MM-dd HH:mm:ss"),
     }));
   }, [getDataForExport]);
 
@@ -177,8 +177,8 @@ const BlogManagementPage: React.FC = () => {
     const pdfData = dataToExport.map((post) => [
       post.id,
       post.title,
-      String(post.user_id),
-      format(new Date(post.created_at), "MMM dd, yyyy HH:mm"),
+      String(post.userId),
+      format(new Date(post.createdAt), "MMM dd, yyyy HH:mm"),
     ]);
     autoTable(doc, {
       head: [["ID", "Title", "Author", "Created At"]],
