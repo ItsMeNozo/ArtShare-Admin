@@ -1,18 +1,18 @@
-import React, { useCallback } from "react";
-import { Box, Paper } from "@mui/material";
+import { Box, Paper } from '@mui/material';
+import React, { useCallback } from 'react';
+import { PageNotifier } from '../users/components/PageNotifier';
+import { CategoryDeleteConfirmationDialog } from './components/CategoryDeleteConfirmationDialog';
+import { CategoryEditViewDialog } from './components/CategoryEditViewDialog';
+import { CategoryTable } from './components/CategoryTable';
+import { CategoryToolbar } from './components/CategoryToolbar';
 import {
   CategoryDataProvider,
   useCategoryData,
-} from "./context/CategoryDataContext";
+} from './context/CategoryDataContext';
 import {
   CategoryInterfaceProvider,
   useCategoryInterface,
-} from "./context/CategoryInterfaceContext";
-import { CategoryToolbar } from "./components/CategoryToolbar";
-import { CategoryTable } from "./components/CategoryTable";
-import { CategoryEditViewDialog } from "./components/CategoryEditViewDialog";
-import { CategoryDeleteConfirmationDialog } from "./components/CategoryDeleteConfirmationDialog";
-import { PageNotifier } from "../users/components/PageNotifier";
+} from './context/CategoryInterfaceContext';
 
 const CategoryManagementView: React.FC = () => {
   const { deleteCategory, deleteBulkCategories, refreshCategories } =
@@ -35,13 +35,13 @@ const CategoryManagementView: React.FC = () => {
 
     deleteCategory(categoryToDelete.id)
       .then(() => {
-        showPageNotification("Category deleted successfully!", "success");
+        showPageNotification('Category deleted successfully!', 'success');
         handleCloseDeleteDialog();
       })
       .catch((error) => {
         showPageNotification(
           `Failed to delete category: ${error.message}`,
-          "error",
+          'error',
         );
       });
   }, [
@@ -58,7 +58,7 @@ const CategoryManagementView: React.FC = () => {
       .then(() => {
         showPageNotification(
           `Successfully deleted ${selectedIds.length} categories!`,
-          "success",
+          'success',
         );
         resetSelection();
         handleCloseBulkDeleteDialog();
@@ -66,7 +66,7 @@ const CategoryManagementView: React.FC = () => {
       .catch((error) => {
         showPageNotification(
           `Failed to delete categories: ${error.message}`,
-          "error",
+          'error',
         );
       });
   }, [
@@ -77,9 +77,20 @@ const CategoryManagementView: React.FC = () => {
     handleCloseBulkDeleteDialog,
   ]);
 
-  const handleDialogSuccess = useCallback(() => {
-    refreshCategories();
-  }, [refreshCategories]);
+  const handleDialogSuccess = useCallback(
+    (message: string) => {
+      refreshCategories();
+      showPageNotification(message, 'success');
+    },
+    [refreshCategories, showPageNotification],
+  );
+
+  const handleDialogError = useCallback(
+    (message: string) => {
+      showPageNotification(message, 'error');
+    },
+    [showPageNotification],
+  );
 
   return (
     <Box sx={{ p: 3 }}>
@@ -95,6 +106,7 @@ const CategoryManagementView: React.FC = () => {
         isCreatingNewCategory={dialogs.editView.isCreating}
         onClose={handleCloseCategoryDetailDialog}
         onSuccess={handleDialogSuccess}
+        onError={handleDialogError}
       />
 
       {/* Delete Single Category Dialog */}
@@ -107,7 +119,7 @@ const CategoryManagementView: React.FC = () => {
         contentText={
           dialogs.delete.category
             ? `Are you sure you want to delete "${dialogs.delete.category.name}"? This action cannot be undone.`
-            : ""
+            : ''
         }
       />
 
