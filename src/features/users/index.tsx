@@ -1,5 +1,6 @@
 import { Container } from '@mui/material';
 import React, { useCallback } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { DeleteConfirmationDialog } from './components/DeleteConfirmationDialog';
 import { PageNotifier } from './components/PageNotifier';
 import { UserActionMenu } from './components/UserActionMenu';
@@ -12,6 +13,7 @@ import {
 } from './context/UserInterfaceContext';
 
 const UserManagementView: React.FC = () => {
+  const { user: currentUser } = useAuth();
   const { deleteUserMutation, bulkDeleteUsersMutation } = useUserData();
   const {
     selectedIds,
@@ -29,6 +31,10 @@ const UserManagementView: React.FC = () => {
 
   const handleDeleteUser = useCallback(() => {
     const userToDelete = dialogs.delete.user;
+    if (userToDelete?.id === currentUser?.id) {
+      showPageNotification(`You cannot delete yourself !`, 'warning');
+      return;
+    }
     if (!userToDelete) return;
 
     deleteUserMutation.mutate(userToDelete.id, {
@@ -54,6 +60,10 @@ const UserManagementView: React.FC = () => {
 
   const executeBulkDelete = useCallback(() => {
     if (selectedIds.length === 0) return;
+    if (selectedIds.includes(currentUser?.id || '')) {
+      showPageNotification(`You cannot delete yourself !`, 'warning');
+      return;
+    }
 
     bulkDeleteUsersMutation.mutate(selectedIds, {
       onSuccess: () => {
