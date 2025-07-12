@@ -1,31 +1,31 @@
-import React, { useMemo, useCallback, useState } from "react";
-import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Stack,
-  Menu,
-  MenuItem,
-  useTheme,
-} from "@mui/material";
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
-  UndoOutlined,
   MoreVertOutlined,
-} from "@mui/icons-material";
-import { CSVLink } from "react-csv";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+  UndoOutlined,
+} from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  Menu,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+  useTheme,
+} from '@mui/material';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import React, { useCallback, useMemo, useState } from 'react';
+import { CSVLink } from 'react-csv';
 
-import { useUserInterface } from "../../context/UserInterfaceContext";
-import { useUserData } from "../../context/UserDataContext";
+import { toTitleCase } from '../../../../utils/common';
 import {
   AVAILABLE_ROLES_FOR_SELECT,
   AVAILABLE_STATUSES,
-} from "../../constants/constant";
-import { toTitleCase } from "../../../../utils/common";
+} from '../../constants/constant';
+import { useUserData } from '../../context/UserDataContext';
+import { useUserInterface } from '../../context/UserInterfaceContext';
 
 export const UserTableToolbar: React.FC = () => {
   const theme = useTheme();
@@ -56,46 +56,46 @@ export const UserTableToolbar: React.FC = () => {
     const dataToExport = getDataForExport();
     return dataToExport.map((user) => ({
       Username: user.username,
-      FullName: user.fullName || "",
+      FullName: user.fullName || '',
       Email: user.email,
       Roles:
         user.roles
-          ?.map((r: any) => (typeof r === "string" ? r : r.name))
-          .join(" | ") || "",
-      "Current Plan": user.currentPlan || "N/A",
-      "Joined Date": user.createdAt
+          ?.map((r: any) => (typeof r === 'string' ? r : r.name))
+          .join(' | ') || '',
+      'Current Plan': user.currentPlan || 'N/A',
+      'Joined Date': user.createdAt
         ? new Date(user.createdAt).toLocaleDateString()
-        : "N/A",
+        : 'N/A',
     }));
   }, [getDataForExport]);
 
   const handleExportPDF = useCallback(() => {
-    const doc = new jsPDF("landscape");
+    const doc = new jsPDF('landscape');
     const dataToExport = getDataForExport();
     const pdfData = dataToExport.map((user) => [
-      user.username ?? "",
-      user.fullName ?? "",
-      user.email ?? "",
+      user.username ?? '',
+      user.fullName ?? '',
+      user.email ?? '',
       user.roles
-        ?.map((r: any) => (typeof r === "string" ? r : r.name))
-        .join(", ") || "",
-      user.currentPlan ?? "N/A",
-      user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A",
+        ?.map((r: any) => (typeof r === 'string' ? r : r.name))
+        .join(', ') || '',
+      user.currentPlan ?? 'N/A',
+      user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A',
     ]);
     autoTable(doc, {
       head: [
         [
-          "Username",
-          "Full Name",
-          "Email",
-          "Roles",
-          "Current Plan",
-          "Joined Date",
+          'Username',
+          'Full Name',
+          'Email',
+          'Roles',
+          'Current Plan',
+          'Joined Date',
         ],
       ],
       body: pdfData,
     });
-    doc.save("users-page.pdf");
+    doc.save('users-page.pdf');
     handleMoreMenuClose();
   }, [getDataForExport]);
 
@@ -103,10 +103,10 @@ export const UserTableToolbar: React.FC = () => {
     <>
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
           gap: 2,
           mb: 2,
         }}
@@ -114,7 +114,7 @@ export const UserTableToolbar: React.FC = () => {
         <Typography variant="h5" component="h1" fontWeight="bold">
           User Management
         </Typography>
-        <Box sx={{ display: "flex", gap: 1, alignItems: "center", ml: "auto" }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', ml: 'auto' }}>
           <TextField
             select
             size="small"
@@ -157,11 +157,11 @@ export const UserTableToolbar: React.FC = () => {
             value={tableControls.searchTerm}
             onChange={(e) => tableControls.handleSearchChange(e.target.value)}
             sx={{
-              width: { xs: "100%", sm: 180 },
+              width: { xs: '100%', sm: 180 },
               backgroundColor:
-                theme.palette.mode === "dark" ? "#1f2937" : "#f9fafb",
+                theme.palette.mode === 'dark' ? '#1f2937' : '#f9fafb',
               borderRadius: 2,
-              "& input": { px: 1.5, py: 1 },
+              '& input': { px: 1.5, py: 1 },
             }}
             InputProps={{ sx: { fontSize: 14 } }}
           />
@@ -170,7 +170,7 @@ export const UserTableToolbar: React.FC = () => {
             startIcon={<AddIcon />}
             onClick={() => handleOpenUserDetailDialog(null, true)}
             color="primary"
-            sx={{ textTransform: "none" }}
+            sx={{ textTransform: 'none' }}
           >
             Add User
           </Button>
@@ -185,13 +185,13 @@ export const UserTableToolbar: React.FC = () => {
             py: 1,
             borderRadius: 2,
             backgroundColor:
-              theme.palette.mode === "dark"
+              theme.palette.mode === 'dark'
                 ? theme.palette.grey[700]
                 : theme.palette.grey[200],
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
             gap: 1,
           }}
         >
@@ -205,14 +205,14 @@ export const UserTableToolbar: React.FC = () => {
               color="error"
               variant="contained"
               onClick={handleOpenBulkDeleteDialog}
-              sx={{ textTransform: "none" }}
+              sx={{ textTransform: 'none' }}
             >
               Delete
             </Button>
             <Button
               onClick={resetSelection}
               startIcon={<UndoOutlined />}
-              sx={{ textTransform: "none" }}
+              sx={{ textTransform: 'none' }}
               variant="outlined"
             >
               Deselect all
@@ -221,7 +221,7 @@ export const UserTableToolbar: React.FC = () => {
               variant="outlined"
               startIcon={<MoreVertOutlined />}
               onClick={handleMoreMenuOpen}
-              sx={{ textTransform: "none" }}
+              sx={{ textTransform: 'none' }}
             >
               More
             </Button>
@@ -234,19 +234,19 @@ export const UserTableToolbar: React.FC = () => {
                 <CSVLink
                   data={csvFormattedData}
                   headers={[
-                    { label: "Username", key: "Username" },
-                    { label: "Full Name", key: "FullName" },
-                    { label: "Email", key: "Email" },
-                    { label: "Roles", key: "Roles" },
-                    { label: "Current Plan", key: "Current Plan" },
-                    { label: "Joined Date", key: "Joined Date" },
+                    { label: 'Username', key: 'Username' },
+                    { label: 'Full Name', key: 'FullName' },
+                    { label: 'Email', key: 'Email' },
+                    { label: 'Roles', key: 'Roles' },
+                    { label: 'Current Plan', key: 'Current Plan' },
+                    { label: 'Joined Date', key: 'Joined Date' },
                   ]}
                   filename="users.csv"
                   style={{
-                    textDecoration: "none",
-                    color: "inherit",
-                    width: "100%",
-                    display: "block",
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    width: '100%',
+                    display: 'block',
                   }}
                   target="_blank"
                 >

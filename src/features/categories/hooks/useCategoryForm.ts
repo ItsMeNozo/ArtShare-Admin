@@ -1,11 +1,11 @@
-import { useFormik } from "formik";
-import * as Yup from "yup";
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import {
   Category,
   CategoryType,
   CategoryTypeValues,
-} from "../../../types/category";
-import { addCategory, updateCategory } from "../categoryAPI";
+} from '../../../types/category';
+import { addCategory, updateCategory } from '../categoryAPI';
 
 export interface CategoryFormData {
   name: string;
@@ -27,8 +27,8 @@ const getInitialFormData = (
 ): CategoryFormData => {
   if (isCreating || !category) {
     return {
-      name: "",
-      description: "",
+      name: '',
+      description: '',
       type: CategoryTypeValues.ATTRIBUTE,
       exampleImages: [],
     };
@@ -36,7 +36,7 @@ const getInitialFormData = (
 
   return {
     name: category.name,
-    description: category.description || "",
+    description: category.description || '',
     type: category.type,
     exampleImages: [...(category.exampleImages || [])],
   };
@@ -44,31 +44,31 @@ const getInitialFormData = (
 
 const validationSchema = Yup.object({
   name: Yup.string()
-    .min(2, "Category name must be at least 2 characters")
-    .max(100, "Category name cannot exceed 100 characters")
-    .required("Category name is required")
-    .test("no-only-spaces", "Category name cannot be only spaces", (value) =>
+    .min(2, 'Category name must be at least 2 characters')
+    .max(100, 'Category name cannot exceed 100 characters')
+    .required('Category name is required')
+    .test('no-only-spaces', 'Category name cannot be only spaces', (value) =>
       value ? value.trim().length > 0 : false,
     ),
   description: Yup.string()
-    .min(10, "Description must be at least 10 characters")
-    .max(500, "Description cannot exceed 500 characters")
-    .required("Description is required")
-    .test("no-only-spaces", "Description cannot be only spaces", (value) =>
+    .min(10, 'Description must be at least 10 characters')
+    .max(500, 'Description cannot exceed 500 characters')
+    .required('Description is required')
+    .test('no-only-spaces', 'Description cannot be only spaces', (value) =>
       value ? value.trim().length > 0 : false,
     ),
   type: Yup.string()
     .oneOf(
       Object.values(CategoryTypeValues),
-      "Please select a valid category type",
+      'Please select a valid category type',
     )
-    .required("Category type is required"),
+    .required('Category type is required'),
   exampleImages: Yup.array()
     .of(
-      Yup.string().test("valid-url-or-data", "Invalid image URL", (value) => {
+      Yup.string().test('valid-url-or-data', 'Invalid image URL', (value) => {
         if (!value) return true; // Allow empty values
         // Allow data URLs (base64 images)
-        if (value.startsWith("data:image/")) return true;
+        if (value.startsWith('data:image/')) return true;
         // Allow regular HTTP/HTTPS URLs
         try {
           new URL(value);
@@ -78,7 +78,7 @@ const validationSchema = Yup.object({
         }
       }),
     )
-    .max(4, "Maximum 4 example images allowed")
+    .max(4, 'Maximum 4 example images allowed')
     .nullable(),
 });
 
@@ -86,20 +86,20 @@ const getErrorMessage = (error: any): string => {
   // Handle API response errors
   if (error?.response?.data?.message) {
     const message = error.response.data.message;
-    return Array.isArray(message) ? message.join(", ") : message;
+    return Array.isArray(message) ? message.join(', ') : message;
   }
 
   // Handle network errors
   if (
-    error?.code === "NETWORK_ERROR" ||
-    error?.message?.includes("Network Error")
+    error?.code === 'NETWORK_ERROR' ||
+    error?.message?.includes('Network Error')
   ) {
-    return "Network error. Please check your connection and try again.";
+    return 'Network error. Please check your connection and try again.';
   }
 
   // Handle timeout errors
-  if (error?.code === "ECONNABORTED" || error?.message?.includes("timeout")) {
-    return "Request timed out. Please try again.";
+  if (error?.code === 'ECONNABORTED' || error?.message?.includes('timeout')) {
+    return 'Request timed out. Please try again.';
   }
 
   // Handle standard errors
@@ -108,7 +108,7 @@ const getErrorMessage = (error: any): string => {
   }
 
   // Fallback error message
-  return "An unexpected error occurred. Please try again later.";
+  return 'An unexpected error occurred. Please try again later.';
 };
 
 export const useCategoryForm = ({
@@ -122,7 +122,7 @@ export const useCategoryForm = ({
       name: values.name.trim(),
       description: values.description.trim(),
       type: values.type,
-      exampleImages: values.exampleImages.filter((img) => img.trim() !== ""),
+      exampleImages: values.exampleImages.filter((img) => img.trim() !== ''),
     };
 
     await addCategory(payload);
@@ -131,14 +131,14 @@ export const useCategoryForm = ({
 
   const executeUpdateCategory = async (values: CategoryFormData) => {
     if (!initialCategory?.id) {
-      throw new Error("Cannot update category: Category ID is missing.");
+      throw new Error('Cannot update category: Category ID is missing.');
     }
 
     const payload = {
       name: values.name.trim(),
       description: values.description.trim(),
       type: values.type,
-      exampleImages: values.exampleImages.filter((img) => img.trim() !== ""),
+      exampleImages: values.exampleImages.filter((img) => img.trim() !== ''),
     };
 
     await updateCategory(initialCategory.id, payload);
@@ -149,15 +149,15 @@ export const useCategoryForm = ({
     try {
       if (isCreatingNewCategory) {
         await executeCreateCategory(values);
-        onSuccess("Category created successfully!");
+        onSuccess('Category created successfully!');
       } else {
         await executeUpdateCategory(values);
-        onSuccess("Category updated successfully!");
+        onSuccess('Category updated successfully!');
       }
     } catch (error) {
       const errorMessage = getErrorMessage(error);
       onError(
-        `Failed to ${isCreatingNewCategory ? "create" : "update"} category: ${errorMessage}`,
+        `Failed to ${isCreatingNewCategory ? 'create' : 'update'} category: ${errorMessage}`,
       );
     }
   };

@@ -1,32 +1,32 @@
 // src/features/users/components/UserForm.tsx
 
-import React from "react";
-import { FormikProps } from "formik";
-import { UserFormData } from "../../../../types/user";
 import {
-  Grid,
-  TextField,
+  AssignmentInd as AssignmentIndIcon,
+  Cake as CakeIcon,
+  Description as DescriptionIcon,
+  Email as EmailIcon,
+  Person as PersonIcon,
+  VpnKey as VpnKeyIcon,
+} from '@mui/icons-material';
+import {
   Box,
   FormControl,
-  Typography,
-  Select,
-  OutlinedInput,
-  MenuItem,
-  ListItemText,
   FormHelperText,
-} from "@mui/material";
-import {
-  Person as PersonIcon,
-  Email as EmailIcon,
-  Cake as CakeIcon,
-  AssignmentInd as AssignmentIndIcon,
-  VpnKey as VpnKeyIcon,
-  Description as DescriptionIcon,
-} from "@mui/icons-material";
+  Grid,
+  ListItemText,
+  MenuItem,
+  OutlinedInput,
+  Select,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { FormikProps } from 'formik';
+import React from 'react';
+import { UserFormData } from '../../../../types/user';
 import {
   AVAILABLE_ROLES_FOR_SELECT,
   AVAILABLE_STATUSES,
-} from "../../constants/constant";
+} from '../../constants/constant';
 
 interface UserFormProps {
   formik: FormikProps<UserFormData>;
@@ -44,15 +44,15 @@ const ReadOnlyField: React.FC<{
     </Typography>
     <Box
       sx={{
-        fontSize: "1rem",
-        fontFamily: "inherit",
+        fontSize: '1rem',
+        fontFamily: 'inherit',
         lineHeight: 1.5,
-        color: "text.primary",
-        minHeight: "24px",
-        wordBreak: "break-words",
+        color: 'text.primary',
+        minHeight: '24px',
+        wordBreak: 'break-words',
       }}
     >
-      {value || "-"}
+      {value || '-'}
     </Box>
   </Grid>
 );
@@ -69,7 +69,7 @@ const FormTextField: React.FC<{
   formik,
   id,
   label,
-  type = "text",
+  type = 'text',
   icon,
   multiline = false,
   required = false,
@@ -78,7 +78,7 @@ const FormTextField: React.FC<{
     container
     direction="column"
     spacing={0.5}
-    key={id + "_custom_field"}
+    key={id + '_custom_field'}
     size={{ xs: 12 }}
   >
     <Grid size={{ xs: 12 }}>
@@ -87,8 +87,8 @@ const FormTextField: React.FC<{
         component="label"
         htmlFor={id}
         sx={{
-          display: "block",
-          color: "text.secondary",
+          display: 'block',
+          color: 'text.secondary',
           fontWeight: 500,
         }}
       >
@@ -102,7 +102,7 @@ const FormTextField: React.FC<{
         type={type}
         name={id}
         id={id}
-        value={formik.values[id] || ""}
+        value={formik.values[id] || ''}
         onChange={formik.handleChange}
         onBlur={formik.handleBlur}
         error={formik.touched[id] && Boolean(formik.errors[id])}
@@ -111,7 +111,7 @@ const FormTextField: React.FC<{
         rows={multiline ? 3 : 1}
         InputProps={{
           startAdornment: icon ? (
-            <Box sx={{ mr: 1, color: "action.active" }}>{icon}</Box>
+            <Box sx={{ mr: 1, color: 'action.active' }}>{icon}</Box>
           ) : null,
         }}
         required={required}
@@ -126,14 +126,14 @@ export const UserForm: React.FC<UserFormProps> = ({
   isCreatingNewUser,
 }) => {
   const capitalize = (str: string) =>
-    str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
+    str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
 
   return (
-    <Grid size={{ xs: 12, md: 8 }} sx={{ p: 3, minHeight: "720px" }}>
+    <Grid size={{ xs: 12, md: 8 }} sx={{ p: 3, minHeight: '720px' }}>
       <Typography
         variant="h6"
         gutterBottom
-        sx={{ borderBottom: 1, borderColor: "divider", pb: 1, mb: 3 }}
+        sx={{ borderBottom: 1, borderColor: 'divider', pb: 1, mb: 3 }}
       >
         User Profile
       </Typography>
@@ -222,9 +222,9 @@ export const UserForm: React.FC<UserFormProps> = ({
                     Role
                   </Typography>
                   <Select
-                    value={formik.values.roles[0] || ""}
+                    value={formik.values.roles[0] || ''}
                     onChange={(e) => {
-                      formik.setFieldValue("roles", [e.target.value]);
+                      formik.setFieldValue('roles', [e.target.value]);
                     }}
                     onBlur={formik.handleBlur}
                     input={<OutlinedInput />}
@@ -279,7 +279,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                 label="Roles"
                 value={(formik.values.roles as string[])
                   .map(capitalize)
-                  .join(", ")}
+                  .join(', ')}
               />
               <ReadOnlyField
                 label="Status"

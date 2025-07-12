@@ -1,8 +1,8 @@
-@import "tailwindcss" important;
-@import "@fontsource/roboto/300.css";
-@import "@fontsource/roboto/400.css";
-@import "@fontsource/roboto/500.css";
-@import "@fontsource/roboto/700.css";
+@import 'tailwindcss' important;
+@import '@fontsource/roboto/300.css';
+@import '@fontsource/roboto/400.css';
+@import '@fontsource/roboto/500.css';
+@import '@fontsource/roboto/700.css';
 
 @plugin "tailwindcss-animate";
 
@@ -153,8 +153,8 @@ body {
   padding: 0;
   height: 100%;
   width: 100%;
-  font-family: "Roboto", sans-serif;
-  scrollbar-gutter: "stable";
+  font-family: 'Roboto', sans-serif;
+  scrollbar-gutter: 'stable';
 
   .no-scrollbar::-webkit-scrollbar {
     display: none;

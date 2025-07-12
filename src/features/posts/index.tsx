@@ -1,32 +1,32 @@
-import React, { useCallback } from "react";
 import {
-  Container,
-  Typography,
-  Alert,
-  Menu,
-  MenuItem,
-  Snackbar,
-  Box,
-  CircularProgress,
-  Paper,
-} from "@mui/material";
-import {
+  Delete as DeleteIcon,
   Edit as EditIcon,
   Visibility as VisibilityIcon,
-  Delete as DeleteIcon,
-} from "@mui/icons-material";
-
-import { PostsDataProvider, usePostsData } from "./context/PostsDataContext";
-import { PostsUIProvider, usePostsUI } from "./context/PostsUIContext";
-
-import AdminPostsTable from "./components/PostsTable";
-import PostTableToolbar from "./components/PostTableToolbar";
-import ConfirmationDialog from "./components/ConfirmationDialog";
-import AdminPostEditModal from "./components/PostEditModal";
+} from '@mui/icons-material';
 import {
-  useDeleteAdminPost,
+  Alert,
+  Box,
+  CircularProgress,
+  Container,
+  Menu,
+  MenuItem,
+  Paper,
+  Snackbar,
+  Typography,
+} from '@mui/material';
+import React, { useCallback } from 'react';
+
+import { PostsDataProvider, usePostsData } from './context/PostsDataContext';
+import { PostsUIProvider, usePostsUI } from './context/PostsUIContext';
+
+import ConfirmationDialog from './components/ConfirmationDialog';
+import AdminPostEditModal from './components/PostEditModal';
+import AdminPostsTable from './components/PostsTable';
+import PostTableToolbar from './components/PostTableToolbar';
+import {
   useBulkDeleteAdminPosts,
-} from "./hooks/usePostQueries";
+  useDeleteAdminPost,
+} from './hooks/usePostQueries';
 
 const AdminPostsView: React.FC = () => {
   const { posts, isLoading, error: fetchError } = usePostsData();
@@ -56,19 +56,19 @@ const AdminPostsView: React.FC = () => {
   const handleBulkDelete = useCallback(() => {
     if (selected.length === 0) return;
     showConfirmation(
-      "Confirm Bulk Deletion",
+      'Confirm Bulk Deletion',
       `Are you sure you want to delete ${selected.length} selected post(s)? This action cannot be undone.`,
       () => {
         bulkDeletePostsMutation.mutate(selected as number[], {
           onSuccess: (data) => {
             showSnackbar(
               `${data.count} post(s) deleted successfully!`,
-              "success",
+              'success',
             );
             handleDeselectAll();
           },
           onError: (err) =>
-            showSnackbar(`Failed to delete posts: ${err.message}`, "error"),
+            showSnackbar(`Failed to delete posts: ${err.message}`, 'error'),
           onSettled: () => closeConfirmation(),
         });
       },
@@ -87,14 +87,14 @@ const AdminPostsView: React.FC = () => {
     const { id, title } = currentPostForMenu;
     handleMenuClose();
     showConfirmation(
-      "Confirm Deletion",
+      'Confirm Deletion',
       `Are you sure you want to delete post "${title}" (ID: ${id})?`,
       () => {
         deletePostMutation.mutate(id, {
           onSuccess: () =>
-            showSnackbar(`Post "${title}" deleted successfully.`, "success"),
+            showSnackbar(`Post "${title}" deleted successfully.`, 'success'),
           onError: (err) =>
-            showSnackbar(`Failed to delete post: ${err.message}`, "error"),
+            showSnackbar(`Failed to delete post: ${err.message}`, 'error'),
           onSettled: () => closeConfirmation(),
         });
       },
@@ -110,17 +110,17 @@ const AdminPostsView: React.FC = () => {
 
   const handlePostUpdated = useCallback(() => {
     closeEditModal();
-    showSnackbar("Post updated successfully!", "success");
+    showSnackbar('Post updated successfully!', 'success');
   }, [closeEditModal, showSnackbar]);
 
   if (isLoading && !posts.length) {
     return (
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "80vh",
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '80vh',
         }}
       >
         <CircularProgress />
@@ -154,7 +154,7 @@ const AdminPostsView: React.FC = () => {
           open={!!anchorEl}
           onClose={handleMenuClose}
           MenuListProps={{
-            "aria-labelledby": `actions-button-for-post-${currentPostForMenu?.id}`,
+            'aria-labelledby': `actions-button-for-post-${currentPostForMenu?.id}`,
           }}
         >
           <MenuItem onClick={() => openEditModal(currentPostForMenu!.id)}>
@@ -162,12 +162,12 @@ const AdminPostsView: React.FC = () => {
           </MenuItem>
           <MenuItem
             onClick={() =>
-              window.open(`/posts/${currentPostForMenu!.id}`, "_blank")
+              window.open(`/posts/${currentPostForMenu!.id}`, '_blank')
             }
           >
             <VisibilityIcon fontSize="small" sx={{ mr: 1.5 }} /> View Public
           </MenuItem>
-          <MenuItem onClick={handleDeleteFromMenu} sx={{ color: "error.main" }}>
+          <MenuItem onClick={handleDeleteFromMenu} sx={{ color: 'error.main' }}>
             <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} /> Delete
           </MenuItem>
         </Menu>
@@ -187,13 +187,13 @@ const AdminPostsView: React.FC = () => {
           open={snackbar.open}
           autoHideDuration={6000}
           onClose={closeSnackbar}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         >
           <Alert
             onClose={closeSnackbar}
             severity={snackbar.severity}
             variant="filled"
-            sx={{ width: "100%" }}
+            sx={{ width: '100%' }}
           >
             {snackbar.message}
           </Alert>

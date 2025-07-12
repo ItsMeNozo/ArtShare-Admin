@@ -38,7 +38,7 @@ export interface GetAllPostsAdminParams {
   limit?: number;
   search?: string;
   sortBy?: string;
-  sortOrder?: "asc" | "desc";
+  sortOrder?: 'asc' | 'desc';
   filter?: PostFilterParams;
 }
 

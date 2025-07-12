@@ -1,10 +1,10 @@
 // src/lib/ProtectedRoute.tsx
-import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // Adjust path
-import { USER_ROLES } from "../constants/roles";
-import { CircularProgress } from "@mui/material";
-import Box from "@mui/material/Box";
+import { CircularProgress } from '@mui/material';
+import Box from '@mui/material/Box';
+import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { USER_ROLES } from '../constants/roles';
+import { useAuth } from '../context/AuthContext'; // Adjust path
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -24,15 +24,15 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
     return (
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh", // Take full viewport height
-          width: "100vw", // Take full viewport width
-          position: "fixed", // Or 'absolute' if within a specific container
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh', // Take full viewport height
+          width: '100vw', // Take full viewport width
+          position: 'fixed', // Or 'absolute' if within a specific container
           top: 0,
           left: 0,
-          backgroundColor: "background.default", // Optional: match app background
+          backgroundColor: 'background.default', // Optional: match app background
           zIndex: 9999, // Ensure it's on top
         }}
       >
@@ -64,7 +64,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
     return (
       <Navigate
         to="/login"
-        state={{ from: location, error: "access_denied" }}
+        state={{ from: location, error: 'access_denied' }}
         replace
       />
     ); // Or an /access-denied page

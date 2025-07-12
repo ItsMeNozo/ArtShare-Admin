@@ -1,54 +1,54 @@
-import React, { useState, useMemo, useEffect } from "react"; // Import useMemo
 import {
-  Box,
-  Typography,
-  Paper,
-  TableContainer,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  TextField,
   Alert,
-  useTheme,
-  CircularProgress,
+  Box,
   Button,
   Chip,
+  CircularProgress,
   FormControl,
   InputLabel,
-  Select,
   MenuItem,
+  Paper,
+  Select,
   SelectChangeEvent,
-} from "@mui/material";
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+  useTheme,
+} from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
+import React, { useEffect, useMemo, useState } from 'react'; // Import useMemo
+import { useLocation } from 'react-router-dom';
+import ReportDetailDialog from './components/ReportDetailDialog';
+import ResolveReportDialog from './components/ResolveReportDialog ';
 import {
   useGetAllReports,
   useResolveReport,
   useUpdateReportStatus,
-} from "./hooks/useReports";
-import ResolveReportDialog from "./components/ResolveReportDialog ";
-import { type Report, type ReportStatus } from "./reportAPI"; // Assuming these are in reportAPI.ts
-import ReportDetailDialog from "./components/ReportDetailDialog";
-import { useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "react-router-dom";
+} from './hooks/useReports';
+import { type Report, type ReportStatus } from './reportAPI'; // Assuming these are in reportAPI.ts
 
 // Define styles for status chips (can be moved to a utils file)
 export const statusDisplayInfo: Record<
   ReportStatus,
-  { label: string; color: "success" | "warning" | "default" | "error" }
+  { label: string; color: 'success' | 'warning' | 'default' | 'error' }
 > = {
-  RESOLVED: { label: "Resolved", color: "success" },
-  PENDING: { label: "Pending", color: "warning" },
-  DISMISSED: { label: "Dismissed", color: "default" }, // 'default' is often greyish
+  RESOLVED: { label: 'Resolved', color: 'success' },
+  PENDING: { label: 'Pending', color: 'warning' },
+  DISMISSED: { label: 'Dismissed', color: 'default' }, // 'default' is often greyish
 };
 
 const ReportManagementPage: React.FC = () => {
   const theme = useTheme();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const queryClient = useQueryClient();
   const location = useLocation();
 
-  const [statusFilter, setStatusFilter] = useState<ReportStatus | "">(""); // '' for 'All'
+  const [statusFilter, setStatusFilter] = useState<ReportStatus | ''>(''); // '' for 'All'
 
   const {
     data: reports,
@@ -90,9 +90,9 @@ const ReportManagementPage: React.FC = () => {
   };
 
   const handleStatusFilterChange = (
-    event: SelectChangeEvent<ReportStatus | "">,
+    event: SelectChangeEvent<ReportStatus | ''>,
   ) => {
-    setStatusFilter(event.target.value as ReportStatus | "");
+    setStatusFilter(event.target.value as ReportStatus | '');
   };
 
   const filteredReports = useMemo(() => {
@@ -135,17 +135,17 @@ const ReportManagementPage: React.FC = () => {
         p: 3,
         m: 2,
         backgroundColor:
-          theme.palette.mode === "dark"
+          theme.palette.mode === 'dark'
             ? theme.palette.background.paper
-            : "#ffffff",
+            : '#ffffff',
       }}
     >
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
           gap: 2,
           mb: 2,
         }}
@@ -156,10 +156,10 @@ const ReportManagementPage: React.FC = () => {
 
         <Box
           sx={{
-            display: "flex",
+            display: 'flex',
             gap: 2,
-            alignItems: "center",
-            flexWrap: "wrap",
+            alignItems: 'center',
+            flexWrap: 'wrap',
           }}
         >
           <FormControl size="small" sx={{ minWidth: 180 }}>
@@ -171,7 +171,7 @@ const ReportManagementPage: React.FC = () => {
               onChange={handleStatusFilterChange}
               sx={{
                 backgroundColor:
-                  theme.palette.mode === "dark" ? "#1f2937" : "#f9fafb",
+                  theme.palette.mode === 'dark' ? '#1f2937' : '#f9fafb',
                 borderRadius: 2,
               }}
             >
@@ -181,18 +181,18 @@ const ReportManagementPage: React.FC = () => {
               {(Object.keys(statusDisplayInfo) as ReportStatus[]).map(
                 (statusKey) => (
                   <MenuItem key={statusKey} value={statusKey}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Box
                         sx={{
                           width: 8,
                           height: 8,
-                          borderRadius: "50%",
+                          borderRadius: '50%',
                           backgroundColor:
-                            statusKey === "RESOLVED"
+                            statusKey === 'RESOLVED'
                               ? theme.palette.success.main
-                              : statusKey === "PENDING"
+                              : statusKey === 'PENDING'
                                 ? theme.palette.warning.main
-                                : statusKey === "DISMISSED"
+                                : statusKey === 'DISMISSED'
                                   ? theme.palette.grey[500]
                                   : theme.palette.grey[500],
                         }}
@@ -214,9 +214,9 @@ const ReportManagementPage: React.FC = () => {
             sx={{
               width: 300, // Increased from 180 to make it larger
               backgroundColor:
-                theme.palette.mode === "dark" ? "#1f2937" : "#f9fafb",
+                theme.palette.mode === 'dark' ? '#1f2937' : '#f9fafb',
               borderRadius: 2,
-              "& input": { px: 1.5, py: 1 },
+              '& input': { px: 1.5, py: 1 },
             }}
             slotProps={{
               input: { sx: { fontSize: 14 } },
@@ -227,38 +227,38 @@ const ReportManagementPage: React.FC = () => {
 
       {isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {error?.message || "An unknown error occurred"}
+          {error?.message || 'An unknown error occurred'}
         </Alert>
       )}
 
-      <TableContainer sx={{ boxShadow: "none" }}>
+      <TableContainer sx={{ boxShadow: 'none' }}>
         <Table sx={{ minWidth: 700 }} aria-label="reports table">
-          {" "}
+          {' '}
           {/* Adjusted minWidth slightly */}
           <TableHead
             sx={{
               backgroundColor:
-                theme.palette.mode === "dark" ? "#333" : "grey.200",
+                theme.palette.mode === 'dark' ? '#333' : 'grey.200',
             }}
           >
             <TableRow>
-              <TableCell sx={{ fontWeight: "bold" }}>Reporter</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Type</TableCell>
-              <TableCell sx={{ fontWeight: "bold", minWidth: "200px" }}>
+              <TableCell sx={{ fontWeight: 'bold' }}>Reporter</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', minWidth: '200px' }}>
                 Reason
               </TableCell>
               <TableCell
-                sx={{ fontWeight: "bold", width: "120px", textAlign: "center" }}
+                sx={{ fontWeight: 'bold', width: '120px', textAlign: 'center' }}
               >
                 Status
               </TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
               <TableCell
                 align="center"
                 sx={{
-                  fontWeight: "bold",
-                  width: "1%", // For shrink-to-fit
-                  whiteSpace: "nowrap",
+                  fontWeight: 'bold',
+                  width: '1%', // For shrink-to-fit
+                  whiteSpace: 'nowrap',
                 }}
               >
                 Actions
@@ -275,19 +275,19 @@ const ReportManagementPage: React.FC = () => {
                     variant="body2"
                     sx={{
                       maxWidth: 250, // Or adjust based on your layout needs
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
                     }}
                     title={r.reason} // Show full reason on hover
                   >
                     {r.reason}
                   </Typography>
                 </TableCell>
-                <TableCell sx={{ textAlign: "center" }}>
+                <TableCell sx={{ textAlign: 'center' }}>
                   <Chip
                     label={statusDisplayInfo[r.status]?.label || r.status}
-                    color={statusDisplayInfo[r.status]?.color || "default"}
+                    color={statusDisplayInfo[r.status]?.color || 'default'}
                     size="small"
                   />
                 </TableCell>
@@ -297,16 +297,16 @@ const ReportManagementPage: React.FC = () => {
                 <TableCell
                   align="center"
                   sx={{
-                    whiteSpace: "nowrap",
-                    textAlign: "center",
-                    padding: "8px",
+                    whiteSpace: 'nowrap',
+                    textAlign: 'center',
+                    padding: '8px',
                   }}
                 >
                   <Box
                     sx={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
                       gap: 0.5,
                     }}
                   >
@@ -318,7 +318,7 @@ const ReportManagementPage: React.FC = () => {
                     >
                       View
                     </Button>
-                    {r.status !== "DISMISSED" && r.status !== "RESOLVED" && (
+                    {r.status !== 'DISMISSED' && r.status !== 'RESOLVED' && (
                       <Button
                         size="small"
                         variant="contained"
@@ -339,7 +339,7 @@ const ReportManagementPage: React.FC = () => {
             {filteredReports.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} align="center">
-                  {" "}
+                  {' '}
                   {/* Adjusted colSpan */}
                   No reports found.
                 </TableCell>
@@ -358,7 +358,7 @@ const ReportManagementPage: React.FC = () => {
         onCancel={() => setDialogOpen(false)}
         onConfirm={({ resolveDate, comment }) => {
           if (activeReportId == null) {
-            alert("Error: Report ID is missing."); // More user-friendly error
+            alert('Error: Report ID is missing.'); // More user-friendly error
             return;
           }
           resolveReport(
@@ -370,7 +370,7 @@ const ReportManagementPage: React.FC = () => {
               onSuccess: () => {
                 setDialogOpen(false);
                 setDrawerOpen(false); // Close detail drawer if open
-                queryClient.invalidateQueries({ queryKey: ["reports", "all"] });
+                queryClient.invalidateQueries({ queryKey: ['reports', 'all'] });
               },
             },
           );
@@ -389,11 +389,11 @@ const ReportManagementPage: React.FC = () => {
         }}
         onDismiss={(id) =>
           updateReportStatus(
-            { reportId: id, status: "DISMISSED" },
+            { reportId: id, status: 'DISMISSED' },
             {
               onSuccess: () => {
                 setDrawerOpen(false);
-                queryClient.invalidateQueries({ queryKey: ["reports", "all"] });
+                queryClient.invalidateQueries({ queryKey: ['reports', 'all'] });
               },
               onError: (err) => {
                 alert(err.message);
@@ -402,7 +402,7 @@ const ReportManagementPage: React.FC = () => {
           )
         }
         onViewContent={(r) => {
-          window.open(r.targetUrl, "_blank", "noopener,noreferrer");
+          window.open(r.targetUrl, '_blank', 'noopener,noreferrer');
         }}
       />
     </Paper>

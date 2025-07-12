@@ -1,14 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
 import {
   AdminBlogListItemDto,
   AdminBlogsResponse,
   GetAllPostsAdminParams,
   fetchBlogsForAdmin,
-} from "../api/blog.api";
+} from '../api/blog.api';
 
-type Order = "asc" | "desc";
-export type SortableFields = "title" | "author" | "createdAt";
+type Order = 'asc' | 'desc';
+export type SortableFields = 'title' | 'author' | 'createdAt';
 
 interface UseAdminBlogsProps {
   initialPage?: number;
@@ -38,16 +38,16 @@ export interface UseAdminBlogsReturn {
 export function useAdminBlogs({
   initialPage = 0,
   initialRowsPerPage = 10,
-  initialOrderBy = "createdAt",
-  initialOrder = "desc",
+  initialOrderBy = 'createdAt',
+  initialOrder = 'desc',
 }: UseAdminBlogsProps = {}): UseAdminBlogsReturn {
   const [page, setPage] = useState(initialPage);
   const [rowsPerPage, setRowsPerPage] = useState(initialRowsPerPage);
   const [orderBy, setOrderBy] = useState<SortableFields>(initialOrderBy);
   const [order, setOrder] = useState<Order>(initialOrder);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
   // debounce the search term
   useEffect(() => {
@@ -64,7 +64,7 @@ export function useAdminBlogs({
     error: queryError,
     refetch,
   } = useQuery<AdminBlogsResponse, Error>({
-    queryKey: ["adminBlogs", page, rowsPerPage],
+    queryKey: ['adminBlogs', page, rowsPerPage],
     queryFn: () =>
       fetchBlogsForAdmin({
         page: page + 1,
@@ -83,7 +83,7 @@ export function useAdminBlogs({
       filtered = filtered.filter(
         (b) =>
           b.title.toLowerCase().includes(q) ||
-          (b.content?.toLowerCase() ?? "").includes(q),
+          (b.content?.toLowerCase() ?? '').includes(q),
       );
     }
 
@@ -92,25 +92,25 @@ export function useAdminBlogs({
       let bVal: string | number | undefined;
 
       switch (orderBy) {
-        case "title":
+        case 'title':
           aVal = a.title;
           bVal = b.title;
           break;
-        case "createdAt":
+        case 'createdAt':
           aVal = a.createdAt;
           bVal = b.createdAt;
           break;
         default:
-          aVal = "";
-          bVal = "";
+          aVal = '';
+          bVal = '';
       }
 
-      if (typeof aVal === "string") aVal = aVal.toLowerCase();
-      if (typeof bVal === "string") bVal = bVal.toLowerCase();
+      if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+      if (typeof bVal === 'string') bVal = bVal.toLowerCase();
 
       if (aVal === bVal) return 0;
       const comp = aVal > bVal ? 1 : -1;
-      return order === "asc" ? comp : -comp;
+      return order === 'asc' ? comp : -comp;
     });
   }, [raw, debouncedSearchTerm, orderBy, order]);
 
@@ -126,8 +126,8 @@ export function useAdminBlogs({
   };
 
   const handleRequestSort = (property: SortableFields) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
     setPage(0);
   };

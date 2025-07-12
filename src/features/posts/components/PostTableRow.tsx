@@ -1,20 +1,20 @@
-import React from "react";
+import { MoreVert as MoreVertIcon } from '@mui/icons-material';
 import {
-  TableRow,
-  TableCell,
-  Checkbox,
   Avatar,
-  Typography,
   Box,
-  Tooltip,
-  IconButton,
+  Checkbox,
   Chip,
-} from "@mui/material";
-import { MoreVert as MoreVertIcon } from "@mui/icons-material";
-import { format } from "date-fns";
+  IconButton,
+  TableCell,
+  TableRow,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import { format } from 'date-fns';
+import React from 'react';
 
-import { usePostsUI } from "../context/PostsUIContext";
-import { PostListItemDto } from "../types/post-api.types";
+import { usePostsUI } from '../context/PostsUIContext';
+import { PostListItemDto } from '../types/post-api.types';
 
 interface PostTableRowProps {
   post: PostListItemDto;
@@ -33,8 +33,8 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
     post.categories.length - displayCategories.length;
   const tooltipTitle =
     hiddenCategoriesCount > 0
-      ? post.categories.map((cat) => cat.name).join(", ")
-      : "";
+      ? post.categories.map((cat) => cat.name).join(', ')
+      : '';
 
   return (
     <TableRow
@@ -46,7 +46,7 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
       key={post.id}
       selected={isSelected}
       sx={{
-        cursor: "pointer",
+        cursor: 'pointer',
       }}
     >
       <TableCell
@@ -57,7 +57,7 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
           color="primary"
           checked={isSelected}
           onChange={(event) => handleSelectRow(event, post.id)}
-          inputProps={{ "aria-labelledby": `select-post-${post.id}` }}
+          inputProps={{ 'aria-labelledby': `select-post-${post.id}` }}
         />
       </TableCell>
 
@@ -68,7 +68,7 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
       </TableCell>
 
       <TableCell>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Avatar
             src={post.thumbnailUrl}
             alt={post.title}
@@ -88,7 +88,7 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
       </TableCell>
 
       <TableCell>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {post.user.profilePictureUrl && (
             <Avatar
               src={post.user.profilePictureUrl}
@@ -111,9 +111,9 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
         >
           <Box
             sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "center",
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
               gap: 0.5,
               pt: 0.5,
             }}
@@ -141,10 +141,10 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
 
       <TableCell>
         <Tooltip
-          title={format(new Date(post.createdAt), "yyyy-MM-dd HH:mm:ss")}
+          title={format(new Date(post.createdAt), 'yyyy-MM-dd HH:mm:ss')}
         >
           <Typography variant="body2" color="text.secondary">
-            {format(new Date(post.createdAt), "MMM dd, yyyy")}
+            {format(new Date(post.createdAt), 'MMM dd, yyyy')}
           </Typography>
         </Tooltip>
       </TableCell>
@@ -161,7 +161,7 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
               ? `actions-menu-for-post-${post.id}`
               : undefined
           }
-          aria-expanded={isMenuCurrentlyOpenForThisRow ? "true" : undefined}
+          aria-expanded={isMenuCurrentlyOpenForThisRow ? 'true' : undefined}
         >
           <MoreVertIcon fontSize="small" />
         </IconButton>
@@ -170,5 +170,5 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
   );
 });
 
-PostTableRow.displayName = "PostTableRow";
+PostTableRow.displayName = 'PostTableRow';
 export default PostTableRow;

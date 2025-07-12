@@ -1,57 +1,55 @@
-import React, {
-  useState,
-  useMemo,
-  useEffect,
-  createContext,
-  useContext,
-} from "react";
 import {
-  Box,
-  Container,
-  CssBaseline,
-  ThemeProvider,
+  AddPhotoAlternate as AddPhotoAlternateIcon,
+  Article as ArticleIcon,
+  AutoAwesome as AutoAwesomeIcon,
+  DarkMode as DarkModeIcon,
+  LightMode as LightModeIcon,
+  Person as PersonIcon,
+  Timeline as TimelineIcon,
+} from '@mui/icons-material';
+import {
+  Alert,
   Avatar,
-  Typography,
+  Badge,
+  Box,
   Card,
   CardContent,
   CardHeader,
-  ToggleButtonGroup,
-  ToggleButton,
+  Chip,
   CircularProgress,
+  Container,
+  CssBaseline,
   Grid,
-  Tooltip,
+  IconButton,
   ImageList,
   ImageListItem,
   ImageListItemBar,
-  Badge,
-  Alert,
   Link,
-  IconButton,
-  useTheme,
-} from "@mui/material";
-import { Person as PersonIcon } from "@mui/icons-material";
-import {
-  Chip,
   List,
   ListItem,
   ListItemAvatar,
   ListItemText,
-} from "@mui/material";
-import {
-  AutoAwesome as AutoAwesomeIcon,
-  AddPhotoAlternate as AddPhotoAlternateIcon,
-  Timeline as TimelineIcon,
-  Article as ArticleIcon,
-  LightMode as LightModeIcon,
-  DarkMode as DarkModeIcon,
-} from "@mui/icons-material";
-import { format, subDays, isAfter, parseISO } from "date-fns";
-import { AxiosError } from "axios";
-import { useNavigate } from "react-router-dom";
-import api from "../../api/baseApi";
-import { StripeData } from "./statistics.types";
-import { StripeIncomeCard } from "./components/StripeIncomeCard";
-import { useAuth } from "../../context/AuthContext";
+  ThemeProvider,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip,
+  Typography,
+  useTheme,
+} from '@mui/material';
+import { AxiosError } from 'axios';
+import { format, isAfter, parseISO, subDays } from 'date-fns';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../../api/baseApi';
+import { useAuth } from '../../context/AuthContext';
+import { StripeIncomeCard } from './components/StripeIncomeCard';
+import { StripeData } from './statistics.types';
 
 /* ---------- Color-mode context ---------- */
 const ColorModeContext = createContext<{ toggleColorMode: () => void }>({
@@ -94,17 +92,17 @@ const SummaryTile = ({
       onClick={to ? () => navigate(to) : undefined}
       sx={{
         p: 3,
-        textAlign: "center",
-        height: "100%",
-        cursor: to ? "pointer" : "default",
-        "&:hover": to ? { boxShadow: 6 } : undefined,
+        textAlign: 'center',
+        height: '100%',
+        cursor: to ? 'pointer' : 'default',
+        '&:hover': to ? { boxShadow: 6 } : undefined,
       }}
     >
-      <Avatar sx={{ mb: 1, bgcolor: "primary.main", mx: "auto" }}>
+      <Avatar sx={{ mb: 1, bgcolor: 'primary.main', mx: 'auto' }}>
         {icon}
       </Avatar>
       <Typography variant="h5" fontWeight={700}>
-        {typeof value === "number" ? value.toLocaleString() : value}
+        {typeof value === 'number' ? value.toLocaleString() : value}
       </Typography>
       <Typography variant="caption" color="text.secondary">
         {label}
@@ -126,7 +124,7 @@ export default function StatisticDashboardPage() {
   const [statisticsData, setStatisticsData] = useState<StatisticsData | null>(
     null,
   );
-  const [statsFilter, setStatsFilter] = useState<"all" | "last7">("all");
+  const [statsFilter, setStatsFilter] = useState<'all' | 'last7'>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stripeData, setStripeData] = useState<StripeData | null>(null);
@@ -134,14 +132,14 @@ export default function StatisticDashboardPage() {
 
   const stripeDashboardUrl =
     import.meta.env.VITE_STRIPE_DASHBOARD_URL ||
-    "https://dashboard.stripe.com/test/dashboard";
+    'https://dashboard.stripe.com/test/dashboard';
 
   /* ---------- Fetch ---------- */
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
       setError(null);
-      const daysQuery = statsFilter === "last7" ? "?days=7" : "";
+      const daysQuery = statsFilter === 'last7' ? '?days=7' : '';
       try {
         const [statsRes, stripeRes] = await Promise.all([
           api.get(`/statistics${daysQuery}`),
@@ -154,7 +152,7 @@ export default function StatisticDashboardPage() {
         setError(
           (axiosError.response?.data as any)?.message ||
             axiosError.message ||
-            "Error fetching dashboard data.",
+            'Error fetching dashboard data.',
         );
       } finally {
         setLoading(false);
@@ -190,7 +188,7 @@ export default function StatisticDashboardPage() {
 
   const topPostsFiltered = useMemo(() => {
     const data = processed.topPosts ?? [];
-    if (statsFilter === "all") {
+    if (statsFilter === 'all') {
       return [...data].sort((a, b) => b.likeCount - a.likeCount).slice(0, 3);
     }
     const sevenDaysAgo = subDays(new Date(), 7);
@@ -208,10 +206,10 @@ export default function StatisticDashboardPage() {
     return (
       <Box
         sx={{
-          height: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
         }}
       >
         <CircularProgress />
@@ -257,14 +255,14 @@ function DashboardContent({
   const { toggleColorMode } = useContext(ColorModeContext);
   const navigate = useNavigate();
   return (
-    <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 6 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 6 }}>
       <Container maxWidth="xl">
         {/* Header & filter */}
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             mb: 1,
           }}
         >
@@ -272,10 +270,10 @@ function DashboardContent({
             Dashboard
           </Typography>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {/* Dark / light switch */}
             <IconButton onClick={toggleColorMode} color="inherit">
-              {theme.palette.mode === "dark" ? (
+              {theme.palette.mode === 'dark' ? (
                 <LightModeIcon />
               ) : (
                 <DarkModeIcon />
@@ -300,7 +298,7 @@ function DashboardContent({
           mb={3}
           color="text.primary" // ✅ add this prop
         >
-          Welcome back, {userName || "Admin"}
+          Welcome back, {userName || 'Admin'}
         </Typography>
 
         {/* Summary tiles */}
@@ -356,7 +354,7 @@ function DashboardContent({
         <Grid container spacing={3}>
           {/* Recent reports */}
           <Grid size={{ xs: 12, md: 4 }}>
-            <Card sx={{ height: "100%" }}>
+            <Card sx={{ height: '100%' }}>
               <CardHeader
                 title={
                   <Typography fontWeight={600}>
@@ -374,16 +372,16 @@ function DashboardContent({
                           px: 1.5,
                           py: 1,
                           borderRadius: 2,
-                          "&:hover": {
-                            bgcolor: "action.hover",
-                            cursor: "pointer",
+                          '&:hover': {
+                            bgcolor: 'action.hover',
+                            cursor: 'pointer',
                           },
                         }}
                         onClick={() => navigate(`/reports`)} /* deep-link */
                       >
                         {/*  reporter avatar  */}
                         <ListItemAvatar>
-                          <Avatar sx={{ bgcolor: "primary.light" }}>
+                          <Avatar sx={{ bgcolor: 'primary.light' }}>
                             <PersonIcon fontSize="small" />
                           </Avatar>
                         </ListItemAvatar>
@@ -392,7 +390,7 @@ function DashboardContent({
                         <ListItemText
                           primary={
                             <Typography variant="body2" fontWeight={600} noWrap>
-                              {r?.username || r?.reporterId || "No username"}
+                              {r?.username || r?.reporterId || 'No username'}
                             </Typography>
                           }
                           secondary={
@@ -411,7 +409,7 @@ function DashboardContent({
                         <Chip
                           label={r.status}
                           size="small"
-                          color={r.status === "PENDING" ? "warning" : "success"}
+                          color={r.status === 'PENDING' ? 'warning' : 'success'}
                           variant="outlined"
                         />
                       </ListItem>
@@ -446,17 +444,17 @@ function DashboardContent({
                     {topPostsFiltered.map((post: any) => (
                       <ImageListItem
                         key={post.id}
-                        sx={{ cursor: "pointer" }}
-                        onClick={() => navigate("/posts?category=ai-posts")}
+                        sx={{ cursor: 'pointer' }}
+                        onClick={() => navigate('/posts?category=ai-posts')}
                       >
                         <img
                           src={post.thumbnailUrl}
                           alt={post.title}
                           loading="lazy"
                           style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
                           }}
                         />
                         <ImageListItemBar
@@ -465,13 +463,13 @@ function DashboardContent({
                               <Typography
                                 variant="caption"
                                 sx={{
-                                  color: "#fff",
-                                  fontSize: "0.8rem",
+                                  color: '#fff',
+                                  fontSize: '0.8rem',
                                   lineHeight: 1.4,
-                                  display: "-webkit-box",
+                                  display: '-webkit-box',
                                   WebkitLineClamp: 3,
-                                  WebkitBoxOrient: "vertical",
-                                  overflow: "hidden",
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden',
                                 }}
                               >
                                 {post.title}
@@ -481,9 +479,9 @@ function DashboardContent({
                           subtitle={
                             <Typography
                               variant="caption"
-                              sx={{ color: "#fff", opacity: 0.85 }}
+                              sx={{ color: '#fff', opacity: 0.85 }}
                             >
-                              {format(parseISO(post.createdAt), "MMM d")}
+                              {format(parseISO(post.createdAt), 'MMM d')}
                             </Typography>
                           }
                           actionIcon={
@@ -491,10 +489,10 @@ function DashboardContent({
                               <Badge
                                 badgeContent={post.likeCount}
                                 sx={{
-                                  "& .MuiBadge-badge": {
-                                    backgroundColor: "#ff1744",
-                                    color: "#fff",
-                                    border: "1.5px solid #fff",
+                                  '& .MuiBadge-badge': {
+                                    backgroundColor: '#ff1744',
+                                    color: '#fff',
+                                    border: '1.5px solid #fff',
                                   },
                                 }}
                               ></Badge>
@@ -505,7 +503,7 @@ function DashboardContent({
                     ))}
                   </ImageList>
                 ) : (
-                  <Box sx={{ textAlign: "center", py: 4 }}>
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
                     <Typography variant="body2" color="text.secondary">
                       No posts found for the selected time period.
                     </Typography>

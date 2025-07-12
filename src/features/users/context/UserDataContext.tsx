@@ -1,14 +1,14 @@
-import React, { createContext, useContext, useMemo } from "react";
-import { useUserTableControls } from "../hooks/useUserTableControls";
+import React, { createContext, useContext, useMemo } from 'react';
+import { User } from '../../../types/user';
 import {
-  useDeleteUserMutation,
   useBulkDeleteUsersMutation,
-} from "../hooks/useUserQueries";
+  useDeleteUserMutation,
+} from '../hooks/useUserQueries';
+import { useUserTableControls } from '../hooks/useUserTableControls';
 import {
-  getSubscriptionStatusInfo,
   getCurrentEffectivePlanNameForTable,
-} from "../utils/userTable.utils";
-import { User } from "../../../types/user";
+  getSubscriptionStatusInfo,
+} from '../utils/userTable.utils';
 
 interface UserDataContextType {
   displayUsers: (User & { currentPlan?: string })[];
@@ -20,7 +20,7 @@ interface UserDataContextType {
 
   tableControls: Omit<
     ReturnType<typeof useUserTableControls>,
-    "users" | "loading" | "error" | "totalUsers"
+    'users' | 'loading' | 'error' | 'totalUsers'
   >;
 }
 
@@ -67,7 +67,7 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
 export const useUserData = (): UserDataContextType => {
   const context = useContext(UserDataContext);
   if (context === undefined) {
-    throw new Error("useUserData must be used within a UserDataProvider");
+    throw new Error('useUserData must be used within a UserDataProvider');
   }
   return context;
 };

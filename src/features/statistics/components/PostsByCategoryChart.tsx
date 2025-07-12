@@ -1,15 +1,15 @@
-import React from "react";
+import React from 'react';
 import {
-  BarChart,
   Bar,
-  XAxis,
-  YAxis,
+  BarChart,
   CartesianGrid,
-  Tooltip,
   Legend,
   ResponsiveContainer,
-} from "recharts";
-import ChartWrapper from "./ChartWrapper";
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import ChartWrapper from './ChartWrapper';
 
 interface PostsByCategoryDataPoint {
   name: string;

@@ -1,19 +1,19 @@
-import React from "react";
+import { MoreVert as MoreVertIcon } from '@mui/icons-material';
 import {
-  TableRow,
-  TableCell,
-  Checkbox,
   Avatar,
-  Typography,
   Box,
-  Tooltip,
+  Checkbox,
   IconButton,
-} from "@mui/material";
-import { MoreVert as MoreVertIcon } from "@mui/icons-material";
-import { format } from "date-fns";
+  TableCell,
+  TableRow,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import { format } from 'date-fns';
+import React from 'react';
 
-import { AdminBlogListItemDto } from "../api/blog.api";
-import { CustomHeadCell } from "../../posts/types/table.types";
+import { CustomHeadCell } from '../../posts/types/table.types';
+import { AdminBlogListItemDto } from '../api/blog.api';
 
 // export type CustomHeadCell = {
 //   align?: "left" | "right" | "center" | "justify" | "inherit";
@@ -76,11 +76,11 @@ const AdminPostTableRow: React.FC<AdminPostTableRowProps> = React.memo(
         key={blog.id}
         selected={isSelected}
         sx={{
-          cursor: "pointer",
+          cursor: 'pointer',
         }}
       >
         <TableCell
-          padding={selectCellConfig.disablePadding ? "none" : "normal"}
+          padding={selectCellConfig.disablePadding ? 'none' : 'normal'}
           align={selectCellConfig.align}
           style={{
             minWidth: selectCellConfig.minWidth,
@@ -97,7 +97,7 @@ const AdminPostTableRow: React.FC<AdminPostTableRowProps> = React.memo(
             checked={isSelected}
             onChange={handleCheckboxClick}
             onClick={(event) => event.stopPropagation()}
-            inputProps={{ "aria-labelledby": `select-post-${blog.id}` }}
+            inputProps={{ 'aria-labelledby': `select-post-${blog.id}` }}
           />
         </TableCell>
         <TableCell
@@ -118,10 +118,10 @@ const AdminPostTableRow: React.FC<AdminPostTableRowProps> = React.memo(
         >
           <Box
             sx={{
-              display: "flex",
-              alignItems: "center",
+              display: 'flex',
+              alignItems: 'center',
               justifyContent:
-                titleCellConfig.align === "center" ? "center" : "flex-start",
+                titleCellConfig.align === 'center' ? 'center' : 'flex-start',
             }}
           >
             <Avatar
@@ -140,7 +140,7 @@ const AdminPostTableRow: React.FC<AdminPostTableRowProps> = React.memo(
                 variant="body2"
                 sx={{
                   fontWeight: 500,
-                  whiteSpace: titleCellConfig.wrap ? "normal" : "nowrap",
+                  whiteSpace: titleCellConfig.wrap ? 'normal' : 'nowrap',
                 }}
               >
                 {blog.title}
@@ -157,10 +157,10 @@ const AdminPostTableRow: React.FC<AdminPostTableRowProps> = React.memo(
         >
           <Box
             sx={{
-              display: "flex",
-              alignItems: "center",
+              display: 'flex',
+              alignItems: 'center',
               justifyContent:
-                userCellConfig.align === "center" ? "center" : "flex-start",
+                userCellConfig.align === 'center' ? 'center' : 'flex-start',
             }}
           >
             {/* {blog.user.profilePictureUrl && (
@@ -178,7 +178,7 @@ const AdminPostTableRow: React.FC<AdminPostTableRowProps> = React.memo(
             ) : (
               <Typography
                 variant="body2"
-                sx={{ whiteSpace: userCellConfig.wrap ? "normal" : "nowrap" }}
+                sx={{ whiteSpace: userCellConfig.wrap ? 'normal' : 'nowrap' }}
               >
                 {blog.userId}
               </Typography>
@@ -193,7 +193,7 @@ const AdminPostTableRow: React.FC<AdminPostTableRowProps> = React.memo(
               createdAtCellConfig.maxWidth || createdAtCellConfig.cellMaxWidth,
           }}
         >
-          {format(new Date(blog.createdAt), "MMM dd, yyyy HH:mm")}
+          {format(new Date(blog.createdAt), 'MMM dd, yyyy HH:mm')}
         </TableCell>
         <TableCell
           align={actionsCellConfig.align}
@@ -215,7 +215,7 @@ const AdminPostTableRow: React.FC<AdminPostTableRowProps> = React.memo(
                 ? `actions-menu-for-blog-${blog.id}`
                 : undefined
             }
-            aria-expanded={isMenuCurrentlyOpenForThisRow ? "true" : undefined}
+            aria-expanded={isMenuCurrentlyOpenForThisRow ? 'true' : undefined}
           >
             <MoreVertIcon fontSize="small" />
           </IconButton>
@@ -225,5 +225,5 @@ const AdminPostTableRow: React.FC<AdminPostTableRowProps> = React.memo(
   },
 );
 
-AdminPostTableRow.displayName = "AdminBlogTableRow";
+AdminPostTableRow.displayName = 'AdminBlogTableRow';
 export default AdminPostTableRow;

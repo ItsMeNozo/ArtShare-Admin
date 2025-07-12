@@ -1,10 +1,10 @@
-import { useFormik } from "formik";
-import * as Yup from "yup";
-import { User, UserFormData } from "../../../types/user";
-import { UserStatus } from "../../../constants/user";
-import { useUpdateUserMutation } from "./useUserQueries";
-import { signUp, updateUserPassword } from "../../auth/api/auth-api";
-import api from "../../../api/baseApi";
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import api from '../../../api/baseApi';
+import { UserStatus } from '../../../constants/user';
+import { User, UserFormData } from '../../../types/user';
+import { signUp, updateUserPassword } from '../../auth/api/auth-api';
+import { useUpdateUserMutation } from './useUserQueries';
 
 interface UseUserFormProps {
   initialUser: User | null;
@@ -19,28 +19,28 @@ const getInitialDialogFormData = (
 ): UserFormData => {
   if (isCreating || !user) {
     return {
-      username: "",
-      email: "",
-      fullName: "",
-      profilePictureUrl: "",
-      bio: "",
+      username: '',
+      email: '',
+      fullName: '',
+      profilePictureUrl: '',
+      bio: '',
       birthday: undefined,
-      roles: ["USER"],
-      password: "",
+      roles: ['USER'],
+      password: '',
       status: UserStatus.ACTIVE,
     };
   }
   return {
     username: user.username,
     email: user.email,
-    fullName: user.fullName ?? "",
-    profilePictureUrl: user.profilePictureUrl ?? "",
-    bio: user.bio ?? "",
+    fullName: user.fullName ?? '',
+    profilePictureUrl: user.profilePictureUrl ?? '',
+    bio: user.bio ?? '',
     birthday: user.birthday
-      ? (new Date(user.birthday).toISOString().split("T")[0] as any)
+      ? (new Date(user.birthday).toISOString().split('T')[0] as any)
       : undefined,
     roles: user.roles.map((ur) => ur),
-    password: "",
+    password: '',
     status: user.status || UserStatus.ACTIVE,
   };
 };
@@ -48,35 +48,35 @@ const getInitialDialogFormData = (
 const validationSchema = (isCreating: boolean) =>
   Yup.object({
     username: Yup.string()
-      .min(3, "Must be at least 3 characters")
-      .required("Username is required"),
+      .min(3, 'Must be at least 3 characters')
+      .required('Username is required'),
     email: Yup.string()
-      .email("Enter a valid email")
-      .required("Email is required"),
+      .email('Enter a valid email')
+      .required('Email is required'),
     fullName: Yup.string(),
     profilePictureUrl: Yup.string(),
-    bio: Yup.string().max(500, "Bio cannot exceed 500 characters"),
+    bio: Yup.string().max(500, 'Bio cannot exceed 500 characters'),
     birthday: Yup.date().nullable(),
-    roles: Yup.array().min(1, "At least one role must be selected").required(),
+    roles: Yup.array().min(1, 'At least one role must be selected').required(),
     password: isCreating
       ? Yup.string()
-          .min(6, "Password must be at least 6 characters")
-          .required("Password is required for new users")
+          .min(6, 'Password must be at least 6 characters')
+          .required('Password is required for new users')
       : Yup.string(),
     status: Yup.string()
       .oneOf(Object.values(UserStatus))
-      .required("Status is required"),
+      .required('Status is required'),
   });
 
 const getErrorMessage = (error: any): string => {
   if (error?.code) {
     switch (error.code) {
-      case "auth/email-already-in-use":
-        return "This email is already registered.";
-      case "auth/invalid-email":
-        return "The email address is not valid.";
-      case "auth/weak-password":
-        return "The password is too weak.";
+      case 'auth/email-already-in-use':
+        return 'This email is already registered.';
+      case 'auth/invalid-email':
+        return 'The email address is not valid.';
+      case 'auth/weak-password':
+        return 'The password is too weak.';
       default:
         return error.message;
     }
@@ -84,7 +84,7 @@ const getErrorMessage = (error: any): string => {
   if (error instanceof Error) {
     return error.message;
   }
-  return "An unexpected error occurred. Please try again.";
+  return 'An unexpected error occurred. Please try again.';
 };
 
 export const useUserForm = ({
@@ -97,7 +97,7 @@ export const useUserForm = ({
 
   const executeCreateUser = async (values: UserFormData) => {
     if (!values.email || !values.password) {
-      throw new Error("Email and password are required for new users.");
+      throw new Error('Email and password are required for new users.');
     }
 
     const { newUser } = await signUp(
@@ -107,7 +107,7 @@ export const useUserForm = ({
     );
     const userIdForBackend = newUser.id || (newUser as any).uid;
     if (!userIdForBackend) {
-      throw new Error("Failed to get ID from the new Firebase user.");
+      throw new Error('Failed to get ID from the new Firebase user.');
     }
 
     const { password, ...createUserData } = values;
@@ -121,7 +121,7 @@ export const useUserForm = ({
 
   const executeUpdateUser = async (values: UserFormData, user: User) => {
     if (!user?.id) {
-      throw new Error("Cannot update user: User ID is missing.");
+      throw new Error('Cannot update user: User ID is missing.');
     }
 
     if (values.password) {
@@ -136,13 +136,13 @@ export const useUserForm = ({
   };
 
   const rollbackFirebaseUser = async (firebaseUser: any) => {
-    console.error("Backend operation failed. Rolling back Firebase user...");
+    console.error('Backend operation failed. Rolling back Firebase user...');
     try {
       const userId = firebaseUser.id || (firebaseUser as any).uid;
       await api.delete(`/admin/users/${userId}`);
     } catch (rollbackError) {
       console.error(
-        "CRITICAL: FAILED to roll back Firebase user. Manual cleanup required for user ID:",
+        'CRITICAL: FAILED to roll back Firebase user. Manual cleanup required for user ID:',
         firebaseUser.id,
         rollbackError,
       );
@@ -158,7 +158,7 @@ export const useUserForm = ({
         await executeUpdateUser(values, initialUser!);
       }
       onSuccess(
-        `User ${isCreatingNewUser ? "created" : "updated"} successfully.`,
+        `User ${isCreatingNewUser ? 'created' : 'updated'} successfully.`,
       );
     } catch (error: any) {
       if (createdFirebaseAuthUser) {

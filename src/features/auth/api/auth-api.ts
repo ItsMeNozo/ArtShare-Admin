@@ -1,13 +1,13 @@
-import { initializeApp } from "firebase/app";
+import axios from 'axios';
+import { initializeApp } from 'firebase/app';
 import {
+  createUserWithEmailAndPassword,
+  signOut as firebaseSignOut,
   getAuth,
   signInWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  createUserWithEmailAndPassword,
   updatePassword,
-} from "firebase/auth";
-import axios from "axios";
-import api from "../../../api/baseApi";
+} from 'firebase/auth';
+import api from '../../../api/baseApi';
 
 export interface AuthTokens {
   accessToken: string;
@@ -27,7 +27,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 export const signUp = async (
-  email: string | "",
+  email: string | '',
   password: string,
   username: string,
 ) => {
@@ -47,7 +47,7 @@ export const signUp = async (
     });
     return response.data;
   } catch (error: any) {
-    console.error("Error signing up:", error);
+    console.error('Error signing up:', error);
     throw error;
   }
 };
@@ -68,7 +68,7 @@ export async function signIn(
 
   const firebaseToken = await userCredential.user.getIdToken(true);
 
-  const { data } = await api.post<AuthTokens>("/auth/admin-login", {
+  const { data } = await api.post<AuthTokens>('/auth/admin-login', {
     token: firebaseToken,
   });
 
@@ -84,7 +84,7 @@ export async function signOut(): Promise<void> {
   if (user) {
     await firebaseSignOut(auth);
 
-    await axios.post("/auth/signout", { uid: user.uid });
+    await axios.post('/auth/signout', { uid: user.uid });
   }
 }
 
@@ -98,7 +98,7 @@ export async function verifyToken(): Promise<boolean> {
 
   const firebaseToken = await user.getIdToken();
 
-  const { data } = await axios.post<{ valid: boolean }>("/auth/verify-token", {
+  const { data } = await axios.post<{ valid: boolean }>('/auth/verify-token', {
     token: firebaseToken,
   });
 
@@ -108,7 +108,7 @@ export async function verifyToken(): Promise<boolean> {
 export const updateUserPassword = async (password: string) => {
   const user = auth.currentUser;
   if (!user) {
-    throw new Error("No user is signed in to update the password.");
+    throw new Error('No user is signed in to update the password.');
   }
   await updatePassword(user, password);
 };

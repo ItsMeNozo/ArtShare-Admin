@@ -1,24 +1,24 @@
 import {
-  useQuery,
-  useMutation,
-  useQueryClient,
   keepPreviousData,
-} from "@tanstack/react-query";
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { UserFormData } from '../../../types/user';
 import {
-  fetchUsers as apiFetchUsers,
-  FetchUsersParams,
-  createUser as apiCreateUser,
-  updateUser as apiUpdateUser,
-  deleteUser as apiSingleDeleteUser,
   deleteMultipleUsers as apiBulkDeleteUsers,
-} from "../api/user.api";
-import { UserFormData } from "../../../types/user";
+  createUser as apiCreateUser,
+  fetchUsers as apiFetchUsers,
+  deleteUser as apiSingleDeleteUser,
+  updateUser as apiUpdateUser,
+  FetchUsersParams,
+} from '../api/user.api';
 
 export const userKeys = {
-  all: ["users"] as const,
-  lists: () => [...userKeys.all, "list"] as const,
+  all: ['users'] as const,
+  lists: () => [...userKeys.all, 'list'] as const,
   list: (params: FetchUsersParams) => [...userKeys.lists(), params] as const,
-  details: () => [...userKeys.all, "detail"] as const,
+  details: () => [...userKeys.all, 'detail'] as const,
   detail: (id: string) => [...userKeys.details(), id] as const,
 };
 

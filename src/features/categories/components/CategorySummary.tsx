@@ -1,12 +1,11 @@
-import React from "react";
-import { Box, Typography, Divider, Grid, Paper } from "@mui/material";
 import {
+  Brush as BrushIcon,
   Category as CategoryIcon,
   Palette as PaletteIcon,
-  Brush as BrushIcon,
-} from "@mui/icons-material";
-import { Category } from "../../../types/category";
-import { CategoryTypeValues } from "../../../types/category";
+} from '@mui/icons-material';
+import { Box, Divider, Grid, Paper, Typography } from '@mui/material';
+import React from 'react';
+import { Category, CategoryTypeValues } from '../../../types/category';
 
 interface CategorySummaryProps {
   category: Category | null;
@@ -23,12 +22,12 @@ export const CategorySummary: React.FC<CategorySummaryProps> = ({
         variant="outlined"
         sx={{
           p: 2,
-          textAlign: "center",
-          bgcolor: "grey.50",
-          borderStyle: "dashed",
+          textAlign: 'center',
+          bgcolor: 'grey.50',
+          borderStyle: 'dashed',
         }}
       >
-        <CategoryIcon sx={{ fontSize: 48, color: "text.secondary", mb: 2 }} />
+        <CategoryIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
         <Typography variant="h6" color="text.secondary">
           New Category
         </Typography>
@@ -42,11 +41,11 @@ export const CategorySummary: React.FC<CategorySummaryProps> = ({
   const getTypeDescription = (type: string): string => {
     switch (type) {
       case CategoryTypeValues.ATTRIBUTE:
-        return "Describes artistic styles, themes, or characteristics (e.g., Abstract, Realistic, Dark)";
+        return 'Describes artistic styles, themes, or characteristics (e.g., Abstract, Realistic, Dark)';
       case CategoryTypeValues.MEDIUM:
-        return "Describes the materials or tools used for creation (e.g., Digital Art, Oil Painting, Watercolor)";
+        return 'Describes the materials or tools used for creation (e.g., Digital Art, Oil Painting, Watercolor)';
       default:
-        return "General category classification";
+        return 'General category classification';
     }
   };
 
@@ -62,8 +61,8 @@ export const CategorySummary: React.FC<CategorySummaryProps> = ({
   };
 
   return (
-    <Paper variant="outlined" sx={{ p: 2, height: "fit-content" }}>
-      <Typography variant="h6" gutterBottom sx={{ color: "primary.main" }}>
+    <Paper variant="outlined" sx={{ p: 2, height: 'fit-content' }}>
+      <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
         Category Details
       </Typography>
       <Divider sx={{ mb: 3 }} />
@@ -83,7 +82,7 @@ export const CategorySummary: React.FC<CategorySummaryProps> = ({
             DESCRIPTION
           </Typography>
           <Typography variant="body2" sx={{ mb: 2 }}>
-            {category.description || "No description provided"}
+            {category.description || 'No description provided'}
           </Typography>
         </Grid>
 
@@ -91,7 +90,7 @@ export const CategorySummary: React.FC<CategorySummaryProps> = ({
           <Typography variant="subtitle2" gutterBottom color="text.secondary">
             TYPE
           </Typography>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
             {getTypeIcon(category.type)}
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
               {category.type}
@@ -100,7 +99,7 @@ export const CategorySummary: React.FC<CategorySummaryProps> = ({
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{ fontSize: "0.8rem" }}
+            sx={{ fontSize: '0.8rem' }}
           >
             {getTypeDescription(category.type)}
           </Typography>
@@ -114,16 +113,16 @@ export const CategorySummary: React.FC<CategorySummaryProps> = ({
             </Typography>
             <Typography variant="body2">
               <strong>ID:</strong> {category.id}
-            </Typography>{" "}
+            </Typography>{' '}
             {category.createdAt && (
               <Typography variant="body2">
-                <strong>Created:</strong>{" "}
+                <strong>Created:</strong>{' '}
                 {new Date(category.createdAt).toLocaleDateString()}
               </Typography>
             )}
             {category.updatedAt && (
               <Typography variant="body2">
-                <strong>Last Updated:</strong>{" "}
+                <strong>Last Updated:</strong>{' '}
                 {new Date(category.updatedAt).toLocaleDateString()}
               </Typography>
             )}
