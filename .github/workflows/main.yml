@@ -58,4 +58,4 @@ jobs:
 
       - name: Run Qlty quality checks (Critical Issues Only)
         run: |
-          qlty check --all --fail-level high --except prettier
+          qlty check --all --fail-level high
