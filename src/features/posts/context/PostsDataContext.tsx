@@ -1,12 +1,12 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
-import { useDebounce } from "../../../common/hooks/useDebounce";
-import { useGetAdminPosts } from "../hooks/usePostQueries";
-import { Order } from "../../users/types";
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useDebounce } from '../../../common/hooks/useDebounce';
+import { Order } from '../../users/types';
+import { useGetAdminPosts } from '../hooks/usePostQueries';
 import {
   GetAllPostsAdminParams,
   PostListItemDto,
-} from "../types/post-api.types";
-import { useSearchParams } from "react-router-dom";
+} from '../types/post-api.types';
 interface PostsDataContextType {
   posts: PostListItemDto[];
   totalPosts: number;
@@ -41,21 +41,21 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  const [sortBy, setSortBy] = useState("created_at");
-  const [sortOrder, setSortOrder] = useState<Order>("desc");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<Order>('desc');
+  const [searchTerm, setSearchTerm] = useState('');
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [aiCreated, setAiCreated] = useState<boolean | null>(null);
 
   const [params] = useSearchParams();
 
   useEffect(() => {
-    const aiCreatedParam = params.get("ai_created");
+    const aiCreatedParam = params.get('ai_created');
 
-    if (aiCreatedParam === "true") {
+    if (aiCreatedParam === 'true') {
       setAiCreated(true);
       setPage(0);
-    } else if (aiCreatedParam === "false") {
+    } else if (aiCreatedParam === 'false') {
       setAiCreated(false);
       setPage(0);
     } else {
@@ -93,8 +93,8 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
     _event: React.MouseEvent<unknown>,
     property: string,
   ) => {
-    const isAsc = sortBy === property && sortOrder === "asc";
-    setSortOrder(isAsc ? "desc" : "asc");
+    const isAsc = sortBy === property && sortOrder === 'asc';
+    setSortOrder(isAsc ? 'desc' : 'asc');
     setSortBy(property);
   };
 
@@ -140,7 +140,7 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
 export const usePostsData = (): PostsDataContextType => {
   const context = useContext(PostsDataContext);
   if (!context) {
-    throw new Error("usePostsData must be used within a PostsDataProvider");
+    throw new Error('usePostsData must be used within a PostsDataProvider');
   }
   return context;
 };

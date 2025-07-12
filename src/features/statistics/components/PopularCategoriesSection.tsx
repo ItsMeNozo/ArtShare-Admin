@@ -1,25 +1,25 @@
-import React from "react";
 import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import {
-  Paper,
-  Typography,
   Box,
+  CircularProgress,
   FormControl,
   MenuItem,
+  Paper,
   Select,
   SelectChangeEvent,
-  CircularProgress,
-} from "@mui/material";
-import { PieChartDataItem } from "../statistics.types";
-import { COLORS } from "../constants";
-import { PopularCategorySortBy } from "../../../types/analytics";
+  Typography,
+} from '@mui/material';
+import React from 'react';
+import {
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+} from 'recharts';
+import { PopularCategorySortBy } from '../../../types/analytics';
+import { COLORS } from '../constants';
+import { PieChartDataItem } from '../statistics.types';
 
 interface PopularCategoriesSectionProps {
   chartData: PieChartDataItem[];
@@ -57,9 +57,9 @@ const PopularCategoriesSection: React.FC<PopularCategoriesSectionProps> = ({
             htmlFor="popular-limit-select"
             sx={{
               mb: 0.5,
-              color: "text.secondary",
-              textAlign: "left",
-              width: "100%",
+              color: 'text.secondary',
+              textAlign: 'left',
+              width: '100%',
             }}
           >
             Limit
@@ -85,9 +85,9 @@ const PopularCategoriesSection: React.FC<PopularCategoriesSectionProps> = ({
             htmlFor="popular-sortby-select"
             sx={{
               mb: 0.5,
-              color: "text.secondary",
-              textAlign: "left",
-              width: "100%",
+              color: 'text.secondary',
+              textAlign: 'left',
+              width: '100%',
             }}
           >
             Sort By
@@ -112,7 +112,7 @@ const PopularCategoriesSection: React.FC<PopularCategoriesSectionProps> = ({
           <CircularProgress size={30} />
         </Box>
       ) : chartData.length > 0 ? (
-        <Box sx={{ height: 300, width: "100%" }} className="flex-grow mt-2">
+        <Box sx={{ height: 300, width: '100%' }} className="flex-grow mt-2">
           <ResponsiveContainer>
             <PieChart>
               <Pie
@@ -136,10 +136,10 @@ const PopularCategoriesSection: React.FC<PopularCategoriesSectionProps> = ({
               </Pie>
               <Tooltip
                 formatter={(value: number) =>
-                  sortBy === "engagement" ? value.toFixed(1) : value
+                  sortBy === 'engagement' ? value.toFixed(1) : value
                 }
               />
-              <Legend wrapperStyle={{ fontSize: "12px", marginTop: "10px" }} />
+              <Legend wrapperStyle={{ fontSize: '12px', marginTop: '10px' }} />
             </PieChart>
           </ResponsiveContainer>
         </Box>

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getPendingReports,
   Report,
@@ -7,11 +7,11 @@ import {
   updateReportStatus,
   viewReports,
   ViewReportsDto,
-} from "../reportAPI";
+} from '../reportAPI';
 
 export function usePendingReports() {
   return useQuery<Report[], Error>({
-    queryKey: ["reports", "all"],
+    queryKey: ['reports', 'all'],
     queryFn: () => {
       return getPendingReports();
     },
@@ -20,7 +20,7 @@ export function usePendingReports() {
 
 export function useGetAllReports(viewReportDTO: ViewReportsDto) {
   return useQuery<Report[], Error>({
-    queryKey: ["reports", "all", viewReportDTO],
+    queryKey: ['reports', 'all', viewReportDTO],
     queryFn: ({ queryKey }) => {
       const [, , dto] = queryKey as [string, string, ViewReportsDto];
       return viewReports(dto);
@@ -39,7 +39,7 @@ export function useResolveReport() {
       resolveReportDTO: ResolveReportDto;
     }) => resolveReport(reportId, resolveReportDTO),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["reports", "all"] });
+      queryClient.invalidateQueries({ queryKey: ['reports', 'all'] });
     },
   });
 }
@@ -50,7 +50,7 @@ export function useUpdateReportStatus() {
     mutationFn: ({ reportId, status }: { reportId: number; status: string }) =>
       updateReportStatus(reportId, status),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["reports", "all"] });
+      queryClient.invalidateQueries({ queryKey: ['reports', 'all'] });
     },
   });
 }

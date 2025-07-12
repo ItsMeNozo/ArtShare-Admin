@@ -1,9 +1,6 @@
 // src/features/users/components/UserProfileSummary.tsx
 
-import React, { ChangeEvent, useRef } from "react";
-import { User } from "../../../../types/user";
-import { FormikProps } from "formik";
-import { UserFormData } from "../../../../types/user";
+import { CameraAlt as CameraAltIcon } from '@mui/icons-material';
 import {
   Avatar,
   Box,
@@ -12,10 +9,12 @@ import {
   Grid,
   IconButton,
   Typography,
-} from "@mui/material";
-import { CameraAlt as CameraAltIcon } from "@mui/icons-material";
-import { SubscriptionStatusInfo } from "../../types";
-import { PaidAccessLevel } from "../../../../constants/plan";
+} from '@mui/material';
+import { FormikProps } from 'formik';
+import React, { ChangeEvent, useRef } from 'react';
+import { PaidAccessLevel } from '../../../../constants/plan';
+import { User, UserFormData } from '../../../../types/user';
+import { SubscriptionStatusInfo } from '../../types';
 
 interface UserProfileSummaryProps {
   formik: FormikProps<UserFormData>;
@@ -39,14 +38,14 @@ export const UserProfileSummary: React.FC<UserProfileSummaryProps> = ({
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        formik.setFieldValue("profilePictureUrl", reader.result as string);
+        formik.setFieldValue('profilePictureUrl', reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
   const triggerAvatarUpload = () => fileInputRef.current?.click();
-  const removeAvatar = () => formik.setFieldValue("profilePictureUrl", "");
+  const removeAvatar = () => formik.setFieldValue('profilePictureUrl', '');
 
   const displayUser = user || ({} as User);
   const statusInfo = getSubscriptionStatusInfo(
@@ -58,9 +57,9 @@ export const UserProfileSummary: React.FC<UserProfileSummaryProps> = ({
       size={{ xs: 12, lg: 4 }}
       sx={{
         p: 3,
-        bgcolor: "grey.100",
-        borderRight: { md: "1px solid" },
-        borderColor: "divider",
+        bgcolor: 'grey.100',
+        borderRight: { md: '1px solid' },
+        borderColor: 'divider',
       }}
     >
       <Box
@@ -72,26 +71,26 @@ export const UserProfileSummary: React.FC<UserProfileSummaryProps> = ({
         <Box position="relative" mb={2}>
           <Avatar
             src={formik.values.profilePictureUrl || undefined}
-            alt={formik.values.username || "User"}
+            alt={formik.values.username || 'User'}
             sx={{
               width: 150,
               height: 150,
-              fontSize: "4rem",
+              fontSize: '4rem',
               boxShadow: 3,
             }}
           >
-            {(formik.values.username?.[0] || "")?.toUpperCase()}
+            {(formik.values.username?.[0] || '')?.toUpperCase()}
           </Avatar>
           {isEditing && (
             <IconButton
               size="small"
               onClick={triggerAvatarUpload}
               sx={{
-                position: "absolute",
+                position: 'absolute',
                 bottom: 5,
                 right: 5,
-                bgcolor: "background.paper",
-                "&:hover": { bgcolor: "grey.200" },
+                bgcolor: 'background.paper',
+                '&:hover': { bgcolor: 'grey.200' },
               }}
             >
               <CameraAltIcon fontSize="small" />
@@ -103,14 +102,14 @@ export const UserProfileSummary: React.FC<UserProfileSummaryProps> = ({
           accept="image/*"
           ref={fileInputRef}
           onChange={handleAvatarFileChange}
-          style={{ display: "none" }}
+          style={{ display: 'none' }}
         />
         {isEditing && formik.values.profilePictureUrl && (
           <Button
             size="small"
             onClick={removeAvatar}
             color="error"
-            sx={{ textTransform: "none", mb: 1 }}
+            sx={{ textTransform: 'none', mb: 1 }}
           >
             Remove Avatar
           </Button>
@@ -118,7 +117,7 @@ export const UserProfileSummary: React.FC<UserProfileSummaryProps> = ({
         <Typography variant="h6">
           {formik.values.fullName || formik.values.username}
         </Typography>
-        <Typography variant="body1" fontStyle={"italic"} color="text.secondary">
+        <Typography variant="body1" fontStyle={'italic'} color="text.secondary">
           {formik.values.email}
         </Typography>
       </Box>
@@ -133,27 +132,27 @@ export const UserProfileSummary: React.FC<UserProfileSummaryProps> = ({
               <strong>User ID:</strong> {displayUser.id}
             </Typography>
             <Typography variant="body2">
-              <strong>Joined:</strong>{" "}
+              <strong>Joined:</strong>{' '}
               {new Date(
                 displayUser.createdAt || Date.now(),
               ).toLocaleDateString()}
             </Typography>
             {displayUser.updatedAt && (
               <Typography variant="body2">
-                <strong>Last Updated:</strong>{" "}
+                <strong>Last Updated:</strong>{' '}
                 {new Date(displayUser.updatedAt).toLocaleDateString()}
               </Typography>
             )}
             <Typography variant="body2">
               <strong>Followers: </strong>
-              {displayUser.followersCount ?? "0"}
+              {displayUser.followersCount ?? '0'}
             </Typography>
             <Typography variant="body2">
               <strong>Following: </strong>
-              {displayUser.followingsCount ?? "0"}
+              {displayUser.followingsCount ?? '0'}
             </Typography>
           </Grid>
-          {displayUser.roles && !displayUser.roles.includes("ADMIN") && (
+          {displayUser.roles && !displayUser.roles.includes('ADMIN') && (
             <Grid size={{ xs: 6, md: 12 }}>
               <Typography
                 variant="subtitle2"
@@ -172,43 +171,43 @@ export const UserProfileSummary: React.FC<UserProfileSummaryProps> = ({
                     <Typography variant="body2">
                       <strong>Expires: </strong>
                       {displayUser.userAccess.planId === PaidAccessLevel.FREE
-                        ? "N/A"
+                        ? 'N/A'
                         : displayUser.userAccess.expiresAt
                           ? new Date(
                               displayUser.userAccess.expiresAt,
                             ).toLocaleDateString()
-                          : "N/A"}
+                          : 'N/A'}
                     </Typography>
                     <Typography variant="body2">
                       <strong>Will cancel at period end: </strong>
-                      {displayUser.userAccess.cancelAtPeriodEnd ? "Yes" : "No"}
+                      {displayUser.userAccess.cancelAtPeriodEnd ? 'Yes' : 'No'}
                     </Typography>
-                    {user?.roles.some((r) => r === "ADMIN") && (
+                    {user?.roles.some((r) => r === 'ADMIN') && (
                       <>
                         <Typography
                           variant="body2"
                           sx={{
                             mt: 0.5,
-                            fontSize: "0.8rem",
-                            color: "text.secondary",
+                            fontSize: '0.8rem',
+                            color: 'text.secondary',
                           }}
                         >
                           Stripe Customer ID:
                           {displayUser.stripeCustomerId ||
                             displayUser.userAccess?.stripeCustomerId ||
-                            "N/A"}
+                            'N/A'}
                         </Typography>
                         <Typography
                           variant="body2"
                           sx={{
                             mt: 0.5,
-                            fontSize: "0.8rem",
-                            color: "text.secondary",
+                            fontSize: '0.8rem',
+                            color: 'text.secondary',
                           }}
                         >
                           Stripe Subscription ID:
                           {displayUser.userAccess?.stripeSubscriptionId ||
-                            "N/A"}
+                            'N/A'}
                         </Typography>
                       </>
                     )}

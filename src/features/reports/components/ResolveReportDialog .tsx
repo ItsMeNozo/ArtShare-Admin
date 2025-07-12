@@ -1,28 +1,28 @@
 // src/components/ResolveReportDialog.tsx
-import React, { useState, useEffect } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
   Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
   Typography,
-} from "@mui/material";
-import { Report } from "../reportAPI";
+} from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Report } from '../reportAPI';
 
 const toDatetimeLocal = (dt: Date) => {
   return (
     dt.getFullYear() +
-    "-" +
-    String(dt.getMonth() + 1).padStart(2, "0") +
-    "-" +
-    String(dt.getDate()).padStart(2, "0") +
-    "T" +
-    String(dt.getHours()).padStart(2, "0") +
-    ":" +
-    String(dt.getMinutes()).padStart(2, "0")
+    '-' +
+    String(dt.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(dt.getDate()).padStart(2, '0') +
+    'T' +
+    String(dt.getHours()).padStart(2, '0') +
+    ':' +
+    String(dt.getMinutes()).padStart(2, '0')
   );
 };
 
@@ -34,7 +34,7 @@ interface ResolveReportDialogProps {
   error?: string;
   onCancel: () => void;
   onConfirm: (data: {
-    resolve_date: string; // ISO string
+    resolveDate: string; // ISO string
     comment?: string;
   }) => void;
 }
@@ -48,20 +48,20 @@ const ResolveReportDialog: React.FC<ResolveReportDialogProps> = ({
   onCancel,
   onConfirm,
 }) => {
-  const [dateTime, setDateTime] = useState<string>("");
-  const [comment, setComment] = useState<string>("");
+  const [dateTime, setDateTime] = useState<string>('');
+  const [comment, setComment] = useState<string>('');
 
   // when opened (or initialDate changes), reset form
   useEffect(() => {
     if (open) {
       const now = initialDate ?? new Date();
       setDateTime(toDatetimeLocal(now));
-      setComment("");
+      setComment('');
     }
   }, [open, initialDate]);
 
   const handleConfirm = () => {
-    onConfirm({ resolve_date: new Date(dateTime).toISOString(), comment });
+    onConfirm({ resolveDate: new Date(dateTime).toISOString(), comment });
   };
 
   return (
@@ -107,12 +107,12 @@ const ResolveReportDialog: React.FC<ResolveReportDialogProps> = ({
           disabled={isSubmitting || !dateTime}
           style={{
             visibility:
-              report?.status === "DISMISSED" || report?.status === "RESOLVED"
-                ? "hidden"
+              report?.status === 'DISMISSED' || report?.status === 'RESOLVED'
+                ? 'hidden'
                 : undefined,
           }}
         >
-          {isSubmitting ? "Saving…" : "Confirm"}
+          {isSubmitting ? 'Saving…' : 'Confirm'}
         </Button>
       </DialogActions>
     </Dialog>

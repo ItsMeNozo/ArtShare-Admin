@@ -1,24 +1,34 @@
-import api from "../../api/baseApi";
+import api from '../../api/baseApi';
 import type {
   Category,
+  CategorySimple,
   CreateCategoryDto,
   UpdateCategoryDto,
-} from "../../types/category"; // Adjust the import path as necessary
+} from '../../types/category';
+import { PaginatedResponse } from '../../types/paginated-response';
+import { PaginationQuery } from '../../types/pagination-query';
 
-const CATEGORIES_ENDPOINT = "/categories"; // Your NestJS categories endpoint
+const CATEGORIES_ENDPOINT = '/categories';
 
-export const fetchCategories = async (): Promise<Category[]> => {
+export const fetchCategories = async (
+  query: Partial<PaginationQuery>,
+): Promise<PaginatedResponse<Category>> => {
   try {
-    const response = await api.get<Category[]>(CATEGORIES_ENDPOINT);
-    // Convert date strings to Date objects if necessary
-    return response.data.map((cat) => ({
+    const response = await api.get<PaginatedResponse<Category>>(
+      `${CATEGORIES_ENDPOINT}/paginated`,
+      {
+        params: query,
+      },
+    );
+
+    response.data.data = response.data.data.map((cat) => ({
       ...cat,
-      created_at: new Date(cat.created_at),
-      updated_at: cat.updated_at ? new Date(cat.updated_at) : null,
+      createdAt: new Date(cat.createdAt),
+      updatedAt: cat.updatedAt ? new Date(cat.updatedAt) : null,
     }));
+    return response.data;
   } catch (error) {
-    console.error("Error fetching categories:", error);
-    // You might want to throw the error or return a specific error object
+    console.error('Error fetching categories:', error);
     throw error;
   }
 };
@@ -28,9 +38,9 @@ export const fetchCategoryById = async (id: number): Promise<Category> => {
     const response = await api.get<Category>(`${CATEGORIES_ENDPOINT}/${id}`);
     return {
       ...response.data,
-      created_at: new Date(response.data.created_at),
-      updated_at: response.data.updated_at
-        ? new Date(response.data.updated_at)
+      createdAt: new Date(response.data.createdAt),
+      updatedAt: response.data.updatedAt
+        ? new Date(response.data.updatedAt)
         : null,
     };
   } catch (error) {
@@ -39,15 +49,26 @@ export const fetchCategoryById = async (id: number): Promise<Category> => {
   }
 };
 
+export const fetchSimpleCategories = async (): Promise<CategorySimple[]> => {
+  try {
+    const response = await api.get<CategorySimple[]>(
+      `${CATEGORIES_ENDPOINT}/simple`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching simple category list:', error);
+    throw error;
+  }
+};
+
 export const addCategory = async (
   categoryData: CreateCategoryDto,
 ): Promise<Category> => {
   try {
-    // Use longer timeout for operations with images
     const timeout =
-      categoryData.example_images && categoryData.example_images.length > 0
+      categoryData.exampleImages && categoryData.exampleImages.length > 0
         ? 60000
-        : 10000; // 60s if images, 10s otherwise
+        : 10000;
 
     const response = await api.post<Category>(
       CATEGORIES_ENDPOINT,
@@ -56,13 +77,13 @@ export const addCategory = async (
     );
     return {
       ...response.data,
-      created_at: new Date(response.data.created_at),
-      updated_at: response.data.updated_at
-        ? new Date(response.data.updated_at)
+      createdAt: new Date(response.data.createdAt),
+      updatedAt: response.data.updatedAt
+        ? new Date(response.data.updatedAt)
         : null,
     };
   } catch (error) {
-    console.error("Error adding category:", error);
+    console.error('Error adding category:', error);
     throw error;
   }
 };
@@ -72,22 +93,21 @@ export const updateCategory = async (
   categoryData: UpdateCategoryDto,
 ): Promise<Category> => {
   try {
-    // Use longer timeout for operations with images
     const timeout =
-      categoryData.example_images && categoryData.example_images.length > 0
+      categoryData.exampleImages && categoryData.exampleImages.length > 0
         ? 60000
-        : 10000; // 60s if images, 10s otherwise
+        : 10000;
 
     const response = await api.patch<Category>(
       `${CATEGORIES_ENDPOINT}/${id}`,
       categoryData,
       { timeout },
-    ); // Assuming PATCH for updates
+    );
     return {
       ...response.data,
-      created_at: new Date(response.data.created_at),
-      updated_at: response.data.updated_at
-        ? new Date(response.data.updated_at)
+      createdAt: new Date(response.data.createdAt),
+      updatedAt: response.data.updatedAt
+        ? new Date(response.data.updatedAt)
         : null,
     };
   } catch (error) {
@@ -97,10 +117,9 @@ export const updateCategory = async (
 };
 
 export const deleteCategory = async (id: number): Promise<{ id: number }> => {
-  // Or void, or the deleted category
   try {
     await api.delete(`${CATEGORIES_ENDPOINT}/${id}`);
-    return { id }; // Indicate success
+    return { id };
   } catch (error) {
     console.error(`Error deleting category with id ${id}:`, error);
     throw error;

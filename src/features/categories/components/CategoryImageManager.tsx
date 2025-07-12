@@ -1,24 +1,24 @@
-import React, { useRef, ChangeEvent, useState } from "react";
-import {
-  Box,
-  Button,
-  Typography,
-  Avatar,
-  IconButton,
-  Grid,
-  Alert,
-  Paper,
-  Chip,
-  CircularProgress,
-} from "@mui/material";
 import {
   PhotoCameraOutlined as CameraIcon,
   Close as CloseIcon,
   Image as ImageIcon,
   CloudUpload as UploadIcon,
-} from "@mui/icons-material";
-import { FormikProps } from "formik";
-import { CategoryFormData } from "../hooks/useCategoryForm";
+} from '@mui/icons-material';
+import {
+  Alert,
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Grid,
+  IconButton,
+  Paper,
+  Typography,
+} from '@mui/material';
+import { FormikProps } from 'formik';
+import React, { ChangeEvent, useRef, useState } from 'react';
+import { CategoryFormData } from '../hooks/useCategoryForm';
 
 interface CategoryImageManagerProps {
   formik: FormikProps<CategoryFormData>;
@@ -33,8 +33,8 @@ const JPEG_QUALITY = 0.8; // JPEG compression quality (0.1 to 1.0)
 // Helper function to compress image
 const compressImage = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
     const img = new Image();
 
     img.onload = () => {
@@ -60,12 +60,12 @@ const compressImage = (file: File): Promise<string> => {
       ctx?.drawImage(img, 0, 0, width, height);
 
       // Convert to base64 with compression
-      const compressedDataUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
       resolve(compressedDataUrl);
     };
 
     img.onerror = () =>
-      reject(new Error("Failed to load image for compression"));
+      reject(new Error('Failed to load image for compression'));
     img.src = URL.createObjectURL(file);
   });
 };
@@ -80,12 +80,12 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
   const handleImageAdd = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       const files = Array.from(event.target.files);
-      const currentImages = formik.values.example_images;
+      const currentImages = formik.values.exampleImages;
       const availableSlots = MAX_IMAGES - currentImages.length;
 
       if (files.length > availableSlots) {
         formik.setFieldError(
-          "example_images",
+          'exampleImages',
           `You can only add ${availableSlots} more image(s). Maximum ${MAX_IMAGES} images allowed.`,
         );
         return;
@@ -108,7 +108,7 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
             }
 
             // Validate file type
-            if (!file.type.startsWith("image/")) {
+            if (!file.type.startsWith('image/')) {
               errors.push(`"${file.name}" is not a valid image file.`);
               continue;
             }
@@ -119,14 +119,14 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
             validImages.push(base64Image);
           } catch (error) {
             errors.push(
-              `Failed to process "${file.name}": ${error instanceof Error ? error.message : "Unknown error"}`,
+              `Failed to process "${file.name}": ${error instanceof Error ? error.message : 'Unknown error'}`,
             );
           }
         }
 
         // Update form with valid images
         if (validImages.length > 0) {
-          formik.setFieldValue("example_images", [
+          formik.setFieldValue('exampleImages', [
             ...currentImages,
             ...validImages,
           ]);
@@ -134,10 +134,10 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
 
         // Show errors if any, but don't prevent valid images from being added
         if (errors.length > 0) {
-          formik.setFieldError("example_images", errors.join(". "));
-        } else if (formik.errors.example_images) {
+          formik.setFieldError('exampleImages', errors.join('. '));
+        } else if (formik.errors.exampleImages) {
           // Clear errors if all files were processed successfully
-          formik.setFieldError("example_images", undefined);
+          formik.setFieldError('exampleImages', undefined);
         }
 
         setIsProcessing(false);
@@ -146,14 +146,14 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
       processFiles();
     }
     // Reset file input
-    event.target.value = "";
+    event.target.value = '';
   };
 
   const handleImageRemove = (indexToRemove: number) => {
-    const updatedImages = formik.values.example_images.filter(
+    const updatedImages = formik.values.exampleImages.filter(
       (_, index) => index !== indexToRemove,
     );
-    formik.setFieldValue("example_images", updatedImages);
+    formik.setFieldValue('exampleImages', updatedImages);
   };
 
   const triggerImageUpload = () => fileInputRef.current?.click();
@@ -170,12 +170,12 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
     if (!isEditing) return;
 
     const files = Array.from(e.dataTransfer.files);
-    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+    const imageFiles = files.filter((file) => file.type.startsWith('image/'));
 
     if (imageFiles.length > 0) {
       // Create a synthetic event to reuse the handleImageAdd logic
       const syntheticEvent = {
-        target: { files: imageFiles, value: "" },
+        target: { files: imageFiles, value: '' },
       } as unknown as ChangeEvent<HTMLInputElement>;
       handleImageAdd(syntheticEvent);
     }
@@ -187,11 +187,11 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
         <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
           Example Images
           <Chip
-            label={`${formik.values.example_images.length}/${MAX_IMAGES}`}
+            label={`${formik.values.exampleImages.length}/${MAX_IMAGES}`}
             size="small"
             sx={{ ml: 1 }}
             color={
-              formik.values.example_images.length > 0 ? "primary" : "default"
+              formik.values.exampleImages.length > 0 ? 'primary' : 'default'
             }
           />
         </Typography>
@@ -203,23 +203,23 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
         </Typography>
       </Box>
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {/* Image Upload Area */}
-        {isEditing && formik.values.example_images.length < MAX_IMAGES && (
+        {isEditing && formik.values.exampleImages.length < MAX_IMAGES && (
           <Paper
             variant="outlined"
             sx={{
               p: 2,
-              textAlign: "center",
-              border: "2px dashed",
-              borderColor: "grey.300",
+              textAlign: 'center',
+              border: '2px dashed',
+              borderColor: 'grey.300',
               borderRadius: 2,
-              cursor: isProcessing ? "default" : "pointer",
-              transition: "all 0.2s ease",
-              "&:hover": !isProcessing
+              cursor: isProcessing ? 'default' : 'pointer',
+              transition: 'all 0.2s ease',
+              '&:hover': !isProcessing
                 ? {
-                    borderColor: "primary.main",
-                    bgcolor: "primary.50",
+                    borderColor: 'primary.main',
+                    bgcolor: 'primary.50',
                   }
                 : {},
               opacity: isProcessing ? 0.7 : 1,
@@ -241,7 +241,7 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
             ) : (
               <>
                 <UploadIcon
-                  sx={{ fontSize: 48, color: "text.secondary", mb: 1 }}
+                  sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }}
                 />
                 <Typography variant="h6" gutterBottom>
                   Drop images here or click to browse
@@ -249,7 +249,10 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
                 <Button
                   variant="outlined"
                   startIcon={<CameraIcon />}
-                  onClick={triggerImageUpload}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    triggerImageUpload();
+                  }}
                   sx={{ mt: 1 }}
                 >
                   Choose Images
@@ -266,22 +269,22 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
           multiple
           ref={fileInputRef}
           onChange={handleImageAdd}
-          style={{ display: "none" }}
+          style={{ display: 'none' }}
         />
 
         {/* Display Current Images */}
-        {formik.values.example_images.length > 0 ? (
+        {formik.values.exampleImages.length > 0 ? (
           <Grid container spacing={2}>
-            {formik.values.example_images.map((imageUrl, index) => (
+            {formik.values.exampleImages.map((imageUrl, index) => (
               <Grid size={{ xs: 6, sm: 4, md: 3 }} key={index}>
                 <Paper
                   elevation={2}
                   sx={{
-                    position: "relative",
+                    position: 'relative',
                     borderRadius: 2,
-                    overflow: "hidden",
-                    "&:hover": {
-                      "& .delete-button": {
+                    overflow: 'hidden',
+                    '&:hover': {
+                      '& .delete-button': {
                         opacity: 1,
                       },
                     },
@@ -291,10 +294,10 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
                     src={imageUrl}
                     variant="rounded"
                     sx={{
-                      width: "100%",
+                      width: '100%',
                       height: 120,
-                      "& img": {
-                        objectFit: "cover",
+                      '& img': {
+                        objectFit: 'cover',
                       },
                     }}
                   >
@@ -306,15 +309,15 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
                       className="delete-button"
                       onClick={() => handleImageRemove(index)}
                       sx={{
-                        position: "absolute",
+                        position: 'absolute',
                         top: 4,
                         right: 4,
-                        bgcolor: "rgba(0, 0, 0, 0.7)",
-                        color: "white",
+                        bgcolor: 'rgba(0, 0, 0, 0.7)',
+                        color: 'white',
                         opacity: 0,
-                        transition: "opacity 0.2s ease",
-                        "&:hover": {
-                          bgcolor: "error.main",
+                        transition: 'opacity 0.2s ease',
+                        '&:hover': {
+                          bgcolor: 'error.main',
                         },
                       }}
                     >
@@ -323,12 +326,12 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
                   )}
                   <Box
                     sx={{
-                      position: "absolute",
+                      position: 'absolute',
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      bgcolor: "rgba(0, 0, 0, 0.7)",
-                      color: "white",
+                      bgcolor: 'rgba(0, 0, 0, 0.7)',
+                      color: 'white',
                       p: 0.5,
                     }}
                   >
@@ -350,13 +353,13 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
               variant="outlined"
               sx={{
                 p: 4,
-                textAlign: "center",
-                borderStyle: "dashed",
-                borderColor: "grey.300",
+                textAlign: 'center',
+                borderStyle: 'dashed',
+                borderColor: 'grey.300',
               }}
             >
               <ImageIcon
-                sx={{ fontSize: 48, color: "text.secondary", mb: 1 }}
+                sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }}
               />
               <Typography variant="body1" color="text.secondary">
                 No example images added
@@ -366,12 +369,12 @@ export const CategoryImageManager: React.FC<CategoryImageManagerProps> = ({
         )}
 
         {/* Error Message */}
-        {formik.touched.example_images && formik.errors.example_images && (
-          <Alert severity="error">{formik.errors.example_images}</Alert>
+        {formik.touched.exampleImages && formik.errors.exampleImages && (
+          <Alert severity="error">{formik.errors.exampleImages}</Alert>
         )}
 
         {/* Usage Hint */}
-        {isEditing && formik.values.example_images.length > 0 && (
+        {isEditing && formik.values.exampleImages.length > 0 && (
           <Alert severity="info" sx={{ mt: 1 }}>
             <Typography variant="body2">
               <strong>Tip:</strong> These images will help users understand what

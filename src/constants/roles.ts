@@ -1,6 +1,6 @@
 export const USER_ROLES = {
-  ADMIN: "ADMIN",
-  USER: "USER",
+  ADMIN: 'ADMIN',
+  USER: 'USER',
 } as const;
 
 // Type for a single role

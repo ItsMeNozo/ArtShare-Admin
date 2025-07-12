@@ -1,11 +1,11 @@
-import { User } from "../../types/user";
+import { User } from '../../types/user';
 
 export type SemanticSubscriptionStatus =
-  | "active"
-  | "active_free"
-  | "cancels_soon"
-  | "admin_na"
-  | "no_plan";
+  | 'active'
+  | 'active_free'
+  | 'cancels_soon'
+  | 'admin_na'
+  | 'no_plan';
 
 export interface SubscriptionStatusInfo {
   text: string;
@@ -24,20 +24,20 @@ export interface DisplayUser extends User {
   currentPlan?: string;
 }
 
-export type Order = "asc" | "desc";
+export type Order = 'asc' | 'desc';
 
 export type UserSortableKeys =
-  | "username"
-  | "email"
-  | "fullName"
-  | "createdAt"
-  | "currentPlan";
+  | 'username'
+  | 'email'
+  | 'fullName'
+  | 'createdAt'
+  | 'currentPlan';
 
 interface HeadCellBaseProps<T = any> {
   label: string;
   numeric?: boolean;
   minWidth?: number | string;
-  align?: "left" | "right" | "center";
+  align?: 'left' | 'right' | 'center';
   disablePadding?: boolean;
   className?: string;
   render?: (item: T) => React.ReactNode;

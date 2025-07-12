@@ -1,38 +1,38 @@
-import React, { useEffect, useState, useMemo } from "react";
 import {
-  Container,
-  Grid,
-  CircularProgress,
   Alert,
   Box,
+  CircularProgress,
+  Container,
+  Grid,
   Paper,
   Typography,
   useTheme,
-} from "@mui/material";
-import { AxiosError } from "axios";
+} from '@mui/material';
+import { AxiosError } from 'axios';
+import React, { useEffect, useMemo, useState } from 'react';
 
+import { COLORS, COLORS_POSTS } from './constants';
 import {
   AnalyticsData,
   CombinedTimePoint,
   PieChartDataItem,
-} from "./statistics.types";
-import { COLORS, COLORS_POSTS } from "./constants";
+} from './statistics.types';
 
-import CustomPieChart from "./components/CustomPieChart";
-import PlatformGrowthChart from "./components/PlatformGrowthChart";
-import PopularCategoriesSection from "./components/PopularCategoriesSection";
-import TimeToActionStats from "./components/TimeToActionStats";
-import api from "../../api/baseApi";
+import api from '../../api/baseApi';
 import {
+  PopularCategories,
   PopularCategory,
   PopularCategorySortBy,
-  PopularCategories,
-} from "../../types/analytics";
-import PlanContentInsightsChart from "./components/PlanContentInsightsChart";
-import AiEngagementChart from "./components/AiEngagementChart";
-import ContentFunnelChart from "./components/ContentFunnelChart";
-import FollowerEngagementChart from "./components/FollowerEngagementChart";
-import PostsByCategoryChart from "./components/PostsByCategoryChart";
+} from '../../types/analytics';
+import AiEngagementChart from './components/AiEngagementChart';
+import ContentFunnelChart from './components/ContentFunnelChart';
+import CustomPieChart from './components/CustomPieChart';
+import FollowerEngagementChart from './components/FollowerEngagementChart';
+import PlanContentInsightsChart from './components/PlanContentInsightsChart';
+import PlatformGrowthChart from './components/PlatformGrowthChart';
+import PopularCategoriesSection from './components/PopularCategoriesSection';
+import PostsByCategoryChart from './components/PostsByCategoryChart';
+import TimeToActionStats from './components/TimeToActionStats';
 
 const StatisticsPage: React.FC = () => {
   const theme = useTheme();
@@ -43,7 +43,7 @@ const StatisticsPage: React.FC = () => {
   const [popularCategoriesLimit, setPopularCategoriesLimit] =
     useState<number>(5);
   const [popularCategoriesSortBy, setPopularCategoriesSortBy] =
-    useState<PopularCategorySortBy>("postCount");
+    useState<PopularCategorySortBy>('postCount');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [loadingPopular, setLoadingPopular] = useState<boolean>(false);
@@ -76,14 +76,14 @@ const StatisticsPage: React.FC = () => {
           usersOverTimeData,
           postsOverTimeData,
         ] = await Promise.all([
-          fetchData<AnalyticsData["userStats"]>("overall-user-stats"),
-          fetchData<AnalyticsData["postStats"]>("overall-post-stats"),
-          fetchData<AnalyticsData["postsByCategory"]>("posts-by-category"),
-          fetchData<AnalyticsData["platformWideStats"]>("platform-wide-stats"),
-          fetchData<AnalyticsData["usersOverTime"]>(
+          fetchData<AnalyticsData['userStats']>('overall-user-stats'),
+          fetchData<AnalyticsData['postStats']>('overall-post-stats'),
+          fetchData<AnalyticsData['postsByCategory']>('posts-by-category'),
+          fetchData<AnalyticsData['platformWideStats']>('platform-wide-stats'),
+          fetchData<AnalyticsData['usersOverTime']>(
             `users-over-time?days=${timeSeriesDays}`,
           ),
-          fetchData<AnalyticsData["postsOverTime"]>(
+          fetchData<AnalyticsData['postsOverTime']>(
             `posts-over-time?days=${timeSeriesDays}`,
           ),
         ]);
@@ -98,7 +98,7 @@ const StatisticsPage: React.FC = () => {
       } catch (err: any) {
         setError(
           err.message ||
-            "An unknown error occurred while fetching initial data",
+            'An unknown error occurred while fetching initial data',
         );
       } finally {
         setLoading(false);
@@ -116,7 +116,7 @@ const StatisticsPage: React.FC = () => {
         );
         setPopularCategoriesData(data.data);
       } catch (err: any) {
-        setError(err.message || "Failed to fetch popular categories");
+        setError(err.message || 'Failed to fetch popular categories');
         setPopularCategoriesData([]);
       } finally {
         setLoadingPopular(false);
@@ -151,9 +151,9 @@ const StatisticsPage: React.FC = () => {
   const overallUserChartData = useMemo((): PieChartDataItem[] => {
     if (!analyticsData.userStats) return [];
     return [
-      { name: "Onboarded", value: analyticsData.userStats.onboardedUsers },
+      { name: 'Onboarded', value: analyticsData.userStats.onboardedUsers },
       {
-        name: "Not Onboarded",
+        name: 'Not Onboarded',
         value:
           analyticsData.userStats.totalUsers -
           analyticsData.userStats.onboardedUsers,
@@ -166,13 +166,13 @@ const StatisticsPage: React.FC = () => {
       return { publishedVsDraft: [], aiVsHuman: [] };
     return {
       publishedVsDraft: [
-        { name: "Published", value: analyticsData.postStats.publishedPosts },
-        { name: "Drafts", value: analyticsData.postStats.draftPosts },
+        { name: 'Published', value: analyticsData.postStats.publishedPosts },
+        { name: 'Drafts', value: analyticsData.postStats.draftPosts },
       ].filter((item) => item.value > 0),
       aiVsHuman: [
-        { name: "AI Created", value: analyticsData.postStats.aiCreatedPosts },
+        { name: 'AI Created', value: analyticsData.postStats.aiCreatedPosts },
         {
-          name: "Human Created",
+          name: 'Human Created',
           value:
             analyticsData.postStats.totalPosts -
             analyticsData.postStats.aiCreatedPosts,
@@ -193,7 +193,7 @@ const StatisticsPage: React.FC = () => {
     const data = popularCategoriesData.map((cat) => ({
       name: cat.categoryName,
       value:
-        popularCategoriesSortBy === "postCount"
+        popularCategoriesSortBy === 'postCount'
           ? cat.postCount
           : cat.totalEngagementScore,
     }));
@@ -206,9 +206,9 @@ const StatisticsPage: React.FC = () => {
     if (!analyticsData.platformWideStats?.contentFunnel) return [];
     const funnel = analyticsData.platformWideStats.contentFunnel;
     return [
-      { name: "Posted", value: funnel.usersWhoPostedCount },
-      { name: "Viewed", value: funnel.postsWithViewsCount },
-      { name: "Engaged", value: funnel.postsWithEngagementCount },
+      { name: 'Posted', value: funnel.usersWhoPostedCount },
+      { name: 'Viewed', value: funnel.postsWithViewsCount },
+      { name: 'Engaged', value: funnel.postsWithEngagementCount },
     ].filter((item) => item.value > 0);
   }, [analyticsData.platformWideStats?.contentFunnel]);
 
@@ -217,14 +217,14 @@ const StatisticsPage: React.FC = () => {
     const ai = analyticsData.platformWideStats.aiContentEngagement;
     return [
       {
-        metric: "Avg Likes",
-        aiValue: ai.averageLikes_AiPosts,
-        humanValue: ai.averageLikes_NonAiPosts,
+        metric: 'Avg Likes',
+        aiValue: ai.averageLikesAiPosts,
+        humanValue: ai.averageLikesNonAiPosts,
       },
       {
-        metric: "Avg Comments",
-        aiValue: ai.averageComments_AiPosts,
-        humanValue: ai.averageComments_NonAiPosts,
+        metric: 'Avg Comments',
+        aiValue: ai.averageCommentsAiPosts,
+        humanValue: ai.averageCommentsNonAiPosts,
       },
     ].filter((item) => item.aiValue > 0 || item.humanValue > 0);
   }, [analyticsData.platformWideStats?.aiContentEngagement]);

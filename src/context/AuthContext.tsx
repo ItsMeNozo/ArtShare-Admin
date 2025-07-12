@@ -1,17 +1,17 @@
+import type { ReactNode } from 'react';
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
-  useCallback,
-} from "react";
-import type { ReactNode } from "react";
+} from 'react';
+import { getUserProfile } from '../api/get-user-profile';
 import {
   signIn as apiSignIn,
   signOut as apiSignOut,
-} from "../features/auth/api/auth-api"; // Adjust the import path as needed
-import type { User } from "../types/user";
-import { getUserProfile } from "../api/get-user-profile";
+} from '../features/auth/api/auth-api'; // Adjust the import path as needed
+import type { User } from '../types/user';
 
 interface AuthCtx {
   isAuthenticated: boolean;
@@ -37,7 +37,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         setIsLoading(true);
       }
 
-      const token = localStorage.getItem("accessToken");
+      const token = localStorage.getItem('accessToken');
 
       if (!token) {
         // console.log('No token found.');
@@ -51,11 +51,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         setUser(userProfile);
       } catch (error) {
         console.error(
-          "AuthContext: Failed to fetch user profile with stored token:",
+          'AuthContext: Failed to fetch user profile with stored token:',
           error,
         );
         setUser(null);
-        localStorage.removeItem("accessToken"); // Token is likely invalid or expired
+        localStorage.removeItem('accessToken'); // Token is likely invalid or expired
       } finally {
         // console.log('Finished attemptLoadUserFromToken, setting isLoading to false.');
         setIsLoading(false);
@@ -77,8 +77,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     // console.log('Login called.');
     setIsLoading(true); // Indicate an auth operation is in progress
     try {
-      const { access_token } = await apiSignIn(email, password);
-      localStorage.setItem("accessToken", access_token);
+      const { accessToken } = await apiSignIn(email, password);
+      localStorage.setItem('accessToken', accessToken);
 
       // console.log('Signed in, fetching profile with new token.');
       const userProfile = await getUserProfile(); // This also needs to complete
@@ -86,8 +86,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setUser(userProfile);
       // setIsLoading(false); // Set loading false AFTER user is set
     } catch (error) {
-      console.error("AuthContext: Login process failed:", error);
-      localStorage.removeItem("accessToken");
+      console.error('AuthContext: Login process failed:', error);
+      localStorage.removeItem('accessToken');
       setUser(null);
       // setIsLoading(false); // Set loading false in catch too
       throw error; // Re-throw so LoginPage can handle it
@@ -105,9 +105,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         await apiSignOut();
       }
     } catch (error) {
-      console.error("AuthContext: API sign out failed:", error);
+      console.error('AuthContext: API sign out failed:', error);
     } finally {
-      localStorage.removeItem("accessToken");
+      localStorage.removeItem('accessToken');
       setUser(null);
       // console.log('Logout finished, user set to null.');
       setIsLoading(false); // Ensure loading is false if it was set true
@@ -116,14 +116,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "accessToken") {
+      if (event.key === 'accessToken') {
         // console.log('AuthContext: accessToken changed in another tab/window. Reloading user.');
         // No need to set loading true here if attemptLoadUserFromToken handles it
         attemptLoadUserFromToken();
       }
     };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, [attemptLoadUserFromToken]);
 
   // console.log('AuthProvider rendering. isLoading:', isLoading, 'User:', user);
@@ -140,7 +140,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

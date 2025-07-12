@@ -1,10 +1,10 @@
-import api from "../../../api/baseApi";
+import api from '../../../api/baseApi';
 import {
-  GetAllPostsAdminParams,
-  PostsResponse,
-  PostDetailsResponseDto,
   AdminUpdatePostDto,
-} from "../types/post-api.types";
+  GetAllPostsAdminParams,
+  PostDetailsResponseDto,
+  PostsResponse,
+} from '../types/post-api.types';
 
 export const fetchAdminPosts = async (
   params: GetAllPostsAdminParams,
@@ -29,7 +29,7 @@ export const fetchAdminPosts = async (
     }
   }
 
-  const { data } = await api.get("/posts/admin/all", {
+  const { data } = await api.get('/posts/admin/all', {
     params: queryParams,
   });
 
@@ -58,7 +58,7 @@ export const adminDeletePost = async (postId: number): Promise<void> => {
 export const bulkDeleteAdminPosts = async (
   postIds: number[],
 ): Promise<{ count: number }> => {
-  const { data } = await api.delete("/posts/admin/bulk-delete", {
+  const { data } = await api.delete('/posts/admin/bulk-delete', {
     data: { postIds },
   });
   return data;

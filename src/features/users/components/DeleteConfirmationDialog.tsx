@@ -1,13 +1,13 @@
-import React from "react";
 import {
+  Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Button,
   Typography,
-  CircularProgress,
-} from "@mui/material";
+} from '@mui/material';
+import React from 'react';
 
 interface DeleteConfirmationDialogProps {
   open: boolean;
@@ -28,7 +28,7 @@ export const DeleteConfirmationDialog: React.FC<
   isPending,
   title,
   contentText,
-  confirmButtonText = "Delete",
+  confirmButtonText = 'Delete',
 }) => {
   return (
     <Dialog open={open} onClose={!isPending ? onClose : () => {}} maxWidth="xs">

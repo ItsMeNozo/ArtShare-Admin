@@ -1,57 +1,55 @@
-import React, {
-  useState,
-  useMemo,
-  useEffect,
-  createContext,
-  useContext,
-} from 'react';
 import {
-  Box,
-  Container,
-  CssBaseline,
-  ThemeProvider,
+  AddPhotoAlternate as AddPhotoAlternateIcon,
+  Article as ArticleIcon,
+  AutoAwesome as AutoAwesomeIcon,
+  DarkMode as DarkModeIcon,
+  LightMode as LightModeIcon,
+  Person as PersonIcon,
+  Timeline as TimelineIcon,
+} from '@mui/icons-material';
+import {
+  Alert,
   Avatar,
-  Typography,
+  Badge,
+  Box,
   Card,
   CardContent,
   CardHeader,
-  ToggleButtonGroup,
-  ToggleButton,
+  Chip,
   CircularProgress,
+  Container,
+  CssBaseline,
   Grid,
-  Tooltip,
+  IconButton,
   ImageList,
   ImageListItem,
   ImageListItemBar,
-  Badge,
-  Alert,
   Link,
-  IconButton,
-  useTheme,
-} from '@mui/material';
-import { Person as PersonIcon } from '@mui/icons-material';
-import {
-  Chip,
   List,
   ListItem,
   ListItemAvatar,
   ListItemText,
+  ThemeProvider,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip,
+  Typography,
+  useTheme,
 } from '@mui/material';
-import {
-  AutoAwesome as AutoAwesomeIcon,
-  AddPhotoAlternate as AddPhotoAlternateIcon,
-  Timeline as TimelineIcon,
-  Article as ArticleIcon,
-  LightMode as LightModeIcon,
-  DarkMode as DarkModeIcon,
-} from '@mui/icons-material';
-import { format, subDays, isAfter, parseISO } from 'date-fns';
 import { AxiosError } from 'axios';
+import { format, isAfter, parseISO, subDays } from 'date-fns';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/baseApi';
-import { StripeData } from './statistics.types';
-import { StripeIncomeCard } from './components/StripeIncomeCard';
 import { useAuth } from '../../context/AuthContext';
+import { StripeIncomeCard } from './components/StripeIncomeCard';
+import { StripeData } from './statistics.types';
 
 /* ---------- Color-mode context ---------- */
 const ColorModeContext = createContext<{ toggleColorMode: () => void }>({
@@ -60,19 +58,19 @@ const ColorModeContext = createContext<{ toggleColorMode: () => void }>({
 
 /* ---------- Types ---------- */
 type StatisticsData = {
-  total_posts?: { count: number }[];
-  total_ai_images?: { count: number }[];
-  token_usage?: { count: number }[];
+  totalPosts?: { count: number }[];
+  totalAiImages?: { count: number }[];
+  tokenUsage?: { count: number }[];
   styles?: { key: string; count: number }[];
   aspectRatios?: { key: string; count: number }[];
-  total_blogs?: { count: number }[];
-  recent_3_reports?: { id: string; title: string; created_at: string }[];
-  top_posts_by_ai?: {
+  totalBlogs?: { count: number }[];
+  recent3Reports?: { id: string; title: string; createdAt: string }[];
+  topPostsByAi?: {
     id: string;
     title: string;
-    thumbnail_url: string;
-    created_at: string;
-    like_count: number;
+    thumbnailUrl: string;
+    createdAt: string;
+    likeCount: number;
   }[];
 };
 
@@ -168,10 +166,10 @@ export default function StatisticDashboardPage() {
     if (!statisticsData) return {} as any;
     console.log(statisticsData);
     return {
-      postsCount: statisticsData.total_posts?.[0]?.count ?? 0,
-      blogsCount: statisticsData.total_blogs?.[0]?.count ?? 0,
-      imagesCount: statisticsData.total_ai_images?.[0]?.count ?? 0,
-      tokensCount: statisticsData.token_usage?.[0]?.count ?? 0,
+      postsCount: statisticsData.totalPosts?.[0]?.count ?? 0,
+      blogsCount: statisticsData.totalBlogs?.[0]?.count ?? 0,
+      imagesCount: statisticsData.totalAiImages?.[0]?.count ?? 0,
+      tokensCount: statisticsData.tokenUsage?.[0]?.count ?? 0,
       styles:
         statisticsData.styles?.map((d) => ({ name: d.key, count: d.count })) ??
         [],
@@ -180,10 +178,10 @@ export default function StatisticDashboardPage() {
           name: d.key,
           count: d.count,
         })) ?? [],
-      recentReports: statisticsData.recent_3_reports ?? [],
-      topPosts: (statisticsData.top_posts_by_ai ?? []).map((p) => ({
+      recentReports: statisticsData.recent3Reports ?? [],
+      topPosts: (statisticsData.topPostsByAi ?? []).map((p) => ({
         ...p,
-        originalDate: parseISO(p.created_at),
+        originalDate: parseISO(p.createdAt),
       })),
     } as const;
   }, [statisticsData]);
@@ -191,14 +189,14 @@ export default function StatisticDashboardPage() {
   const topPostsFiltered = useMemo(() => {
     const data = processed.topPosts ?? [];
     if (statsFilter === 'all') {
-      return [...data].sort((a, b) => b.like_count - a.like_count).slice(0, 3);
+      return [...data].sort((a, b) => b.likeCount - a.likeCount).slice(0, 3);
     }
     const sevenDaysAgo = subDays(new Date(), 7);
     return data
       .filter((p: any) => isAfter(p.originalDate, sevenDaysAgo))
       .sort(
-        (a: { like_count: number }, b: { like_count: number }) =>
-          b.like_count - a.like_count,
+        (a: { likeCount: number }, b: { likeCount: number }) =>
+          b.likeCount - a.likeCount,
       )
       .slice(0, 5);
   }, [processed.topPosts, statsFilter]);
@@ -392,7 +390,7 @@ function DashboardContent({
                         <ListItemText
                           primary={
                             <Typography variant="body2" fontWeight={600} noWrap>
-                              {r?.username || r?.reporter_id || 'No username'}
+                              {r?.username || r?.reporterId || 'No username'}
                             </Typography>
                           }
                           secondary={
@@ -450,7 +448,7 @@ function DashboardContent({
                         onClick={() => navigate('/posts?category=ai-posts')}
                       >
                         <img
-                          src={post.thumbnail_url}
+                          src={post.thumbnailUrl}
                           alt={post.title}
                           loading="lazy"
                           style={{
@@ -483,13 +481,13 @@ function DashboardContent({
                               variant="caption"
                               sx={{ color: '#fff', opacity: 0.85 }}
                             >
-                              {format(parseISO(post.created_at), 'MMM d')}
+                              {format(parseISO(post.createdAt), 'MMM d')}
                             </Typography>
                           }
                           actionIcon={
                             <Box sx={{ mr: 1 }}>
                               <Badge
-                                badgeContent={post.like_count}
+                                badgeContent={post.likeCount}
                                 sx={{
                                   '& .MuiBadge-badge': {
                                     backgroundColor: '#ff1744',

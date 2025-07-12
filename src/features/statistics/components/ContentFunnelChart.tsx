@@ -1,15 +1,15 @@
-import React from "react";
+import React from 'react';
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import ChartWrapper from "./ChartWrapper";
-import { BarChartDataItem } from "../statistics.types";
+} from 'recharts';
+import { BarChartDataItem } from '../statistics.types';
+import ChartWrapper from './ChartWrapper';
 
 interface ContentFunnelChartProps {
   data: BarChartDataItem[];

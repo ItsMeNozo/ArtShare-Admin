@@ -3,26 +3,26 @@ import api from '../../../api/baseApi';
 export interface AdminBlogListItemUserDto {
   id: string;
   username: string;
-  profile_picture_url?: string | null;
+  profilePictureUrl?: string | null;
 }
 
 export interface AdminBlogListItemDto {
   id: number;
-  user_id: string;
+  userId: string;
   title: string;
   content: string;
-  created_at: string;
-  updated_at: string;
-  is_published: boolean;
-  like_count: number;
-  comment_count: number;
-  share_count: number;
-  average_rating: number;
-  is_protected: boolean;
-  rating_count: number;
+  createdAt: string;
+  updatedAt: string;
+  isPublished: boolean;
+  likeCount: number;
+  commentCount: number;
+  shareCount: number;
+  averageRating: number;
+  isProtected: boolean;
+  ratingCount: number;
   pictures: any[];
-  embedded_videos: any[];
-  view_count: number;
+  embeddedVideos: any[];
+  viewCount: number;
   user: AdminBlogListItemUserDto;
 }
 
@@ -45,44 +45,41 @@ export interface AdminBlogsResponse {
 export interface AdminUpdatePostDto {
   title?: string;
   description?: string;
-  is_mature?: boolean;
-  ai_created?: boolean;
-  thumbnail_url?: string;
-
-  cate_ids?: number[];
-
-  thumbnail_crop_meta?: string;
-
-  is_published?: boolean;
-  is_private?: boolean;
+  isMature?: boolean;
+  aiCreated?: boolean;
+  thumbnailUrl?: string;
+  categoryIds?: number[];
+  thumbnailCropMeta?: string;
+  isPublished?: boolean;
+  isPrivate?: boolean;
 }
 
 export interface PostDetailsResponseDto {
   id: number;
-  user_id: string;
+  userId: string;
   title: string;
   description?: string;
-  thumbnail_url: string;
-  is_published: boolean;
-  is_private: boolean;
-  like_count: number;
-  share_count: number;
-  comment_count: number;
-  created_at: string;
+  thumbnailUrl: string;
+  isPublished: boolean;
+  isPrivate: boolean;
+  likeCount: number;
+  shareCount: number;
+  commentCount: number;
+  createdAt: string;
   medias: {
     id: number;
-    media_type: string;
+    mediaType: string;
     description?: string;
     url: string;
-    creator_id: string;
+    creatorId: string;
     downloads: number;
-    created_at: string;
+    createdAt: string;
   }[];
   user: {
     id: string;
     username: string;
-    full_name: string;
-    profile_picture_url: string;
+    fullName: string;
+    profilePictureUrl: string;
   };
   categories: {
     id: number;

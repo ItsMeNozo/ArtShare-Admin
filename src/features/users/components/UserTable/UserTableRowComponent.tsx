@@ -1,24 +1,24 @@
-import React from "react";
+import { MoreVert as MoreVertIcon } from '@mui/icons-material';
 import {
-  TableRow,
-  TableCell,
-  Checkbox,
   Avatar,
-  Typography,
+  Box,
+  Checkbox,
   Chip,
   IconButton,
-  Box,
-  useTheme,
+  TableCell,
+  TableRow,
   Tooltip,
-} from "@mui/material";
-import { MoreVert as MoreVertIcon } from "@mui/icons-material";
-import { User } from "../../../../types/user";
-import { HeadCell } from "../../types";
+  Typography,
+  useTheme,
+} from '@mui/material';
+import React from 'react';
+import { User } from '../../../../types/user';
+import { useUserInterface } from '../../context/UserInterfaceContext';
+import { HeadCell } from '../../types';
 import {
   getPlanTierStyling,
   getStatusChipProps,
-} from "../../utils/userTable.utils";
-import { useUserInterface } from "../../context/UserInterfaceContext";
+} from '../../utils/userTable.utils';
 
 interface DisplayUser extends User {
   currentPlan?: string;
@@ -58,12 +58,12 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
 
     const value = currentUser[headCell.id as keyof DisplayUser] as any;
     let contentString =
-      value !== undefined && value !== null ? String(value) : "";
+      value !== undefined && value !== null ? String(value) : '';
     const defaultMaxWidth = headCell.minWidth
       ? `${Number(headCell.minWidth) + 50}px`
-      : "150px";
+      : '150px';
 
-    if (typeof contentString === "string" && contentString.length > 0) {
+    if (typeof contentString === 'string' && contentString.length > 0) {
       if (headCell.truncate) {
         return (
           <Tooltip title={contentString} placement="bottom-start">
@@ -83,7 +83,7 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
             variant="body2"
             sx={{
               maxWidth: headCell.cellMaxWidth || defaultMaxWidth,
-              whiteSpace: "normal",
+              whiteSpace: 'normal',
             }}
           >
             {contentString}
@@ -93,7 +93,7 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
     }
 
     switch (headCell.id) {
-      case "avatar":
+      case 'avatar':
         return (
           <Box className="flex items-center justify-center">
             <Avatar
@@ -101,26 +101,26 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
               alt={currentUser.username}
               sx={{ width: 36, height: 36 }}
             >
-              {(currentUser.username || "U")[0]?.toUpperCase()}
+              {(currentUser.username || 'U')[0]?.toUpperCase()}
             </Avatar>
           </Box>
         );
-      case "username":
+      case 'username':
         return (
           <Box>
-            <Tooltip title={currentUser.username || ""}>
+            <Tooltip title={currentUser.username || ''}>
               <Typography variant="body2" noWrap>
                 {currentUser.username}
               </Typography>
             </Tooltip>
             {!headCells.some(
               (hc) =>
-                hc.id === "email" && hc.className?.includes("md:table-cell"),
+                hc.id === 'email' && hc.className?.includes('md:table-cell'),
             ) && (
               <Typography
                 variant="caption"
                 color="textSecondary"
-                sx={{ display: { xs: "block", md: "none" } }}
+                sx={{ display: { xs: 'block', md: 'none' } }}
                 noWrap
               >
                 {currentUser.email}
@@ -128,15 +128,15 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
             )}
           </Box>
         );
-      case "email":
+      case 'email':
         return (
-          <Tooltip title={currentUser.email || ""}>
+          <Tooltip title={currentUser.email || ''}>
             <Typography variant="body2" noWrap>
               {currentUser.email}
             </Typography>
           </Tooltip>
         );
-      case "fullName":
+      case 'fullName':
         return currentUser.fullName ? (
           <Typography variant="body2" noWrap>
             {currentUser.fullName}
@@ -146,15 +146,15 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
             N/A
           </Typography>
         );
-      case "roles":
+      case 'roles':
         return (
           <Box
             sx={{
-              display: "flex",
-              flexWrap: "wrap",
+              display: 'flex',
+              flexWrap: 'wrap',
               gap: 0.5,
               justifyContent:
-                headCell.align === "center" ? "center" : "flex-start",
+                headCell.align === 'center' ? 'center' : 'flex-start',
             }}
           >
             {currentUser.roles && currentUser.roles.length > 0 ? (
@@ -163,9 +163,9 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
                   key={`${currentUser.id}_${role}`}
                   label={role.toLowerCase()}
                   size="small"
-                  color={role === "ADMIN" ? "secondary" : "default"}
+                  color={role === 'ADMIN' ? 'secondary' : 'default'}
                   variant="outlined"
-                  sx={{ textTransform: "capitalize" }}
+                  sx={{ textTransform: 'capitalize' }}
                 />
               ))
             ) : (
@@ -175,7 +175,7 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
             )}
           </Box>
         );
-      case "status": {
+      case 'status': {
         const { color, label } = getStatusChipProps(currentUser.status);
         return (
           <Chip
@@ -183,23 +183,23 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
             size="small"
             color={color}
             variant="outlined"
-            sx={{ textTransform: "capitalize" }}
+            sx={{ textTransform: 'capitalize' }}
           />
         );
       }
-      case "currentPlan": {
+      case 'currentPlan': {
         const { style: planChipStyle, variant: planChipVariant } =
           getPlanTierStyling(currentUser, theme);
         return (
           <Chip
-            label={currentUser.currentPlan || "N/A"}
+            label={currentUser.currentPlan || 'N/A'}
             size="small"
             variant={planChipVariant}
             sx={planChipStyle}
           />
         );
       }
-      case "actions":
+      case 'actions':
         return (
           <IconButton
             size="small"
@@ -212,7 +212,7 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
           </IconButton>
         );
       default:
-        if (contentString === "") {
+        if (contentString === '') {
           return (
             <Typography variant="caption" color="textSecondary">
               N/A
@@ -222,7 +222,7 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
         if (contentString.length > 30 && !headCell.wrap) {
           return (
             <Tooltip title={contentString} placement="bottom-start">
-              <Typography variant="body2" noWrap sx={{ maxWidth: "200px" }}>
+              <Typography variant="body2" noWrap sx={{ maxWidth: '200px' }}>
                 {contentString}
               </Typography>
             </Tooltip>
@@ -246,33 +246,33 @@ export const UserTableRowComponent: React.FC<UserTableRowComponentProps> = ({
           color="primary"
           checked={isSelected}
           onChange={() => handleRowCheckboxClick(user.id)}
-          inputProps={{ "aria-labelledby": `user-table-checkbox-${user.id}` }}
+          inputProps={{ 'aria-labelledby': `user-table-checkbox-${user.id}` }}
         />
       </TableCell>
 
       {headCells.map((headCell) => (
         <TableCell
           key={headCell.id}
-          align={headCell.align || (headCell.numeric ? "right" : "left")}
+          align={headCell.align || (headCell.numeric ? 'right' : 'left')}
           sx={{
             minWidth: headCell.minWidth,
-            display: headCell.className?.includes("md:table-cell")
-              ? { xs: "none", md: "table-cell" }
-              : headCell.className?.includes("xs:table-cell")
-                ? { xs: "table-cell", md: "none" }
+            display: headCell.className?.includes('md:table-cell')
+              ? { xs: 'none', md: 'table-cell' }
+              : headCell.className?.includes('xs:table-cell')
+                ? { xs: 'table-cell', md: 'none' }
                 : undefined,
-            ...((headCell.id === "avatar" ||
-              headCell.id === "actions" ||
-              headCell.id === "currentPlan" ||
-              headCell.id === "roles") &&
-            headCell.align === "center"
-              ? { textAlign: "center" }
+            ...((headCell.id === 'avatar' ||
+              headCell.id === 'actions' ||
+              headCell.id === 'currentPlan' ||
+              headCell.id === 'roles') &&
+            headCell.align === 'center'
+              ? { textAlign: 'center' }
               : {}),
           }}
-          component={headCell.id === "username" ? "th" : "td"}
-          scope={headCell.id === "username" ? "row" : undefined}
+          component={headCell.id === 'username' ? 'th' : 'td'}
+          scope={headCell.id === 'username' ? 'row' : undefined}
           id={
-            headCell.id === "username"
+            headCell.id === 'username'
               ? `user-table-checkbox-${user.id}`
               : undefined
           }

@@ -1,34 +1,32 @@
-import React, { useState, useEffect } from "react";
 import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Button,
-  Box,
-  IconButton,
-  Typography,
-  Snackbar,
-  Alert,
-  AlertColor,
-  CircularProgress,
-  Chip,
-} from "@mui/material";
-import {
+  Add as AddIcon,
   Close as CloseIcon,
   Save as SaveIcon,
-  Add as AddIcon,
-} from "@mui/icons-material";
-import { Category } from "../../../types/category";
-import { CategoryForm } from "./CategoryForm";
-import { useCategoryForm } from "../hooks/useCategoryForm";
+} from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Typography,
+} from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Category } from '../../../types/category';
+import { useCategoryForm } from '../hooks/useCategoryForm';
+import { CategoryForm } from './CategoryForm';
+import { getCategoryTypeColor } from './CategoryTable';
 
 interface CategoryEditViewDialogProps {
   open: boolean;
   category: Category | null;
   isCreatingNewCategory: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (message: string) => void;
+  onError: (message: string) => void;
 }
 
 export const CategoryEditViewDialog: React.FC<CategoryEditViewDialogProps> = ({
@@ -37,31 +35,18 @@ export const CategoryEditViewDialog: React.FC<CategoryEditViewDialogProps> = ({
   isCreatingNewCategory,
   onClose,
   onSuccess,
+  onError,
 }) => {
   const [isEditing, setIsEditing] = useState(isCreatingNewCategory);
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: AlertColor;
-  }>({ open: false, message: "", severity: "info" });
-  const [closeDialogOnSnackbarHide, setCloseDialogOnSnackbarHide] =
-    useState(false);
-
-  const showNotification = (message: string, severity: AlertColor) => {
-    setSnackbar({ open: true, message, severity });
-  };
 
   const handleSuccess = (message: string) => {
-    showNotification(message, "success");
-    setCloseDialogOnSnackbarHide(true);
-    if (!isCreatingNewCategory) {
-      setIsEditing(false);
-    }
-    onSuccess();
+    formik.resetForm();
+    onSuccess(message);
+    onClose();
   };
 
   const handleError = (message: string) => {
-    showNotification(message, "error");
+    onError(message);
   };
 
   const formik = useCategoryForm({
@@ -73,21 +58,7 @@ export const CategoryEditViewDialog: React.FC<CategoryEditViewDialogProps> = ({
 
   useEffect(() => {
     setIsEditing(isCreatingNewCategory);
-    if (open) {
-      setCloseDialogOnSnackbarHide(false);
-    }
   }, [initialCategory, isCreatingNewCategory, open]);
-
-  const handleSnackbarClose = (
-    _?: React.SyntheticEvent | Event,
-    reason?: string,
-  ) => {
-    if (reason === "clickaway") return;
-    setSnackbar((prev) => ({ ...prev, open: false }));
-    if (closeDialogOnSnackbarHide) {
-      onClose();
-    }
-  };
 
   const handleEditToggle = () => {
     if (isEditing) {
@@ -104,7 +75,7 @@ export const CategoryEditViewDialog: React.FC<CategoryEditViewDialogProps> = ({
     if (formik.dirty && isEditing) {
       if (
         window.confirm(
-          "You have unsaved changes. Are you sure you want to close?",
+          'You have unsaved changes. Are you sure you want to close?',
         )
       ) {
         formik.resetForm();
@@ -118,7 +89,7 @@ export const CategoryEditViewDialog: React.FC<CategoryEditViewDialogProps> = ({
   const getDialogTitle = () => {
     if (isCreatingNewCategory) {
       return (
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <AddIcon color="primary" />
           <Typography variant="h6">Create New Category</Typography>
         </Box>
@@ -126,13 +97,13 @@ export const CategoryEditViewDialog: React.FC<CategoryEditViewDialogProps> = ({
     }
 
     return (
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Typography variant="h6">Category Details</Typography>
         {initialCategory && (
           <Chip
             label={initialCategory.type}
             size="small"
-            color="primary"
+            color={getCategoryTypeColor(initialCategory.type)}
             variant="outlined"
           />
         )}
@@ -150,8 +121,8 @@ export const CategoryEditViewDialog: React.FC<CategoryEditViewDialogProps> = ({
         scroll="body"
         PaperProps={{
           sx: {
-            minHeight: "60vh",
-            maxHeight: "90vh",
+            minHeight: '60vh',
+            maxHeight: '90vh',
           },
         }}
       >
@@ -163,16 +134,16 @@ export const CategoryEditViewDialog: React.FC<CategoryEditViewDialogProps> = ({
             sx={{ gap: 2 }}
           >
             {getDialogTitle()}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               {!isCreatingNewCategory && (
                 <Button
                   onClick={handleEditToggle}
-                  color={isEditing ? "inherit" : "primary"}
+                  color={isEditing ? 'inherit' : 'primary'}
                   disabled={formik.isSubmitting}
                   size="small"
-                  variant={isEditing ? "outlined" : "contained"}
+                  variant={isEditing ? 'outlined' : 'contained'}
                 >
-                  {isEditing ? "Cancel" : "Edit"}
+                  {isEditing ? 'Cancel' : 'Edit'}
                 </Button>
               )}
               {isEditing && (
@@ -190,10 +161,10 @@ export const CategoryEditViewDialog: React.FC<CategoryEditViewDialogProps> = ({
                   size="small"
                 >
                   {formik.isSubmitting
-                    ? "Saving..."
+                    ? 'Saving...'
                     : isCreatingNewCategory
-                      ? "Create"
-                      : "Save"}
+                      ? 'Create'
+                      : 'Save'}
                 </Button>
               )}
               <IconButton
@@ -211,49 +182,7 @@ export const CategoryEditViewDialog: React.FC<CategoryEditViewDialogProps> = ({
         <DialogContent sx={{ p: 0 }}>
           <CategoryForm formik={formik} isEditing={isEditing} />
         </DialogContent>
-
-        {isCreatingNewCategory && (
-          <DialogActions sx={{ p: 2, gap: 0.5 }}>
-            <Button
-              onClick={handleClose}
-              disabled={formik.isSubmitting}
-              color="inherit"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handleSave}
-              disabled={formik.isSubmitting || !formik.dirty}
-              startIcon={
-                formik.isSubmitting ? (
-                  <CircularProgress size={16} color="inherit" />
-                ) : (
-                  <SaveIcon />
-                )
-              }
-            >
-              {formik.isSubmitting ? "Creating..." : "Create Category"}
-            </Button>
-          </DialogActions>
-        )}
       </Dialog>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-          variant="filled"
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </>
   );
 };
