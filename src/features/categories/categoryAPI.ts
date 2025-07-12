@@ -1,6 +1,7 @@
 import api from '../../api/baseApi';
 import type {
   Category,
+  CategorySimple,
   CreateCategoryDto,
   UpdateCategoryDto,
 } from '../../types/category';
@@ -44,6 +45,18 @@ export const fetchCategoryById = async (id: number): Promise<Category> => {
     };
   } catch (error) {
     console.error(`Error fetching category with id ${id}:`, error);
+    throw error;
+  }
+};
+
+export const fetchSimpleCategories = async (): Promise<CategorySimple[]> => {
+  try {
+    const response = await api.get<CategorySimple[]>(
+      `${CATEGORIES_ENDPOINT}/simple`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching simple category list:', error);
     throw error;
   }
 };

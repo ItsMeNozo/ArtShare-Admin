@@ -1,6 +1,6 @@
 export const CategoryTypeValues = {
-  MEDIUM: "MEDIUM",
-  ATTRIBUTE: "ATTRIBUTE",
+  MEDIUM: 'MEDIUM',
+  ATTRIBUTE: 'ATTRIBUTE',
 } as const;
 
 export type CategoryType =
@@ -16,6 +16,11 @@ export interface Category {
   updatedAt: Date | null;
   postsCount?: number;
   blogsCount?: number;
+}
+
+export interface CategorySimple {
+  id: number;
+  name: string;
 }
 
 export interface CreateCategoryDto {
