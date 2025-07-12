@@ -50,9 +50,12 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Run Prettier format check
+        run: npx prettier --check .
+
       - name: Install Qlty CLI
         uses: qltysh/qlty-action/install@main
-      
+
       - name: Run Qlty quality checks (Critical Issues Only)
         run: |
           qlty check --all --fail-level high
