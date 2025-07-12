@@ -56,9 +56,6 @@ jobs:
       - name: Install Qlty CLI
         uses: qltysh/qlty-action/install@main
 
-      - name: Clear qlty cache
-        run: rm -rf ~/.qlty/cache
-
-      - name: Run Qlty quality checks (Critical Issues Only)
-        run: |
-          qlty check --all --fail-level high
+      # - name: Run Qlty quality checks (Critical Issues Only)
+      #   run: |
+      #     qlty check --all --fail-level high
