@@ -15,7 +15,7 @@ export const fetchCategories = async (
 ): Promise<PaginatedResponse<Category>> => {
   try {
     const response = await api.get<PaginatedResponse<Category>>(
-      CATEGORIES_ENDPOINT,
+      `${CATEGORIES_ENDPOINT}/paginated`,
       {
         params: query,
       },
