@@ -56,6 +56,9 @@ jobs:
       - name: Install Qlty CLI
         uses: qltysh/qlty-action/install@main
 
+      - name: Install Prettier plugin for Qlty
+        run: npm install prettier-plugin-organize-imports
+
       - name: Run Qlty quality checks (Critical Issues Only)
         run: |
           qlty check --all --fail-level high
