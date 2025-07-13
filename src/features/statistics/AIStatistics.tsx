@@ -161,9 +161,9 @@ const PieCard = ({
 
 /* ----------  Types  ---------- */
 type AnalyticsData = {
-  postsByAi?: { count: number }[];
-  totalAiImages?: { count: number }[];
-  tokenUsage?: { tokens: number }[];
+  postsByAI?: { count: number }[];
+  totalAIImages?: { count: number }[];
+  tokenUsage?: { count: number }[];
   styles?: { key: string; count: number }[];
   aspectRatios?: { key: string; count: number }[];
   topPostsByAi?: {
@@ -209,22 +209,22 @@ export default function StatisticDashboardPage() {
   /* ----- derive numbers ----- */
   const processed = useMemo(() => {
     if (!analytics) return {};
-    const single = (key: keyof AnalyticsData) => {
-      const item = analytics[key]?.[0];
-      return typeof item === 'object' && item !== null && 'count' in item
-        ? (item as { count: number }).count
-        : 0;
-    };
+    // const single = (key: keyof AnalyticsData) => {
+    //   const item = analytics[key]?.[0];
+    //   return typeof item === 'object' && item !== null && 'count' in item
+    //     ? (item as { count: number }).count
+    //     : 0;
+    // };
     return {
-      postsCount: single('postsByAi'),
-      imagesCount: single('totalAiImages'),
-      tokensCount: analytics.tokenUsage?.[0]?.tokens || 0,
+      postsCount: analytics.postsByAI?.[0].count || 0,
+      imagesCount: analytics.totalAIImages?.[0].count || 0,
+      tokensCount: analytics.tokenUsage?.[0]?.count || 0,
       styles:
         analytics.styles?.map((d) => ({ name: d.key, count: d.count })) || [],
       ratios:
         analytics.aspectRatios?.map((d) => ({ name: d.key, count: d.count })) ||
         [],
-      topPosts: (analytics.topPostsByAi || []).map((p) => ({
+      topPosts: (analytics?.topPostsByAi || []).map((p) => ({
         ...p,
         originalDate: parseISO(p.createdAt),
       })),
@@ -279,6 +279,7 @@ function PageContent({
   topPostsFiltered: any[];
 }) {
   const theme = useTheme();
+  console.log('processced', processed);
   const { toggleColorMode } = useContext(ColorModeContext);
 
   return (
