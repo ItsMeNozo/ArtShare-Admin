@@ -166,11 +166,11 @@ type AnalyticsData = {
   tokenUsage?: { count: number }[];
   styles?: { key: string; count: number }[];
   aspectRatios?: { key: string; count: number }[];
-  topPostsByAi?: {
+  topPostsByAI?: {
     id: string;
     title: string;
-    thumbnailUrl: string;
-    createdAt: string;
+    thumbnail_url: string;
+    created_at: string;
     likeCount: number;
   }[];
   trendingPrompts?: string[];
@@ -188,6 +188,7 @@ export default function StatisticDashboardPage() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'last7'>('all');
+  console.log('analytics', analytics);
 
   /* ----- fetch whenever filter changes ----- */
   useEffect(() => {
@@ -224,9 +225,9 @@ export default function StatisticDashboardPage() {
       ratios:
         analytics.aspectRatios?.map((d) => ({ name: d.key, count: d.count })) ||
         [],
-      topPosts: (analytics?.topPostsByAi || []).map((p) => ({
+      topPosts: (analytics?.topPostsByAI || []).map((p) => ({
         ...p,
-        originalDate: parseISO(p.createdAt),
+        originalDate: parseISO(p.created_at),
       })),
       prompts: (analytics.trendingPrompts || []).slice(0, 5),
     };
@@ -279,7 +280,6 @@ function PageContent({
   topPostsFiltered: any[];
 }) {
   const theme = useTheme();
-  console.log('processced', processed);
   const { toggleColorMode } = useContext(ColorModeContext);
 
   return (
@@ -382,7 +382,7 @@ function PageContent({
                     {topPostsFiltered.map((post) => (
                       <ImageListItem key={post.id}>
                         <img
-                          src={post.thumbnailUrl}
+                          src={post?.thumbnail_url}
                           alt={post.title}
                           loading="lazy"
                           style={{
@@ -415,7 +415,7 @@ function PageContent({
                               variant="caption"
                               sx={{ color: '#fff' }}
                             >
-                              {format(parseISO(post.createdAt), 'MMM d')}
+                              {format(parseISO(post?.created_at), 'MMM d')}
                             </Typography>
                           }
                           actionIcon={
