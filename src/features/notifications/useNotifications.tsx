@@ -114,7 +114,6 @@ export function useNotifications(userId: string): UseNotificationsReturn {
       });
 
       socketRef.current.on('disconnect', (reason: any) => {
-        alert(`disconnected ${reason}`);
         console.log('[Socket] Disconnected:', reason);
       });
 
