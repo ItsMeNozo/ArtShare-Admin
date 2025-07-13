@@ -202,13 +202,13 @@ const AdminLayout: React.FC = () => {
       section: 'MANAGEMENT',
       badge: undefined,
     },
-    {
-      text: 'Statistics',
-      icon: <ShowChartIcon />,
-      path: '/statistics',
-      section: 'MANAGEMENT',
-      badge: undefined,
-    },
+    // {
+    //   text: 'Statistics',
+    //   icon: <ShowChartIcon />,
+    //   path: '/statistics',
+    //   section: 'MANAGEMENT',
+    //   badge: undefined,
+    // },
     {
       text: 'Analytics',
       icon: <ShowChartIcon />,
