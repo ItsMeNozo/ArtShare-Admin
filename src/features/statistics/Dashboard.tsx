@@ -271,14 +271,7 @@ function DashboardContent({
           </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* Dark / light switch */}
-            <IconButton onClick={toggleColorMode} color="inherit">
-              {theme.palette.mode === 'dark' ? (
-                <LightModeIcon />
-              ) : (
-                <DarkModeIcon />
-              )}
-            </IconButton>
+         
 
             <ToggleButtonGroup
               size="small"
