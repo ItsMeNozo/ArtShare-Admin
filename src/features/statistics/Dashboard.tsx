@@ -390,7 +390,7 @@ function DashboardContent({
                         <ListItemText
                           primary={
                             <Typography variant="body2" fontWeight={600} noWrap>
-                              {r?.username || r?.reporterId || 'No username'}
+                              {r?.username || r?.reporter_id || 'No username'}
                             </Typography>
                           }
                           secondary={
