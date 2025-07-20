@@ -144,11 +144,11 @@ export const bulkPublishAdminPosts = async (
   return data;
 };
 
-export const bulkDeleteAdminPosts = async (
+export const bulkDeleteAdminBlogs = async (
   blogIds: number[],
 ): Promise<{ count: number }> => {
   const { data } = await api.delete('/blogs/admin/bulk-delete', {
-    data: { blogIds },
+    data: { ids: blogIds },
   });
   return data;
 };
