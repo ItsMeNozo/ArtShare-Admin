@@ -377,7 +377,13 @@ function DashboardContent({
                             cursor: 'pointer',
                           },
                         }}
-                        onClick={() => navigate(`/reports`)} /* deep-link */
+                        onClick={() => {
+                          navigate('/reports', {
+                            state: {
+                              report_id: r.id,
+                            },
+                          });
+                        }}
                       >
                         {/*  reporter avatar  */}
                         <ListItemAvatar>
