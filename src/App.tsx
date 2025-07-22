@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext'; // Adjust path as needed
-import { CustomThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './contexts/AuthContext'; // Adjust path as needed
+import { CustomThemeProvider } from './contexts/ThemeContext';
 import { router } from './router'; // Assuming your router configuration is here
 
 const queryClient = new QueryClient();

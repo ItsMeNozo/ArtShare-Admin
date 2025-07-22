@@ -2,9 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Card,
-  CardActionArea,
-  CardMedia,
   Chip,
   CircularProgress,
   Dialog,
@@ -21,7 +18,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useFormik } from 'formik';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as Yup from 'yup';
 
 import { usePostsUI } from '../context/PostsUIContext';
@@ -30,6 +27,7 @@ import {
   useGetAdminPostById,
   useUpdateAdminPost,
 } from '../hooks/usePostQueries';
+import { useUploadPostMedias } from '../hooks/useUploadPostMedias';
 
 interface AdminPostEditModalProps {
   onPostUpdated: () => void;
@@ -100,27 +98,51 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
     error: categoriesError,
   } = useGetCategories();
   const updatePostMutation = useUpdateAdminPost();
+  const { handleUploadImageFile } = useUploadPostMedias();
+
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
 
   const formik = useFormik({
     initialValues: {
       title: '',
       description: '',
       categoryIds: [] as number[],
-      thumbnailUrl: null as string | null,
+      thumbnail: null as File | null,
     },
     validationSchema: Yup.object({
       title: Yup.string().required('Title is required'),
       description: Yup.string().nullable(),
       categoryIds: Yup.array().of(Yup.number()),
-      thumbnailUrl: Yup.string().nullable(),
+      thumbnail: Yup.mixed<File>().nullable(),
     }),
-    onSubmit: (values) => {
-      updatePostMutation.mutate(
-        { id: editingPostId!, data: values },
-        {
-          onSuccess: () => onPostUpdated(),
-        },
-      );
+    onSubmit: async (values, { setSubmitting }) => {
+      setSubmitting(true);
+
+      try {
+        const newThumbnailUrl = await (values.thumbnail
+          ? handleUploadImageFile(values.thumbnail, 'admin_thumbnail')
+          : Promise.resolve(undefined));
+
+        const formData = new FormData();
+        formData.append('title', values.title);
+        formData.append('description', values.description || '');
+        formData.append('categoryIds', JSON.stringify(values.categoryIds));
+
+        if (newThumbnailUrl) {
+          formData.append('thumbnailUrl', newThumbnailUrl);
+        }
+
+        updatePostMutation.mutate(
+          { id: editingPostId!, data: formData },
+          {
+            onSuccess: () => onPostUpdated(),
+            onSettled: () => setSubmitting(false),
+          },
+        );
+      } catch (error) {
+        console.error('Failed to upload thumbnail before updating post', error);
+        setSubmitting(false);
+      }
     },
   });
 
@@ -130,16 +152,26 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
         title: post.title || '',
         description: post.description || '',
         categoryIds: post.categories.map((c) => c.id),
-        thumbnailUrl: post.thumbnailUrl || post.medias?.[0]?.url || null,
+        thumbnail: null,
       });
+      setThumbnailPreview(post.thumbnailUrl || post.medias?.[0]?.url || null);
     }
   }, [post]);
 
-  const selectedMediaIdForThumbnail = useMemo(() => {
-    return (
-      post?.medias.find((m) => m.url === formik.values.thumbnailUrl)?.id || null
-    );
-  }, [post?.medias, formik.values.thumbnailUrl]);
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    if (file) {
+      formik.setFieldValue('thumbnail', file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setThumbnailPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      formik.setFieldValue('thumbnail', null);
+      setThumbnailPreview(post?.thumbnailUrl || post?.medias?.[0]?.url || null);
+    }
+  };
 
   return (
     <Dialog
@@ -284,101 +316,71 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                     mb: 0.5,
                   }}
                 >
-                  Current Thumbnail
+                  Thumbnail
                 </Typography>
                 <Paper
                   variant="outlined"
                   sx={{
                     width: '100%',
-                    aspectRatio: '16/9',
-                    bgcolor: 'grey.200',
                     borderRadius: 1,
                     overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
                     mb: 2,
+
+                    ...(thumbnailPreview
+                      ? {
+                          lineHeight: 0,
+                        }
+                      : {
+                          aspectRatio: '16/9',
+                          bgcolor: 'grey.200',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }),
                   }}
                 >
-                  {formik.values.thumbnailUrl ? (
+                  {thumbnailPreview ? (
                     <img
-                      src={formik.values.thumbnailUrl}
-                      alt="Selected Thumbnail"
+                      src={thumbnailPreview}
+                      alt="Thumbnail preview"
                       style={{
                         width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
+                        height: 'auto',
+                        display: 'block',
                       }}
                     />
                   ) : (
                     <Typography sx={{ color: 'text.secondary' }}>
-                      No Thumbnail Selected
+                      No Thumbnail
                     </Typography>
                   )}
                 </Paper>
 
-                <Typography
-                  variant="caption"
-                  component="div"
-                  sx={{
-                    display: 'block',
-                    color: 'text.secondary',
-                    fontWeight: 500,
-                    mb: 0.5,
-                  }}
+                <FormControl
+                  fullWidth
+                  error={
+                    formik.touched.thumbnail && Boolean(formik.errors.thumbnail)
+                  }
                 >
-                  Select from Post Media
-                </Typography>
-                {post.medias && post.medias.length > 0 ? (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      overflowX: 'auto',
-                      py: 1,
-                      gap: 1,
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      borderRadius: 1,
-                      bgcolor: 'action.hover',
-                    }}
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    disabled={updatePostMutation.isPending}
                   >
-                    {post.medias.map((media) => (
-                      <Card
-                        key={media.id}
-                        onClick={() =>
-                          formik.setFieldValue('thumbnailUrl', media.url)
-                        }
-                        sx={{
-                          minWidth: 100,
-                          maxWidth: 100,
-                          cursor: 'pointer',
-                          border: '2px solid',
-                          borderColor:
-                            selectedMediaIdForThumbnail === media.id
-                              ? 'primary.main'
-                              : 'transparent',
-                          transition: 'border-color 0.2s',
-                        }}
-                      >
-                        <CardActionArea>
-                          <CardMedia
-                            component="img"
-                            height="80"
-                            image={media.url}
-                            alt={`Media ${media.id}`}
-                            sx={{ objectFit: 'cover' }}
-                          />
-                        </CardActionArea>
-                      </Card>
-                    ))}
-                  </Box>
-                ) : (
-                  <Typography
-                    sx={{ color: 'text.secondary', fontStyle: 'italic', mt: 1 }}
-                  >
-                    No media items available in this post.
-                  </Typography>
-                )}
+                    Upload New Thumbnail
+                    <input
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={handleFileChange}
+                    />
+                  </Button>
+                  {formik.touched.thumbnail && formik.errors.thumbnail && (
+                    <Typography variant="caption" color="error">
+                      {formik.errors.thumbnail}
+                    </Typography>
+                  )}
+                </FormControl>
               </Grid>
             </Grid>
           )}

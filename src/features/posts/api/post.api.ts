@@ -1,6 +1,5 @@
 import api from '../../../api/baseApi';
 import {
-  AdminUpdatePostDto,
   GetAllPostsAdminParams,
   PostDetailsResponseDto,
   PostsResponse,
@@ -45,7 +44,7 @@ export const fetchAdminPostDetails = async (
 
 export const adminUpdatePost = async (
   postId: number,
-  updateData: AdminUpdatePostDto,
+  updateData: FormData,
 ): Promise<PostDetailsResponseDto> => {
   const { data } = await api.patch(`/posts/admin/${postId}`, updateData);
   return data;

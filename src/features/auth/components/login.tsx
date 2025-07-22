@@ -11,7 +11,7 @@ import {
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom'; // Step 1: Import navigation hooks
 // import { signIn } from '../api/auth-api'; // Step 2: We'll use context's login instead
-import { useAuth } from '../../../context/AuthContext'; // Step 3: Import useAuth (ADJUST PATH if needed)
+import { useAuth } from '../../../contexts/AuthContext'; // Step 3: Import useAuth (ADJUST PATH if needed)
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
