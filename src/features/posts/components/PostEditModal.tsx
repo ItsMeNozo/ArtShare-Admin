@@ -175,19 +175,6 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
     }
   };
 
-  const allCategoryIds = categories.map((c) => c.id);
-  const areAllCategoriesSelected =
-    formik.values.categoryIds.length === allCategoryIds.length;
-
-  const handleSelectAllCategories = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    formik.setFieldValue(
-      'categoryIds',
-      event.target.checked ? allCategoryIds : [],
-    );
-  };
-
   return (
     <Dialog
       open={!!editingPostId}
