@@ -2,6 +2,7 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Chip,
   CircularProgress,
   Dialog,
@@ -10,6 +11,7 @@ import {
   DialogTitle,
   FormControl,
   Grid,
+  ListItemText,
   MenuItem,
   OutlinedInput,
   Paper,
@@ -173,6 +175,19 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
     }
   };
 
+  const allCategoryIds = categories.map((c) => c.id);
+  const areAllCategoriesSelected =
+    formik.values.categoryIds.length === allCategoryIds.length;
+
+  const handleSelectAllCategories = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    formik.setFieldValue(
+      'categoryIds',
+      event.target.checked ? allCategoryIds : [],
+    );
+  };
+
   return (
     <Dialog
       open={!!editingPostId}
@@ -284,13 +299,25 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                         ))}
                       </Box>
                     )}
+                    MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: 224,
+                        },
+                      },
+                    }}
                     disabled={
                       updatePostMutation.isPending || areCategoriesLoading
                     }
                   >
                     {categories.map((category) => (
                       <MenuItem key={category.id} value={category.id}>
-                        {category.name}
+                        <Checkbox
+                          checked={formik.values.categoryIds.includes(
+                            category.id,
+                          )}
+                        />
+                        <ListItemText primary={category.name} />
                       </MenuItem>
                     ))}
                   </Select>
