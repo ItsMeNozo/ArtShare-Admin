@@ -161,9 +161,14 @@ const AdminPostsView: React.FC = () => {
             <EditIcon fontSize="small" sx={{ mr: 1.5 }} /> Edit
           </MenuItem>
           <MenuItem
-            onClick={() =>
-              window.open(`/posts/${currentPostForMenu!.id}`, '_blank')
-            }
+            onClick={() => {
+              const userUrl = import.meta.env.VITE_FE_USER_URL || '';
+              window.open(
+                `${userUrl}/posts/${currentPostForMenu?.id}`,
+                '_blank',
+              );
+              handleMenuClose();
+            }}
           >
             <VisibilityIcon fontSize="small" sx={{ mr: 1.5 }} /> View Public
           </MenuItem>

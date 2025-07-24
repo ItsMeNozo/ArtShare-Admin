@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { USER_ROLES } from '../constants/roles';
-import { useAuth } from '../context/AuthContext'; // Adjust path
+import { useAuth } from '../contexts/AuthContext'; // Adjust path
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,

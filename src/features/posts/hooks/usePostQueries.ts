@@ -13,7 +13,6 @@ import {
   fetchAdminPosts,
 } from '../api/post.api';
 import {
-  AdminUpdatePostDto,
   GetAllPostsAdminParams,
   PostDetailsResponseDto,
   PostsResponse,
@@ -51,12 +50,12 @@ export const useGetAdminPostById = (
 export const useUpdateAdminPost = (): UseMutationResult<
   PostDetailsResponseDto,
   Error,
-  { id: number; data: AdminUpdatePostDto },
+  { id: number; data: FormData },
   unknown
 > => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: AdminUpdatePostDto }) =>
+    mutationFn: ({ id, data }: { id: number; data: FormData }) =>
       adminUpdatePost(id, data),
     onSuccess: (_data, { id }) => {
       queryClient.invalidateQueries({ queryKey: postKeys.lists() });
