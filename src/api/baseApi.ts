@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { toCamelCase } from '../utils/caseConverter';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_BE_URL || 'http://localhost:3000/',
@@ -23,6 +24,9 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
+    if (response.data) {
+      response.data = toCamelCase(response.data);
+    }
     return response;
   },
   (error: AxiosError) => {
