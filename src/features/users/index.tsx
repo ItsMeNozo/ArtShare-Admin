@@ -1,6 +1,6 @@
 import { Container } from '@mui/material';
 import React, { useCallback } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { DeleteConfirmationDialog } from './components/DeleteConfirmationDialog';
 import { PageNotifier } from './components/PageNotifier';
 import { UserActionMenu } from './components/UserActionMenu';

@@ -1,3 +1,5 @@
+import { MediaType } from '../../../constants/media';
+
 export interface PostListItemUserDto {
   id: string;
   username: string;
@@ -95,4 +97,11 @@ export interface PostDetailsResponseDto {
     name: string;
     type: string;
   }[];
+}
+
+export interface PostMedia {
+  url: string;
+  type: MediaType;
+  file: File;
+  isMature?: boolean;
 }

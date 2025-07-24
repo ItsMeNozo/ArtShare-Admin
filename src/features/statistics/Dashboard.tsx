@@ -47,7 +47,7 @@ import React, {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/baseApi';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { StripeIncomeCard } from './components/StripeIncomeCard';
 import { StripeData } from './statistics.types';
 
@@ -377,7 +377,13 @@ function DashboardContent({
                             cursor: 'pointer',
                           },
                         }}
-                        onClick={() => navigate(`/reports`)} /* deep-link */
+                        onClick={() => {
+                          navigate('/reports', {
+                            state: {
+                              report_id: r.id,
+                            },
+                          });
+                        }}
                       >
                         {/*  reporter avatar  */}
                         <ListItemAvatar>

@@ -105,7 +105,6 @@ export const PostsTable: React.FC = () => {
             </TableRow>
           </TableHead>
 
-          {/* ==================== Table Body (Refactored Logic) ==================== */}
           <TableBody>
             {isLoading ? (
               <TableRow>
@@ -170,7 +169,6 @@ export const PostsTable: React.FC = () => {
         </Table>
       </TableContainer>
 
-      {/* ==================== Table Pagination ==================== */}
       <TablePagination
         rowsPerPageOptions={[5, 10, 25, 50, 100]}
         component="div"

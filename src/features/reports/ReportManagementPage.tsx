@@ -73,8 +73,8 @@ const ReportManagementPage: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
-    if (location.state?.reportId) {
-      const reportId = location.state.reportId;
+    if (location.state?.report_id) {
+      const reportId = location.state.report_id;
 
       setActiveReport(
         reports?.find((report) => report.id === reportId) || null,

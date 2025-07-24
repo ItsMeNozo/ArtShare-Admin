@@ -27,7 +27,7 @@ import {
 import { alpha } from '@mui/material/styles';
 import React, { useState } from 'react';
 import { NavigateFunction, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext'; // Adjust path as needed
+import { useAuth } from '../../contexts/AuthContext'; // Adjust path as needed
 import { useNotifications } from './useNotifications';
 
 // Types matching your existing notification system

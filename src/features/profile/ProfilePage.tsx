@@ -15,7 +15,7 @@ import {
   useTheme,
 } from '@mui/material';
 import React from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const ProfilePage: React.FC = () => {
   const theme = useTheme();
