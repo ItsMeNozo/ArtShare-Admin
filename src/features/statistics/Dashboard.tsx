@@ -47,7 +47,7 @@ import React, {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/baseApi';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { StripeIncomeCard } from './components/StripeIncomeCard';
 import { StripeData } from './statistics.types';
 
