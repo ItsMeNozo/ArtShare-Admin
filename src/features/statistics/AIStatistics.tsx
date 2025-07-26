@@ -420,7 +420,7 @@ function PageContent({
                           }
                           actionIcon={
                             <Badge
-                              badgeContent={post.likeCount}
+                              badgeContent={post?.like_count}
                               sx={{
                                 mr: 1,
                                 '& .MuiBadge-badge': {
