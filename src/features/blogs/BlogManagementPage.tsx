@@ -22,7 +22,7 @@ import PostTableToolbar from './components/PostTableToolbar';
 import {
   AdminBlogListItemDto,
   adminDeleteBlog,
-  bulkDeleteAdminPosts,
+  bulkDeleteAdminBlogs,
 } from './api/blog.api';
 import AdminBlogsTable from './components/AdminPostsTable';
 import { useAdminBlogs } from './hooks/useAdminBlogs';
@@ -97,7 +97,7 @@ const BlogManagementPage: React.FC = () => {
       setActionLoading(true);
 
       try {
-        await bulkDeleteAdminPosts(selected);
+        await bulkDeleteAdminBlogs(selected);
         setSnackbarMessage(`${selected.length} blog(s) deleted successfully!`);
         setSnackbarSeverity('success');
         setSelected([]);

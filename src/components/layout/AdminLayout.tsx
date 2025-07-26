@@ -42,8 +42,8 @@ import ReportIcon from '@mui/icons-material/Report'; // For Report Management
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 
 import { Person } from '@mui/icons-material';
-import { useAuth } from '../../context/AuthContext';
-import { useCustomTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useCustomTheme } from '../../contexts/ThemeContext';
 import AdminNotificationUI from '../../features/notifications/AdminNotificationUI';
 
 const drawerWidth = 260;
