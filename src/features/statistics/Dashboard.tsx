@@ -450,8 +450,8 @@ function DashboardContent({
                     {topPostsFiltered.map((post: any) => (
                       <ImageListItem
                         key={post.id}
-                        sx={{ cursor: "pointer" }}
-                        onClick={() => navigate("/posts?ai_created=true")}
+                        sx={{ cursor: 'pointer' }}
+                        onClick={() => navigate('/posts?ai_created=true')}
                       >
                         <img
                           src={post.thumbnailUrl}
