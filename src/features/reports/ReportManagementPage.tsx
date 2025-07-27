@@ -50,15 +50,7 @@ const ReportManagementPage: React.FC = () => {
 
   const [statusFilter, setStatusFilter] = useState<ReportStatus | ''>(''); // '' for 'All'
 
-  const {
-    data: reports,
-    isLoading,
-    isError,
-    error,
-  } = useGetAllReports({
-    // If your hook supports backend filtering by status, pass it here:
-    // status: statusFilter || undefined,
-  });
+  const { data: reports, isLoading, isError, error } = useGetAllReports({});
   const {
     mutate: resolveReport,
     isPending: isResolving,
@@ -75,14 +67,13 @@ const ReportManagementPage: React.FC = () => {
   useEffect(() => {
     if (location.state?.report_id) {
       const reportId = location.state.report_id;
-
       setActiveReport(
         reports?.find((report) => report.id === reportId) || null,
       );
       setActiveReportId(reportId);
       setDrawerOpen(true);
     }
-  }, [location.state]);
+  }, [location.state, reports]);
 
   const handleView = (r: Report) => {
     setActiveReport(r);
