@@ -42,8 +42,6 @@ export const statusDisplayInfo: Record<
   DISMISSED: { label: 'Dismissed', color: 'default' }, // 'default' is often greyish
 };
 
-let count = 0;
-
 const ReportManagementPage: React.FC = () => {
   const theme = useTheme();
   const [search, setSearch] = useState('');
