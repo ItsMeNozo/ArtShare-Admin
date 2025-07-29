@@ -107,7 +107,7 @@ const SummaryTile = ({
   <Card sx={{ p: 3, textAlign: 'center' }}>
     <Avatar sx={{ mb: 1, bgcolor: 'primary.main', mx: 'auto' }}>{icon}</Avatar>
     <Typography variant="h5" fontWeight={700}>
-      {value.toLocaleString()}
+      {value?.toLocaleString()}
     </Typography>
     <Typography variant="caption" color="text.secondary">
       {label}
@@ -377,7 +377,7 @@ function PageContent({
                 }
               />
               <CardContent>
-                {topPostsFiltered.length ? (
+                {topPostsFiltered?.length ? (
                   <ImageList cols={3} gap={20} sx={{ m: 0, height: 350 }}>
                     {topPostsFiltered.map((post) => (
                       <ImageListItem key={post.id}>
@@ -455,7 +455,7 @@ function PageContent({
                 }
               />
               <CardContent>
-                {processed.prompts.length ? (
+                {processed.prompts?.length ? (
                   processed.prompts.map((p: string, i: number) => (
                     <Typography key={i} variant="body2" gutterBottom>
                       • {p}

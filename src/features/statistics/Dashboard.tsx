@@ -353,7 +353,7 @@ function DashboardContent({
         {/* Reports & Top posts */}
         <Grid container spacing={3}>
           {/* Recent reports */}
-          <Grid size={{ xs: 12, md: 4 }}>
+          <Grid size={{ xs: 12, md: 4 }} sx={{ height: 'fit-content' }}>
             <Card sx={{ height: '100%' }}>
               <CardHeader
                 title={
