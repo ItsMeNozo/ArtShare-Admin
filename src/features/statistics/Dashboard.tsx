@@ -7,6 +7,7 @@ import {
   Person as PersonIcon,
   Timeline as TimelineIcon,
 } from '@mui/icons-material';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import {
   Alert,
   Avatar,
@@ -501,7 +502,15 @@ function DashboardContent({
                                     border: '1.5px solid #fff',
                                   },
                                 }}
-                              ></Badge>
+                              >
+                                <ThumbUpIcon
+                                  sx={{
+                                    color: '#fff',
+                                    fontSize: '1.2rem',
+                                    mt: '8px',
+                                  }}
+                                />
+                              </Badge>
                             </Box>
                           }
                         />
@@ -515,6 +524,12 @@ function DashboardContent({
                     </Typography>
                   </Box>
                 )}
+
+                <Box mt={2} textAlign="right">
+                  <Link href="/posts" underline="hover">
+                    See all
+                  </Link>
+                </Box>
               </CardContent>
             </Card>
           </Grid>
