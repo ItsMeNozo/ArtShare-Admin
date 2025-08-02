@@ -13,6 +13,7 @@ import {
   Avatar,
   Badge,
   Box,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -25,7 +26,6 @@ import {
   ImageList,
   ImageListItem,
   ImageListItemBar,
-  Link,
   List,
   ListItem,
   ListItemAvatar,
@@ -121,6 +121,7 @@ export default function StatisticDashboardPage() {
   /* ---------- MUI theme ---------- */
   const theme = useTheme();
 
+  const navigate = useNavigate();
   /* ---------- Data state ---------- */
   const [statisticsData, setStatisticsData] = useState<StatisticsData | null>(
     null,
@@ -429,9 +430,13 @@ function DashboardContent({
                 )}
 
                 <Box mt={2} textAlign="right">
-                  <Link href="/reports" underline="hover">
+                  <Button
+                    onClick={() => {
+                      navigate('/reports');
+                    }}
+                  >
                     See all
-                  </Link>
+                  </Button>
                 </Box>
               </CardContent>
             </Card>
@@ -526,9 +531,13 @@ function DashboardContent({
                 )}
 
                 <Box mt={2} textAlign="right">
-                  <Link href="/posts" underline="hover">
+                  <Button
+                    onClick={() => {
+                      navigate('/posts?ai_created=true');
+                    }}
+                  >
                     See all
-                  </Link>
+                  </Button>
                 </Box>
               </CardContent>
             </Card>
