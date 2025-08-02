@@ -121,7 +121,6 @@ export default function StatisticDashboardPage() {
   /* ---------- MUI theme ---------- */
   const theme = useTheme();
 
-  const navigate = useNavigate();
   /* ---------- Data state ---------- */
   const [statisticsData, setStatisticsData] = useState<StatisticsData | null>(
     null,
