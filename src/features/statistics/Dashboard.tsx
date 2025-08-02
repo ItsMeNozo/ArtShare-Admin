@@ -456,7 +456,12 @@ function DashboardContent({
                       <ImageListItem
                         key={post.id}
                         sx={{ cursor: 'pointer' }}
-                        onClick={() => navigate('/posts?ai_created=true')}
+                        onClick={() => {
+                          const userUrl =
+                            import.meta.env.VITE_FE_USER_URL || '';
+                          window.open(`${userUrl}/posts/${post?.id}`, '_blank');
+                          // navigate('/posts?ai_created=true');
+                        }}
                       >
                         <img
                           src={post.thumbnailUrl}
