@@ -14,11 +14,12 @@ import {
   Snackbar,
   Typography,
 } from '@mui/material';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 
 import { PostsDataProvider, usePostsData } from './context/PostsDataContext';
 import { PostsUIProvider, usePostsUI } from './context/PostsUIContext';
 
+import { useLocation } from 'react-router-dom';
 import ConfirmationDialog from './components/ConfirmationDialog';
 import AdminPostEditModal from './components/PostEditModal';
 import AdminPostsTable from './components/PostsTable';
@@ -49,6 +50,14 @@ const AdminPostsView: React.FC = () => {
 
   const deletePostMutation = useDeleteAdminPost();
   const bulkDeletePostsMutation = useBulkDeleteAdminPosts();
+
+  const location = useLocation();
+  const postId = location.state?.postId;
+
+  useEffect(() => {
+    if (!postId) return;
+    openEditModal(postId);
+  }, [postId, posts]);
 
   const isActionLoading =
     deletePostMutation.isPending || bulkDeletePostsMutation.isPending;
