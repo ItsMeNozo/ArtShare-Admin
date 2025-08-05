@@ -13,6 +13,7 @@ import {
   Avatar,
   Badge,
   Box,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -25,7 +26,6 @@ import {
   ImageList,
   ImageListItem,
   ImageListItemBar,
-  Link,
   List,
   ListItem,
   ListItemAvatar,
@@ -429,9 +429,13 @@ function DashboardContent({
                 )}
 
                 <Box mt={2} textAlign="right">
-                  <Link href="/reports" underline="hover">
+                  <Button
+                    onClick={() => {
+                      navigate('/reports');
+                    }}
+                  >
                     See all
-                  </Link>
+                  </Button>
                 </Box>
               </CardContent>
             </Card>
@@ -452,7 +456,13 @@ function DashboardContent({
                       <ImageListItem
                         key={post.id}
                         sx={{ cursor: 'pointer' }}
-                        onClick={() => navigate('/posts?ai_created=true')}
+                        onClick={() => {
+                          navigate('/posts', {
+                            state: {
+                              postId: post?.id,
+                            },
+                          });
+                        }}
                       >
                         <img
                           src={post.thumbnailUrl}
@@ -526,9 +536,13 @@ function DashboardContent({
                 )}
 
                 <Box mt={2} textAlign="right">
-                  <Link href="/posts" underline="hover">
+                  <Button
+                    onClick={() => {
+                      navigate('/posts?ai_created=true');
+                    }}
+                  >
                     See all
-                  </Link>
+                  </Button>
                 </Box>
               </CardContent>
             </Card>
