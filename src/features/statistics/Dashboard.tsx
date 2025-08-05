@@ -446,7 +446,7 @@ function DashboardContent({
             <Card sx={{ mb: 3 }}>
               <CardHeader
                 title={
-                  <Typography variant="subtitle1">Top 3 AI Posts</Typography>
+                  <Typography variant="subtitle1">Top 5 AI Posts</Typography>
                 }
               />
               <CardContent>

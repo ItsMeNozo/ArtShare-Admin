@@ -33,7 +33,7 @@ export interface PostTableToolbarProps {
   isActionLoading?: boolean;
 }
 
-const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
+const BlogTableToolbar: React.FC<PostTableToolbarProps> = ({
   searchTerm,
   onSearchChange,
   selectedPostsCount,
@@ -80,7 +80,7 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
       >
         {/* Left side: Optional Title or a spacer */}
         {title ? (
-          <Typography variant="h6" component="div" sx={{}}>
+          <Typography variant="h5" component="h1" fontWeight="bold">
             {title} {/* Actually render the title text */}
           </Typography>
         ) : (
@@ -260,4 +260,4 @@ const PostTableToolbar: React.FC<PostTableToolbarProps> = ({
   );
 };
 
-export default PostTableToolbar;
+export default BlogTableToolbar;
