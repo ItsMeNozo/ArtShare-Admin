@@ -166,11 +166,11 @@ type AnalyticsData = {
   tokenUsage?: { count: number }[];
   styles?: { key: string; count: number }[];
   aspectRatios?: { key: string; count: number }[];
-  topPostsByAI?: {
+  topPostsByAi?: {
     id: string;
     title: string;
-    thumbnail_url: string;
-    created_at: string;
+    thumbnailUrl: string;
+    createdAt: string;
     likeCount: number;
   }[];
   trendingPrompts?: string[];
@@ -188,7 +188,6 @@ export default function StatisticDashboardPage() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'last7'>('all');
-  console.log('analytics', analytics);
 
   /* ----- fetch whenever filter changes ----- */
   useEffect(() => {
@@ -210,12 +209,6 @@ export default function StatisticDashboardPage() {
   /* ----- derive numbers ----- */
   const processed = useMemo(() => {
     if (!analytics) return {};
-    // const single = (key: keyof AnalyticsData) => {
-    //   const item = analytics[key]?.[0];
-    //   return typeof item === 'object' && item !== null && 'count' in item
-    //     ? (item as { count: number }).count
-    //     : 0;
-    // };
     return {
       postsCount: analytics.postsByAI?.[0].count || 0,
       imagesCount: analytics.totalAIImages?.[0].count || 0,
@@ -225,9 +218,9 @@ export default function StatisticDashboardPage() {
       ratios:
         analytics.aspectRatios?.map((d) => ({ name: d.key, count: d.count })) ||
         [],
-      topPosts: (analytics?.topPostsByAI || []).map((p) => ({
+      topPosts: (analytics?.topPostsByAi || []).map((p) => ({
         ...p,
-        originalDate: parseISO(p.created_at),
+        originalDate: parseISO(p.createdAt),
       })),
       prompts: (analytics.trendingPrompts || []).slice(0, 5),
     };
@@ -382,7 +375,7 @@ function PageContent({
                     {topPostsFiltered.map((post) => (
                       <ImageListItem key={post.id}>
                         <img
-                          src={post?.thumbnail_url}
+                          src={post?.thumbnailUrl}
                           alt={post.title}
                           loading="lazy"
                           style={{
@@ -415,7 +408,7 @@ function PageContent({
                               variant="caption"
                               sx={{ color: '#fff' }}
                             >
-                              {format(parseISO(post?.created_at), 'MMM d')}
+                              {format(parseISO(post?.createdAt), 'MMM d')}
                             </Typography>
                           }
                           actionIcon={
