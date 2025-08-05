@@ -8,8 +8,8 @@ import {
   Container,
   Menu,
   MenuItem,
+  Paper,
   Snackbar,
-  Typography,
 } from '@mui/material';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
@@ -17,7 +17,6 @@ import autoTable from 'jspdf-autotable';
 import React, { useCallback, useMemo, useState } from 'react';
 
 import ConfirmationDialog from './components/ConfirmationDialog';
-import PostTableToolbar from './components/PostTableToolbar';
 
 import {
   AdminBlogListItemDto,
@@ -25,6 +24,7 @@ import {
   bulkDeleteAdminBlogs,
 } from './api/blog.api';
 import AdminBlogsTable from './components/AdminPostsTable';
+import BlogTableToolbar from './components/BlogTableToolbar';
 import { useAdminBlogs } from './hooks/useAdminBlogs';
 import { useConfirmationDialog } from './hooks/useConfirmationDialog';
 import { useRowActionMenu } from './hooks/useRowActionMenu';
@@ -196,142 +196,116 @@ const BlogManagementPage: React.FC = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 3 }}>
-        Admin - Blog Management
-      </Typography>
-      {fetchError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {fetchError}
-        </Alert>
-      )}
-      {/* 
-        Removed actionError Alert as Snackbar will handle this feedback for delete operations
-        {actionError && (
-          <Alert
-            severity="error"
-            sx={{ mb: 2 }}
-            onClose={() => setActionError(null)}
-          >
-            {actionError}
+      <Paper sx={{ p: 3 }}>
+        {fetchError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {fetchError}
           </Alert>
-        )} 
-      */}
-      <PostTableToolbar
-        searchTerm={searchTerm}
-        onSearchChange={(e) => setSearchTerm(e.target.value)}
-        selectedPostsCount={numSelected}
-        onBulkDelete={handleBulkDelete}
-        onDeselectAll={handleDeselectAll}
-        onExportPDF={handleExportPDF}
-        csvFormattedData={csvFormattedData}
-        isActionLoading={actionLoading}
-      />
-      <AdminBlogsTable
-        blogs={blogs}
-        loading={loading}
-        fetchError={fetchError}
-        totalBlogs={totalBlogs}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        orderBy={orderBy}
-        order={order}
-        numSelected={numSelected}
-        postIdsOnPage={postIdsOnPage}
-        debouncedSearchTerm={debouncedSearchTerm}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        onRequestSort={handleRequestSort}
-        onSelectAllClick={handleSelectAllClick}
-        onSelectRow={handleSelectRow}
-        isSelected={isSelected}
-        onMenuOpen={handleMenuOpen}
-        menuOpen={menuOpen}
-        currentMenuPostId={currentPostForMenu?.id}
-      />
-      <Menu
-        id={
-          currentPostForMenu
-            ? `actions-menu-for-post-${currentPostForMenu.id}`
-            : undefined
-        }
-        anchorEl={anchorEl}
-        open={menuOpen}
-        onClose={handleMenuClose}
-        MenuListProps={{
-          'aria-labelledby': currentPostForMenu
-            ? `actions-button-for-post-${currentPostForMenu.id}`
-            : undefined,
-        }}
-      >
-        {currentPostForMenu && (
-          <MenuItem
-            onClick={() => {
-              const userUrl = import.meta.env.VITE_FE_USER_URL || '';
-              window.open(
-                `${userUrl}/blogs/${currentPostForMenu.id}`,
-                '_blank',
-              );
-              handleMenuClose();
-            }}
-          >
-            <VisibilityIcon fontSize="small" sx={{ mr: 1.5 }} /> View Public
-          </MenuItem>
         )}
-        <MenuItem
-          onClick={handleDeletePostFromMenu}
-          sx={{ color: 'error.main' }}
-        >
-          <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} /> Delete
-        </MenuItem>
-      </Menu>
-      <ConfirmationDialog
-        open={confirmDialogState.open}
-        onClose={() => {
-          if (!actionLoading) {
-            closeConfirmation();
-          }
-        }}
-        onConfirm={() => {
-          if (confirmDialogState.onConfirmAction) {
-            confirmDialogState.onConfirmAction();
-          }
-        }}
-        title={confirmDialogState.title}
-        message={confirmDialogState.message}
-        isActionLoading={actionLoading}
-      />
-      {/* {editingPostId && (
-        <AdminPostEditModal
-          open={editModalOpen}
-          onClose={closeEditModal}
-          postId={editingPostId}
-          onPostUpdated={async () => {
-            closeEditModal();
-            await refreshPosts();
 
-            setSnackbarMessage('Post updated successfully!');
-            setSnackbarSeverity('success');
-            setSnackbarOpen(true);
-          }}
+        <BlogTableToolbar
+          title="Blog Management"
+          searchTerm={searchTerm}
+          onSearchChange={(e) => setSearchTerm(e.target.value)}
+          selectedPostsCount={numSelected}
+          onBulkDelete={handleBulkDelete}
+          onDeselectAll={handleDeselectAll}
+          onExportPDF={handleExportPDF}
+          csvFormattedData={csvFormattedData}
+          isActionLoading={actionLoading}
         />
-      )} */}
-
-      {/* Snackbar for success/failure messages */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
+        <AdminBlogsTable
+          blogs={blogs}
+          loading={loading}
+          fetchError={fetchError}
+          totalBlogs={totalBlogs}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          orderBy={orderBy}
+          order={order}
+          numSelected={numSelected}
+          postIdsOnPage={postIdsOnPage}
+          debouncedSearchTerm={debouncedSearchTerm}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          onRequestSort={handleRequestSort}
+          onSelectAllClick={handleSelectAllClick}
+          onSelectRow={handleSelectRow}
+          isSelected={isSelected}
+          onMenuOpen={handleMenuOpen}
+          menuOpen={menuOpen}
+          currentMenuPostId={currentPostForMenu?.id}
+        />
+        <Menu
+          id={
+            currentPostForMenu
+              ? `actions-menu-for-post-${currentPostForMenu.id}`
+              : undefined
+          }
+          anchorEl={anchorEl}
+          open={menuOpen}
+          onClose={handleMenuClose}
+          MenuListProps={{
+            'aria-labelledby': currentPostForMenu
+              ? `actions-button-for-post-${currentPostForMenu.id}`
+              : undefined,
+          }}
         >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+          {currentPostForMenu && (
+            <MenuItem
+              onClick={() => {
+                const userUrl = import.meta.env.VITE_FE_USER_URL || '';
+                window.open(
+                  `${userUrl}/blogs/${currentPostForMenu.id}`,
+                  '_blank',
+                );
+                handleMenuClose();
+              }}
+            >
+              <VisibilityIcon fontSize="small" sx={{ mr: 1.5 }} /> View Public
+            </MenuItem>
+          )}
+          <MenuItem
+            onClick={handleDeletePostFromMenu}
+            sx={{ color: 'error.main' }}
+          >
+            <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} /> Delete
+          </MenuItem>
+        </Menu>
+        <ConfirmationDialog
+          open={confirmDialogState.open}
+          onClose={() => {
+            if (!actionLoading) {
+              closeConfirmation();
+            }
+          }}
+          onConfirm={() => {
+            if (confirmDialogState.onConfirmAction) {
+              confirmDialogState.onConfirmAction();
+            }
+          }}
+          title={confirmDialogState.title}
+          message={confirmDialogState.message}
+          isActionLoading={actionLoading}
+        />
+
+        {/* Snackbar for success/failure messages */}
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert
+            onClose={handleSnackbarClose}
+            severity={snackbarSeverity}
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
+      </Paper>
     </Container>
   );
 };
