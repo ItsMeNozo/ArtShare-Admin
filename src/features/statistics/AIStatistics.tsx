@@ -188,17 +188,14 @@ export default function StatisticDashboardPage() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'last7'>('all');
-  console.log('analytics', analytics);
 
   /* ----- fetch whenever filter changes ----- */
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      console.log(`data: loading start....`);
       try {
         const daysQuery = filter === 'last7' ? '?days=7' : '';
         const { data } = await api.get(`/statistics${daysQuery}`);
-        console.log(`data: ${JSON.stringify(data)}`);
         setAnalytics(data);
       } catch (e) {
         console.error(e);
@@ -212,7 +209,6 @@ export default function StatisticDashboardPage() {
   /* ----- derive numbers ----- */
   const processed = useMemo(() => {
     if (!analytics) return {};
-    console.log(`analytics: ${JSON.stringify(analytics)}`);
     return {
       postsCount: analytics.postsByAI?.[0].count || 0,
       imagesCount: analytics.totalAIImages?.[0].count || 0,
