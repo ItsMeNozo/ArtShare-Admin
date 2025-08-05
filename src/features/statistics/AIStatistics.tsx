@@ -439,28 +439,6 @@ function PageContent({
                 )}
               </CardContent>
             </Card>
-
-            {/* Trending prompts */}
-            <Card>
-              <CardHeader
-                title={
-                  <Typography variant="subtitle1">Trending Prompts</Typography>
-                }
-              />
-              <CardContent>
-                {processed.prompts?.length ? (
-                  processed.prompts.map((p: string, i: number) => (
-                    <Typography key={i} variant="body2" gutterBottom>
-                      • {p}
-                    </Typography>
-                  ))
-                ) : (
-                  <Typography variant="body2" color="text.secondary">
-                    No data.
-                  </Typography>
-                )}
-              </CardContent>
-            </Card>
           </Grid>
 
           {/* Right side */}
