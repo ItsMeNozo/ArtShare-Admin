@@ -1,5 +1,12 @@
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import { Card, CardActionArea, CardContent, Typography } from '@mui/material';
+import {
+  Box,
+  Card,
+  CardActionArea,
+  CardContent,
+  Typography,
+  useTheme,
+} from '@mui/material';
 import React from 'react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { StripeIncomeCardProps } from '../statistics.types';
@@ -12,6 +19,8 @@ export const StripeIncomeCard: React.FC<StripeIncomeCardProps> = ({
   stripeDashboardUrl,
   dailyData,
 }) => {
+  const theme = useTheme();
+
   const formattedIncome = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: currency,
@@ -23,7 +32,8 @@ export const StripeIncomeCard: React.FC<StripeIncomeCardProps> = ({
       className="w-full max-w-sm rounded-xl shadow-lg transition-shadow hover:shadow-2xl overflow-hidden"
       sx={{
         border: '1px solid',
-        borderColor: 'grey.300',
+        borderColor: 'divider',
+        backgroundColor: 'background.paper',
         transition: (theme) =>
           theme.transitions.create(['box-shadow', 'border-color']),
         '&:hover': { borderColor: 'primary.main' },
@@ -46,17 +56,28 @@ export const StripeIncomeCard: React.FC<StripeIncomeCardProps> = ({
             >
               <defs>
                 <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#635BFF" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#847EFF" stopOpacity={0.1} />
+                  <stop
+                    offset="5%"
+                    stopColor={theme.palette.primary.main}
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor={theme.palette.primary.light}
+                    stopOpacity={0.1}
+                  />
                 </linearGradient>
               </defs>
 
-              <CartesianGrid stroke="#d1d1d1" horizontal={false} />
+              <CartesianGrid
+                stroke={theme.palette.divider}
+                horizontal={false}
+              />
 
               <Area
                 type="monotone"
                 dataKey="amount"
-                stroke="#635BFF"
+                stroke={theme.palette.primary.main}
                 strokeWidth={2}
                 fill="url(#chartGradient)"
                 dot={false}
@@ -75,32 +96,66 @@ export const StripeIncomeCard: React.FC<StripeIncomeCardProps> = ({
                 <Typography
                   variant="h6"
                   component="div"
-                  className="font-semibold text-mountain-800"
+                  sx={{
+                    fontWeight: 600,
+                    color: 'text.primary',
+                  }}
                 >
                   Income
                 </Typography>
-                <Typography variant="body2" className="text-mountain-500 mb-4">
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 2,
+                  }}
+                >
                   {period}
                 </Typography>
                 <Typography
                   variant="h5"
                   component="p"
-                  className="font-medium text-mountain-900"
+                  sx={{
+                    fontWeight: 500,
+                    color: 'text.primary',
+                  }}
                 >
                   {formattedIncome}
                 </Typography>
               </div>
-              <StripeLogo className="w-12 h-12 fill-indigo-600" />
+              <Box
+                sx={{
+                  width: 48,
+                  height: 48,
+                  color: 'primary.main',
+                  '& svg': {
+                    fill: 'currentColor',
+                    width: '100%',
+                    height: '100%',
+                  },
+                }}
+              >
+                <StripeLogo />
+              </Box>
             </div>
-            <div className="flex items-center mt-6 text-indigo-600">
+            <div className="flex items-center mt-6">
               <Typography
                 variant="body2"
                 component="span"
-                className="font-semibold"
+                sx={{
+                  fontWeight: 600,
+                  color: 'primary.main',
+                }}
               >
                 View more
               </Typography>
-              <ArrowForwardIcon className="ml-1" style={{ fontSize: '1rem' }} />
+              <ArrowForwardIcon
+                sx={{
+                  ml: 0.5,
+                  fontSize: '1rem',
+                  color: 'primary.main',
+                }}
+              />
             </div>
           </CardContent>
         </div>

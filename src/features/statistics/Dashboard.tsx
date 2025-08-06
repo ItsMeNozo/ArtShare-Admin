@@ -2,8 +2,6 @@ import {
   AddPhotoAlternate as AddPhotoAlternateIcon,
   Article as ArticleIcon,
   AutoAwesome as AutoAwesomeIcon,
-  DarkMode as DarkModeIcon,
-  LightMode as LightModeIcon,
   Person as PersonIcon,
   Timeline as TimelineIcon,
 } from '@mui/icons-material';
@@ -20,7 +18,6 @@ import {
   Container,
   CssBaseline,
   Grid,
-  IconButton,
   List,
   ListItem,
   ListItemAvatar,
@@ -267,15 +264,6 @@ function DashboardContent({
           </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* Dark / light switch */}
-            <IconButton onClick={toggleColorMode} color="inherit">
-              {theme.palette.mode === 'dark' ? (
-                <LightModeIcon />
-              ) : (
-                <DarkModeIcon />
-              )}
-            </IconButton>
-
             <ToggleButtonGroup
               size="small"
               value={statsFilter}
