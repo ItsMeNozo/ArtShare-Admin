@@ -1,3 +1,4 @@
+import { OpenInNew as OpenInNewIcon } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -11,12 +12,14 @@ import {
   DialogTitle,
   FormControl,
   Grid,
+  IconButton,
   ListItemText,
   MenuItem,
   OutlinedInput,
   Paper,
   Select,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { useFormik } from 'formik';
@@ -182,7 +185,28 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
       maxWidth="md"
       fullWidth
     >
-      <DialogTitle>Edit Post (ID: {editingPostId})</DialogTitle>
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Typography variant="h6">Edit Post (ID: {editingPostId})</Typography>
+        {editingPostId && (
+          <Tooltip title="View Public Post">
+            <IconButton
+              onClick={() => {
+                const userUrl = import.meta.env.VITE_FE_USER_URL || '';
+                window.open(`${userUrl}/posts/${editingPostId}`, '_blank');
+              }}
+              sx={{ color: 'primary.main' }}
+            >
+              <OpenInNewIcon />
+            </IconButton>
+          </Tooltip>
+        )}
+      </DialogTitle>
       <form onSubmit={formik.handleSubmit}>
         <DialogContent>
           {isPostLoading && (

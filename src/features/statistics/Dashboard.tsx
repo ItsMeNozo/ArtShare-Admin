@@ -2,8 +2,6 @@ import {
   AddPhotoAlternate as AddPhotoAlternateIcon,
   Article as ArticleIcon,
   AutoAwesome as AutoAwesomeIcon,
-  DarkMode as DarkModeIcon,
-  LightMode as LightModeIcon,
   Person as PersonIcon,
   Timeline as TimelineIcon,
 } from '@mui/icons-material';
@@ -20,7 +18,6 @@ import {
   Container,
   CssBaseline,
   Grid,
-  IconButton,
   List,
   ListItem,
   ListItemAvatar,
@@ -33,24 +30,13 @@ import {
 } from '@mui/material';
 import { AxiosError } from 'axios';
 import { isAfter, parseISO, subDays } from 'date-fns';
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/baseApi';
 import { useAuth } from '../../contexts/AuthContext';
 import { StripeIncomeCard } from './components/StripeIncomeCard';
 import { TopAIPosts } from './components/TopAIPosts';
 import { StripeData } from './statistics.types';
-
-/* ---------- Color-mode context ---------- */
-const ColorModeContext = createContext<{ toggleColorMode: () => void }>({
-  toggleColorMode: () => {},
-});
 
 /* ---------- Types ---------- */
 type StatisticsData = {
@@ -247,8 +233,6 @@ function DashboardContent({
   stripeDashboardUrl,
   userName,
 }: any) {
-  const theme = useTheme();
-  const { toggleColorMode } = useContext(ColorModeContext);
   const navigate = useNavigate();
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 6 }}>
@@ -267,15 +251,6 @@ function DashboardContent({
           </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* Dark / light switch */}
-            <IconButton onClick={toggleColorMode} color="inherit">
-              {theme.palette.mode === 'dark' ? (
-                <LightModeIcon />
-              ) : (
-                <DarkModeIcon />
-              )}
-            </IconButton>
-
             <ToggleButtonGroup
               size="small"
               value={statsFilter}
@@ -399,12 +374,19 @@ function DashboardContent({
                             <Typography
                               variant="caption"
                               color="text.secondary"
-                              noWrap
+                              sx={{
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                lineHeight: 1.2,
+                              }}
                             >
                               {r.reason}
                             </Typography>
                           }
-                          sx={{ mr: 1 }}
+                          sx={{ mr: 1, flex: 1 }}
                         />
 
                         {/*  status chip  */}

@@ -21,8 +21,7 @@ interface TopAIPost {
   title: string;
   thumbnailUrl: string;
   createdAt: string;
-  likeCount?: number;
-  like_count?: number; // Alternative field name for compatibility
+  likeCount: number;
 }
 
 interface TopAIPostsProps {
@@ -128,9 +127,9 @@ export const TopAIPosts: React.FC<TopAIPostsProps> = ({
                     </Typography>
                   }
                   actionIcon={
-                    <Box sx={{ mr: 1 }}>
+                    <Box sx={{ mr: 1, pr: 2 }}>
                       <Badge
-                        badgeContent={post.likeCount || post.like_count}
+                        badgeContent={post.likeCount}
                         sx={{
                           '& .MuiBadge-badge': {
                             backgroundColor: '#ff1744',
