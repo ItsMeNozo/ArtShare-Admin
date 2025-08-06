@@ -399,12 +399,19 @@ function DashboardContent({
                             <Typography
                               variant="caption"
                               color="text.secondary"
-                              noWrap
+                              sx={{
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                lineHeight: 1.2,
+                              }}
                             >
                               {r.reason}
                             </Typography>
                           }
-                          sx={{ mr: 1 }}
+                          sx={{ mr: 1, flex: 1 }}
                         />
 
                         {/*  status chip  */}
