@@ -7,11 +7,9 @@ import {
   Person as PersonIcon,
   Timeline as TimelineIcon,
 } from '@mui/icons-material';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import {
   Alert,
   Avatar,
-  Badge,
   Box,
   Button,
   Card,
@@ -23,9 +21,6 @@ import {
   CssBaseline,
   Grid,
   IconButton,
-  ImageList,
-  ImageListItem,
-  ImageListItemBar,
   List,
   ListItem,
   ListItemAvatar,
@@ -33,12 +28,11 @@ import {
   ThemeProvider,
   ToggleButton,
   ToggleButtonGroup,
-  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
 import { AxiosError } from 'axios';
-import { format, isAfter, parseISO, subDays } from 'date-fns';
+import { isAfter, parseISO, subDays } from 'date-fns';
 import React, {
   createContext,
   useContext,
@@ -50,6 +44,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../api/baseApi';
 import { useAuth } from '../../contexts/AuthContext';
 import { StripeIncomeCard } from './components/StripeIncomeCard';
+import { TopAIPosts } from './components/TopAIPosts';
 import { StripeData } from './statistics.types';
 
 /* ---------- Color-mode context ---------- */
@@ -190,7 +185,7 @@ export default function StatisticDashboardPage() {
   const topPostsFiltered = useMemo(() => {
     const data = processed.topPosts ?? [];
     if (statsFilter === 'all') {
-      return [...data].sort((a, b) => b.likeCount - a.likeCount).slice(0, 3);
+      return [...data].sort((a, b) => b.likeCount - a.likeCount).slice(0, 5);
     }
     const sevenDaysAgo = subDays(new Date(), 7);
     return data
@@ -443,109 +438,11 @@ function DashboardContent({
 
           {/* Top posts */}
           <Grid size={{ xs: 12, md: 8 }}>
-            <Card sx={{ mb: 3 }}>
-              <CardHeader
-                title={
-                  <Typography variant="subtitle1">Top 5 AI Posts</Typography>
-                }
-              />
-              <CardContent>
-                {topPostsFiltered.length ? (
-                  <ImageList cols={3} gap={20} sx={{ m: 0 }}>
-                    {topPostsFiltered.map((post: any) => (
-                      <ImageListItem
-                        key={post.id}
-                        sx={{ cursor: 'pointer' }}
-                        onClick={() => {
-                          navigate('/posts', {
-                            state: {
-                              postId: post?.id,
-                            },
-                          });
-                        }}
-                      >
-                        <img
-                          src={post.thumbnailUrl}
-                          alt={post.title}
-                          loading="lazy"
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                          }}
-                        />
-                        <ImageListItemBar
-                          title={
-                            <Tooltip title={post.title}>
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  color: '#fff',
-                                  fontSize: '0.8rem',
-                                  lineHeight: 1.4,
-                                  display: '-webkit-box',
-                                  WebkitLineClamp: 3,
-                                  WebkitBoxOrient: 'vertical',
-                                  overflow: 'hidden',
-                                }}
-                              >
-                                {post.title}
-                              </Typography>
-                            </Tooltip>
-                          }
-                          subtitle={
-                            <Typography
-                              variant="caption"
-                              sx={{ color: '#fff', opacity: 0.85 }}
-                            >
-                              {format(parseISO(post.createdAt), 'MMM d')}
-                            </Typography>
-                          }
-                          actionIcon={
-                            <Box sx={{ mr: 1 }}>
-                              <Badge
-                                badgeContent={post.likeCount}
-                                sx={{
-                                  '& .MuiBadge-badge': {
-                                    backgroundColor: '#ff1744',
-                                    color: '#fff',
-                                    border: '1.5px solid #fff',
-                                  },
-                                }}
-                              >
-                                <ThumbUpIcon
-                                  sx={{
-                                    color: '#fff',
-                                    fontSize: '1.2rem',
-                                    mt: '8px',
-                                  }}
-                                />
-                              </Badge>
-                            </Box>
-                          }
-                        />
-                      </ImageListItem>
-                    ))}
-                  </ImageList>
-                ) : (
-                  <Box sx={{ textAlign: 'center', py: 4 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      No posts found for the selected time period.
-                    </Typography>
-                  </Box>
-                )}
-
-                <Box mt={2} textAlign="right">
-                  <Button
-                    onClick={() => {
-                      navigate('/posts?ai_created=true');
-                    }}
-                  >
-                    See all
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
+            <TopAIPosts
+              posts={topPostsFiltered}
+              filter={statsFilter}
+              showSeeAllButton={true}
+            />
           </Grid>
         </Grid>
       </Container>

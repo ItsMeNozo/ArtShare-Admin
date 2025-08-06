@@ -6,12 +6,10 @@ import {
   Favorite as FavoriteIcon,
   LightMode as LightModeIcon,
   Palette as PaletteIcon,
-  ThumbUp as ThumbUpIcon,
   Timeline as TimelineIcon,
 } from '@mui/icons-material';
 import {
   Avatar,
-  Badge,
   Box,
   Card,
   CardContent,
@@ -21,17 +19,13 @@ import {
   CssBaseline,
   Grid,
   IconButton,
-  ImageList,
-  ImageListItem,
-  ImageListItemBar,
   ThemeProvider,
   ToggleButton,
   ToggleButtonGroup,
-  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
-import { format, isAfter, parseISO, subDays } from 'date-fns';
+import { isAfter, parseISO, subDays } from 'date-fns';
 import React, {
   createContext,
   useContext,
@@ -47,6 +41,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import api from '../../api/baseApi';
+import { TopAIPosts } from './components/TopAIPosts';
 
 /* ----------  Color-mode context  ---------- */
 const ColorModeContext = createContext<{ toggleColorMode: () => void }>({
@@ -161,8 +156,8 @@ const PieCard = ({
 
 /* ----------  Types  ---------- */
 type AnalyticsData = {
-  postsByAI?: { count: number }[];
-  totalAIImages?: { count: number }[];
+  postsByAi?: { count: number }[];
+  totalAiImages?: { count: number }[];
   tokenUsage?: { count: number }[];
   styles?: { key: string; count: number }[];
   aspectRatios?: { key: string; count: number }[];
@@ -210,8 +205,8 @@ export default function StatisticDashboardPage() {
   const processed = useMemo(() => {
     if (!analytics) return {};
     return {
-      postsCount: analytics.postsByAI?.[0].count || 0,
-      imagesCount: analytics.totalAIImages?.[0].count || 0,
+      postsCount: analytics.postsByAi?.[0].count || 0,
+      imagesCount: analytics.totalAiImages?.[0].count || 0,
       tokensCount: analytics.tokenUsage?.[0]?.count || 0,
       styles:
         analytics.styles?.map((d) => ({ name: d.key, count: d.count })) || [],
@@ -360,85 +355,11 @@ function PageContent({
         <Grid container spacing={3}>
           {/* Left side */}
           <Grid size={{ xs: 12, md: 8 }}>
-            <Card sx={{ mb: 3 }}>
-              <CardHeader
-                title={
-                  <Typography variant="subtitle1">
-                    Top 5 AI Posts ({filter === 'last7' ? '7 Days' : 'All-time'}
-                    )
-                  </Typography>
-                }
-              />
-              <CardContent>
-                {topPostsFiltered?.length ? (
-                  <ImageList cols={3} gap={20} sx={{ m: 0, height: 350 }}>
-                    {topPostsFiltered.map((post) => (
-                      <ImageListItem key={post.id}>
-                        <img
-                          src={post?.thumbnailUrl}
-                          alt={post.title}
-                          loading="lazy"
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                          }}
-                        />
-                        <ImageListItemBar
-                          title={
-                            <Tooltip title={post.title}>
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  color: '#fff',
-                                  fontSize: '0.8rem',
-                                  lineHeight: 1.4,
-                                  display: '-webkit-box',
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient: 'vertical',
-                                  overflow: 'hidden',
-                                }}
-                              >
-                                {post.title}
-                              </Typography>
-                            </Tooltip>
-                          }
-                          subtitle={
-                            <Typography
-                              variant="caption"
-                              sx={{ color: '#fff' }}
-                            >
-                              {format(parseISO(post?.createdAt), 'MMM d')}
-                            </Typography>
-                          }
-                          actionIcon={
-                            <Badge
-                              badgeContent={post?.like_count}
-                              sx={{
-                                mr: 1,
-                                '& .MuiBadge-badge': {
-                                  backgroundColor: '#ff1744',
-                                  color: '#fff',
-                                  border: '2px solid #fff',
-                                },
-                              }}
-                            >
-                              <ThumbUpIcon sx={{ color: '#fff' }} />
-                            </Badge>
-                          }
-                        />
-                      </ImageListItem>
-                    ))}
-                  </ImageList>
-                ) : (
-                  <Box sx={{ textAlign: 'center', py: 4 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      No posts for this period.
-                    </Typography>
-                  </Box>
-                )}
-              </CardContent>
-            </Card>
+            <TopAIPosts
+              posts={topPostsFiltered}
+              filter={filter}
+              showSeeAllButton={false}
+            />
           </Grid>
 
           {/* Right side */}
