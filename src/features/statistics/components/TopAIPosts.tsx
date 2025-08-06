@@ -128,7 +128,7 @@ export const TopAIPosts: React.FC<TopAIPostsProps> = ({
                     </Typography>
                   }
                   actionIcon={
-                    <Box sx={{ mr: 1 }}>
+                    <Box sx={{ mr: 1, pr: 2 }}>
                       <Badge
                         badgeContent={post.likeCount || post.like_count}
                         sx={{
