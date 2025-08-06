@@ -30,24 +30,13 @@ import {
 } from '@mui/material';
 import { AxiosError } from 'axios';
 import { isAfter, parseISO, subDays } from 'date-fns';
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/baseApi';
 import { useAuth } from '../../contexts/AuthContext';
 import { StripeIncomeCard } from './components/StripeIncomeCard';
 import { TopAIPosts } from './components/TopAIPosts';
 import { StripeData } from './statistics.types';
-
-/* ---------- Color-mode context ---------- */
-const ColorModeContext = createContext<{ toggleColorMode: () => void }>({
-  toggleColorMode: () => {},
-});
 
 /* ---------- Types ---------- */
 type StatisticsData = {
@@ -244,8 +233,6 @@ function DashboardContent({
   stripeDashboardUrl,
   userName,
 }: any) {
-  const theme = useTheme();
-  const { toggleColorMode } = useContext(ColorModeContext);
   const navigate = useNavigate();
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 6 }}>
