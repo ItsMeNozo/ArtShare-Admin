@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDebounce } from '../../../common/hooks/useDebounce';
 import { Order } from '../../users/types';
@@ -65,61 +72,76 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const queryParams: GetAllPostsAdminParams = {
-    page: page + 1,
-    limit: pageSize,
-    sortBy: sortBy,
-    sortOrder: sortOrder,
-    search: debouncedSearchTerm,
-    filter: {
-      categoryId: categoryId,
-      aiCreated: aiCreated,
-    },
-  };
+  const queryParams: GetAllPostsAdminParams = useMemo(
+    () => ({
+      page: page + 1,
+      limit: pageSize,
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+      search: debouncedSearchTerm,
+      filter: {
+        categoryId: categoryId,
+        aiCreated: aiCreated,
+      },
+    }),
+    [
+      page,
+      pageSize,
+      sortBy,
+      sortOrder,
+      debouncedSearchTerm,
+      categoryId,
+      aiCreated,
+    ],
+  );
 
   const { data, isLoading, isPlaceholderData, error } =
     useGetAdminPosts(queryParams);
 
-  const handleChangePage = (_event: unknown, newPage: number) => {
+  const handleChangePage = useCallback((_event: unknown, newPage: number) => {
     setPage(newPage);
-  };
+  }, []);
 
-  const handleChangePageSize = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPageSize(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  const handleChangePageSize = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const newPageSize = parseInt(event.target.value, 10);
+      setPageSize(newPageSize);
+      setPage(0);
+    },
+    [],
+  );
 
-  const handleRequestSort = (
-    _event: React.MouseEvent<unknown>,
-    property: string,
-  ) => {
-    const isAsc = sortBy === property && sortOrder === 'asc';
-    setSortOrder(isAsc ? 'desc' : 'asc');
-    setSortBy(property);
-  };
+  const handleRequestSort = useCallback(
+    (_event: React.MouseEvent<unknown>, property: string) => {
+      const isAsc = sortBy === property && sortOrder === 'asc';
+      setSortOrder(isAsc ? 'desc' : 'asc');
+      setSortBy(property);
+    },
+    [sortBy, sortOrder],
+  );
 
-  const handleSetCategoryId = (id: number | null) => {
+  const handleSetCategoryId = useCallback((id: number | null) => {
     setCategoryId(id);
     setPage(0);
-  };
+  }, []);
 
-  const handleSetAiCreated = (value: boolean | null) => {
+  const handleSetAiCreated = useCallback((value: boolean | null) => {
     setAiCreated(value);
     setPage(0);
-  };
+  }, []);
 
-  const value = {
-    posts: data?.data || [],
-    totalPosts: data?.total || 0,
-    isLoading: isLoading || isPlaceholderData,
-    error: error ? error.message : null,
-    tableControls: {
+  const handleSetSearchTerm = useCallback((term: string) => {
+    setSearchTerm(term);
+  }, []);
+
+  const tableControls = useMemo(
+    () => ({
       page,
       pageSize,
       sortBy,
       sortOrder,
       searchTerm,
-      setSearchTerm,
+      setSearchTerm: handleSetSearchTerm,
       categoryId,
       setCategoryId: handleSetCategoryId,
       aiCreated,
@@ -127,8 +149,41 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
       handleChangePage,
       handleChangePageSize,
       handleRequestSort,
-    },
-  };
+    }),
+    [
+      page,
+      pageSize,
+      sortBy,
+      sortOrder,
+      searchTerm,
+      categoryId,
+      aiCreated,
+      handleSetSearchTerm,
+      handleSetCategoryId,
+      handleSetAiCreated,
+      handleChangePage,
+      handleChangePageSize,
+      handleRequestSort,
+    ],
+  );
+
+  const value = useMemo(
+    () => ({
+      posts: data?.data || [],
+      totalPosts: data?.total || 0,
+      isLoading: isLoading || isPlaceholderData,
+      error: error ? error.message : null,
+      tableControls,
+    }),
+    [
+      data?.data,
+      data?.total,
+      isLoading,
+      isPlaceholderData,
+      error,
+      tableControls,
+    ],
+  );
 
   return (
     <PostsDataContext.Provider value={value}>

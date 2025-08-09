@@ -34,6 +34,8 @@ export const useGetAdminPosts = (
     queryKey: postKeys.list(params),
     queryFn: () => fetchAdminPosts(params),
     placeholderData: (previousData) => previousData,
+    staleTime: 30000, // Consider data fresh for 30 seconds
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 };
 
