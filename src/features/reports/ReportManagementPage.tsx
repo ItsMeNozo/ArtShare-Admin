@@ -112,7 +112,7 @@ const ReportManagementPage: React.FC = () => {
     return processedReports;
   }, [reports, search, statusFilter]);
 
-  if (isResolving || isUpdateReportLoading || isLoading) {
+  if (isResolving || isUpdateReportLoading) {
     return (
       <Box /* ... loading spinner ... */>
         <CircularProgress />
@@ -257,84 +257,95 @@ const ReportManagementPage: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredReports.map((r) => (
-              <TableRow key={r.id} hover>
-                <TableCell>{r.reporter.username}</TableCell>
-                <TableCell>{r.targetType}</TableCell>
-                <TableCell>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      maxWidth: 250, // Or adjust based on your layout needs
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                    title={r.reason} // Show full reason on hover
-                  >
-                    {r.reason}
-                  </Typography>
-                </TableCell>
-                <TableCell sx={{ textAlign: 'center' }}>
-                  <Chip
-                    label={statusDisplayInfo[r.status]?.label || r.status}
-                    color={statusDisplayInfo[r.status]?.color || 'default'}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>
-                  {new Date(r.createdAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell
-                  align="center"
-                  sx={{
-                    whiteSpace: 'nowrap',
-                    textAlign: 'center',
-                    padding: '8px',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: 0.5,
-                    }}
-                  >
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="primary"
-                      onClick={() => handleView(r)}
-                    >
-                      View
-                    </Button>
-                    {r.status !== 'DISMISSED' && r.status !== 'RESOLVED' && (
-                      <Button
-                        size="small"
-                        variant="contained"
-                        color="error"
-                        onClick={() => {
-                          setActiveReportId(r.id);
-                          setActiveReport(r); // Also set activeReport for ResolveReportDialog
-                          setDialogOpen(true);
-                        }}
-                      >
-                        Resolve
-                      </Button>
-                    )}
-                  </Box>
-                </TableCell>
-              </TableRow>
-            ))}
-            {filteredReports.length === 0 && (
+            {isLoading ? (
               <TableRow>
                 <TableCell colSpan={6} align="center">
-                  {' '}
-                  {/* Adjusted colSpan */}
-                  No reports found.
+                  <CircularProgress size={40} />
                 </TableCell>
               </TableRow>
+            ) : (
+              <>
+                {filteredReports.map((r) => (
+                  <TableRow key={r.id} hover>
+                    <TableCell>{r.reporter.username}</TableCell>
+                    <TableCell>{r.targetType}</TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          maxWidth: 250, // Or adjust based on your layout needs
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                        title={r.reason} // Show full reason on hover
+                      >
+                        {r.reason}
+                      </Typography>
+                    </TableCell>
+                    <TableCell sx={{ textAlign: 'center' }}>
+                      <Chip
+                        label={statusDisplayInfo[r.status]?.label || r.status}
+                        color={statusDisplayInfo[r.status]?.color || 'default'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {new Date(r.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell
+                      align="center"
+                      sx={{
+                        whiteSpace: 'nowrap',
+                        textAlign: 'center',
+                        padding: '8px',
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          gap: 0.5,
+                        }}
+                      >
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="primary"
+                          onClick={() => handleView(r)}
+                        >
+                          View
+                        </Button>
+                        {r.status !== 'DISMISSED' &&
+                          r.status !== 'RESOLVED' && (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="error"
+                              onClick={() => {
+                                setActiveReportId(r.id);
+                                setActiveReport(r); // Also set activeReport for ResolveReportDialog
+                                setDialogOpen(true);
+                              }}
+                            >
+                              Resolve
+                            </Button>
+                          )}
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filteredReports.length === 0 && !isLoading && (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      {' '}
+                      {/* Adjusted colSpan */}
+                      No reports found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </>
             )}
           </TableBody>
         </Table>
