@@ -78,6 +78,7 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
               alt={post.title}
               size={48}
               lazy={true}
+              variant="square"
             />
           </Box>
           <Tooltip title={post.title}>

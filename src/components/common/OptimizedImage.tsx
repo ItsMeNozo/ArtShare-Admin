@@ -10,10 +10,19 @@ interface OptimizedImageProps {
   fallback?: string;
   className?: string;
   lazy?: boolean;
+  variant?: 'circular' | 'square';
 }
 
 export const OptimizedImage: React.FC<OptimizedImageProps> = React.memo(
-  ({ src, alt, size = 40, fallback, className, lazy = true }) => {
+  ({
+    src,
+    alt,
+    size = 40,
+    fallback,
+    className,
+    lazy = true,
+    variant = 'circular',
+  }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [shouldLoad, setShouldLoad] = useState(!lazy);
@@ -64,7 +73,12 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = React.memo(
         <Avatar
           ref={imgRef}
           className={className}
-          sx={{ width: size, height: size }}
+          variant={variant === 'square' ? 'rounded' : 'circular'}
+          sx={{
+            width: size,
+            height: size,
+            ...(variant === 'square' && { borderRadius: 1 }),
+          }}
         >
           {alt.charAt(0).toUpperCase()}
         </Avatar>
@@ -75,10 +89,11 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = React.memo(
       <div ref={imgRef}>
         {loading && shouldLoad && (
           <Skeleton
-            variant="circular"
+            variant={variant === 'square' ? 'rectangular' : 'circular'}
             width={size}
             height={size}
             className={className}
+            sx={variant === 'square' ? { borderRadius: 1 } : undefined}
           />
         )}
         {shouldLoad ? (
@@ -88,18 +103,21 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = React.memo(
             onLoad={handleLoad}
             onError={handleError}
             className={className}
+            variant={variant === 'square' ? 'rounded' : 'circular'}
             sx={{
               width: size,
               height: size,
               display: loading ? 'none' : 'flex',
+              ...(variant === 'square' && { borderRadius: 1 }),
             }}
           />
         ) : (
           <Skeleton
-            variant="circular"
+            variant={variant === 'square' ? 'rectangular' : 'circular'}
             width={size}
             height={size}
             className={className}
+            sx={variant === 'square' ? { borderRadius: 1 } : undefined}
           />
         )}
       </div>
