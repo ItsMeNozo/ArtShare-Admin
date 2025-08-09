@@ -34,6 +34,12 @@ const PostsTable: React.FC = () => {
   );
   const rowCountOnPage = posts.length;
 
+  // Memoize rows to prevent unnecessary re-renders when selection changes
+  const memoizedRows = useMemo(
+    () => posts.map((post) => <AdminPostTableRow key={post.id} post={post} />),
+    [posts],
+  );
+
   return (
     <>
       <TableContainer>
@@ -162,9 +168,7 @@ const PostsTable: React.FC = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              posts.map((post) => (
-                <AdminPostTableRow key={post.id} post={post} />
-              ))
+              memoizedRows
             )}
           </TableBody>
         </Table>

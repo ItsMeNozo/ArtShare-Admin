@@ -29,7 +29,7 @@ import {
   useDeleteAdminPost,
 } from './hooks/usePostQueries';
 
-const AdminPostsView: React.FC = () => {
+const AdminPostsView: React.FC = React.memo(() => {
   const { posts, isLoading, error: fetchError } = usePostsData();
   const {
     selected,
@@ -215,7 +215,9 @@ const AdminPostsView: React.FC = () => {
       </Paper>
     </Container>
   );
-};
+});
+
+AdminPostsView.displayName = 'AdminPostsView';
 
 const PostManagementPage: React.FC = () => {
   return (

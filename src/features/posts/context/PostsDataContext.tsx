@@ -72,6 +72,13 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
+  // Reset page only when debounced search term changes (not on every keystroke)
+  useEffect(() => {
+    if (debouncedSearchTerm !== '' || searchTerm === '') {
+      setPage(0);
+    }
+  }, [debouncedSearchTerm]);
+
   const queryParams: GetAllPostsAdminParams = useMemo(
     () => ({
       page: page + 1,
@@ -95,8 +102,12 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
     ],
   );
 
-  const { data, isLoading, isPlaceholderData, error } =
-    useGetAdminPosts(queryParams);
+  const {
+    data,
+    isLoading: queryLoading,
+    isPlaceholderData,
+    error,
+  } = useGetAdminPosts(queryParams);
 
   const handleChangePage = useCallback((_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -132,6 +143,7 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const handleSetSearchTerm = useCallback((term: string) => {
     setSearchTerm(term);
+    // Page reset is handled by the useEffect for debouncedSearchTerm
   }, []);
 
   const tableControls = useMemo(
@@ -167,22 +179,23 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
     ],
   );
 
+  const posts = useMemo(() => data?.data || [], [data?.data]);
+  const totalPosts = useMemo(() => data?.total || 0, [data?.total]);
+  const isLoading = useMemo(
+    () => queryLoading || isPlaceholderData,
+    [queryLoading, isPlaceholderData],
+  );
+  const errorMessage = useMemo(() => (error ? error.message : null), [error]);
+
   const value = useMemo(
     () => ({
-      posts: data?.data || [],
-      totalPosts: data?.total || 0,
-      isLoading: isLoading || isPlaceholderData,
-      error: error ? error.message : null,
+      posts,
+      totalPosts,
+      isLoading,
+      error: errorMessage,
       tableControls,
     }),
-    [
-      data?.data,
-      data?.total,
-      isLoading,
-      isPlaceholderData,
-      error,
-      tableControls,
-    ],
+    [posts, totalPosts, isLoading, errorMessage, tableControls],
   );
 
   return (
