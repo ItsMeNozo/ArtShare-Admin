@@ -8,6 +8,7 @@ import {
 import {
   adminDeletePost,
   adminUpdatePost,
+  adminUpdatePostPartial,
   bulkDeleteAdminPosts,
   fetchAdminPostDetails,
   fetchAdminPosts,
@@ -34,6 +35,10 @@ export const useGetAdminPosts = (
     queryKey: postKeys.list(params),
     queryFn: () => fetchAdminPosts(params),
     placeholderData: (previousData) => previousData,
+    staleTime: params.search ? 60000 : 30000, // Longer stale time for search results
+    gcTime: 10 * 60 * 1000, // Keep search results in cache for 10 minutes
+    refetchOnWindowFocus: false, // Prevent unnecessary refetches during search
+    refetchOnMount: false, // Use cached data when available
   });
 };
 
@@ -44,21 +49,41 @@ export const useGetAdminPostById = (
     queryKey: postKeys.detail(postId),
     queryFn: () => fetchAdminPostDetails(postId),
     enabled: !!postId,
+    staleTime: 2 * 60 * 1000, // Cache for 2 minutes to improve performance
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 };
 
 export const useUpdateAdminPost = (): UseMutationResult<
   PostDetailsResponseDto,
   Error,
-  { id: number; data: FormData },
+  { id: number; data: FormData | Record<string, any> },
   unknown
 > => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: FormData }) =>
-      adminUpdatePost(id, data),
-    onSuccess: (_data, { id }) => {
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: FormData | Record<string, any>;
+    }) => {
+      // Use appropriate API based on data type
+      if (data instanceof FormData) {
+        return adminUpdatePost(id, data);
+      } else {
+        return adminUpdatePostPartial(id, data);
+      }
+    },
+    onSuccess: (updatedPost, { id }) => {
+      // Update the specific post detail cache with fresh data
+      queryClient.setQueryData(postKeys.detail(id), updatedPost);
+
+      // Invalidate and refetch the lists to ensure consistency
       queryClient.invalidateQueries({ queryKey: postKeys.lists() });
+
+      // Also invalidate the specific detail query to ensure next fetch is fresh
       queryClient.invalidateQueries({ queryKey: postKeys.detail(id) });
     },
   });

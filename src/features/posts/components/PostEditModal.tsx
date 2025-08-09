@@ -26,8 +26,10 @@ import { useFormik } from 'formik';
 import React, { useEffect, useState } from 'react';
 import * as Yup from 'yup';
 
+import { useSnackbar } from '../../../hooks/useSnackbar';
 import { usePostsUI } from '../context/PostsUIContext';
 import { useGetCategories } from '../hooks/useCategoryQueries';
+import { useOptimizedPostUpdate } from '../hooks/useOptimizedPostUpdate';
 import {
   useGetAdminPostById,
   useUpdateAdminPost,
@@ -96,6 +98,7 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
     data: post,
     isLoading: isPostLoading,
     error: fetchError,
+    refetch: refetchPost,
   } = useGetAdminPostById(editingPostId!);
   const {
     data: categories = [],
@@ -104,8 +107,14 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
   } = useGetCategories();
   const updatePostMutation = useUpdateAdminPost();
   const { handleUploadImageFile } = useUploadPostMedias();
+  const { showSnackbar } = useSnackbar();
 
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [initialValues, setInitialValues] = useState({
+    title: '',
+    description: '',
+    categoryIds: [] as number[],
+  });
 
   const formik = useFormik({
     initialValues: {
@@ -121,47 +130,115 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
       thumbnail: Yup.mixed<File>().nullable(),
     }),
     onSubmit: async (values, { setSubmitting }) => {
-      setSubmitting(true);
+      setSubmitting(true); // Show loading immediately
 
       try {
-        const newThumbnailUrl = await (values.thumbnail
-          ? handleUploadImageFile(values.thumbnail, 'admin_thumbnail')
-          : Promise.resolve(undefined));
+        const {
+          changedFields,
+          hasChanges: fieldsHaveChanges,
+          hasImageUpload,
+        } = getChangedFields();
 
-        const formData = new FormData();
-        formData.append('title', values.title);
-        formData.append('description', values.description || '');
-        formData.append('categoryIds', JSON.stringify(values.categoryIds));
-
-        if (newThumbnailUrl) {
-          formData.append('thumbnailUrl', newThumbnailUrl);
+        if (!fieldsHaveChanges && !values.thumbnail) {
+          setSubmitting(false);
+          closeEditModal();
+          return;
         }
 
-        updatePostMutation.mutate(
-          { id: editingPostId!, data: formData },
-          {
-            onSuccess: () => onPostUpdated(),
-            onSettled: () => setSubmitting(false),
-          },
-        );
+        // Upload thumbnail if needed (this is done while loading is already shown)
+        let newThumbnailUrl: string | undefined;
+        if (values.thumbnail) {
+          newThumbnailUrl = await handleUploadImageFile(
+            values.thumbnail,
+            'admin_thumbnail',
+          );
+          changedFields.thumbnailUrl = newThumbnailUrl;
+        }
+
+        // Use JSON for simple field updates, FormData only if absolutely necessary
+        const shouldUseFormData = hasImageUpload || !!newThumbnailUrl;
+
+        if (shouldUseFormData) {
+          // Use FormData when we have file uploads
+          const formData = new FormData();
+          Object.entries(changedFields).forEach(([key, value]) => {
+            formData.append(key, String(value));
+          });
+
+          updatePostMutation.mutate(
+            { id: editingPostId!, data: formData },
+            {
+              onSuccess: () => {
+                showSnackbar('Post updated successfully!', 'success');
+                onPostUpdated();
+                closeEditModal();
+              },
+              onError: (error) => {
+                console.error('Failed to update post', error);
+                showSnackbar('Failed to update post', 'error');
+                setSubmitting(false);
+              },
+            },
+          );
+        } else {
+          // Use JSON for faster text-only updates
+          updatePostMutation.mutate(
+            { id: editingPostId!, data: changedFields as any },
+            {
+              onSuccess: () => {
+                showSnackbar('Post updated successfully!', 'success');
+                onPostUpdated();
+                closeEditModal();
+              },
+              onError: (error) => {
+                console.error('Failed to update post', error);
+                showSnackbar('Failed to update post', 'error');
+                setSubmitting(false);
+              },
+            },
+          );
+        }
       } catch (error) {
-        console.error('Failed to upload thumbnail before updating post', error);
+        console.error('Failed to update post', error);
         setSubmitting(false);
       }
     },
   });
 
+  // Use optimization hook for performance tracking
+  const { hasChanges, changedFieldsDisplay, getChangedFields } =
+    useOptimizedPostUpdate({
+      currentValues: formik.values,
+      initialValues,
+    });
+
+  // Force refetch when modal opens to get the latest data
+  useEffect(() => {
+    if (editingPostId) {
+      refetchPost();
+    }
+  }, [editingPostId, refetchPost]);
+
   useEffect(() => {
     if (post) {
-      formik.setValues({
+      const values = {
         title: post.title || '',
         description: post.description || '',
         categoryIds: post.categories.map((c) => c.id),
-        thumbnail: null,
+      };
+
+      // Reset form completely with fresh data
+      formik.resetForm({
+        values: {
+          ...values,
+          thumbnail: null,
+        },
       });
+
+      setInitialValues(values);
       setThumbnailPreview(post.thumbnailUrl || post.medias?.[0]?.url || null);
     }
-  }, [post]);
+  }, [post, editingPostId]); // Also depend on editingPostId to reset when modal opens
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.currentTarget.files?.[0];
@@ -192,7 +269,7 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
           justifyContent: 'space-between',
         }}
       >
-        <Typography variant="h6">Edit Post (ID: {editingPostId})</Typography>
+        Edit Post (ID: {editingPostId})
         {editingPostId && (
           <Tooltip title="View Public Post">
             <IconButton
@@ -298,16 +375,20 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                     input={<OutlinedInput size="small" />}
                     renderValue={(selected) => (
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {selected.map((id) => (
-                          <Chip
-                            key={id}
-                            label={
-                              categories.find((c) => c.id === id)?.name ||
-                              `ID: ${id}`
-                            }
-                            size="small"
-                          />
-                        ))}
+                        {selected
+                          .filter((id) => id != null)
+                          .map((id) => {
+                            const category = categories.find(
+                              (c) => c.id === id,
+                            );
+                            return (
+                              <Chip
+                                key={id}
+                                label={category?.name || `ID: ${id}`}
+                                size="small"
+                              />
+                            );
+                          })}
                       </Box>
                     )}
                     MenuProps={{
@@ -321,16 +402,20 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
                       updatePostMutation.isPending || areCategoriesLoading
                     }
                   >
-                    {categories.map((category) => (
-                      <MenuItem key={category.id} value={category.id}>
-                        <Checkbox
-                          checked={formik.values.categoryIds.includes(
-                            category.id,
-                          )}
-                        />
-                        <ListItemText primary={category.name} />
-                      </MenuItem>
-                    ))}
+                    {categories
+                      .filter(
+                        (category) => category && category.id && category.name,
+                      )
+                      .map((category) => (
+                        <MenuItem key={category.id} value={category.id}>
+                          <Checkbox
+                            checked={formik.values.categoryIds.includes(
+                              category.id,
+                            )}
+                          />
+                          <ListItemText primary={category.name} />
+                        </MenuItem>
+                      ))}
                   </Select>
                   {formik.touched.categoryIds && formik.errors.categoryIds && (
                     <Typography variant="caption" color="error">
@@ -424,6 +509,20 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
           )}
         </DialogContent>
         <DialogActions>
+          {hasChanges && (
+            <Box
+              sx={{
+                mr: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+              }}
+            >
+              <Typography variant="caption" color="warning.main">
+                Unsaved changes: {changedFieldsDisplay.join(', ')}
+              </Typography>
+            </Box>
+          )}
           <Button
             onClick={closeEditModal}
             color="inherit"
@@ -435,7 +534,9 @@ export const AdminPostEditModal: React.FC<AdminPostEditModalProps> = ({
             type="submit"
             variant="contained"
             color="primary"
-            disabled={updatePostMutation.isPending || isPostLoading}
+            disabled={
+              updatePostMutation.isPending || isPostLoading || !hasChanges
+            }
           >
             {updatePostMutation.isPending ? (
               <CircularProgress size={24} />

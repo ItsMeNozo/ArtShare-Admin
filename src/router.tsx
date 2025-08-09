@@ -1,46 +1,133 @@
+import { Box, CircularProgress } from '@mui/material';
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import AdminLayout from './components/layout/AdminLayout';
-import LoginPage from './features/auth/components/login';
-import BlogManagementPage from './features/blogs/BlogManagementPage';
-import CategoryManagementPage from './features/categories/CategoryManagementPage';
-import PostManagementPage from './features/posts';
-import ProfilePage from './features/profile/ProfilePage';
-import ReportManagementPage from './features/reports/ReportManagementPage';
-import StatisticsPage from './features/statistics';
-import StatisticDashboardPage from './features/statistics/AIStatistics';
-import Dashboard from './features/statistics/Dashboard';
-import UserManagementPage from './features/users';
 import ProtectedRoute from './lib/ProtectedRoute';
+
+const LoginPage = lazy(() => import('./features/auth/components/login'));
+const BlogManagementPage = lazy(
+  () => import('./features/blogs/BlogManagementPage'),
+);
+const CategoryManagementPage = lazy(
+  () => import('./features/categories/CategoryManagementPage'),
+);
+const PostManagementPage = lazy(() => import('./features/posts'));
+const ProfilePage = lazy(() => import('./features/profile/ProfilePage'));
+const ReportManagementPage = lazy(
+  () => import('./features/reports/ReportManagementPage'),
+);
+const StatisticsPage = lazy(() => import('./features/statistics'));
+const StatisticDashboardPage = lazy(
+  () => import('./features/statistics/AIStatistics'),
+);
+const Dashboard = lazy(() => import('./features/statistics/Dashboard'));
+const UserManagementPage = lazy(() => import('./features/users'));
+
+const LoadingFallback = () => (
+  <Box
+    sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '200px',
+    }}
+  >
+    <CircularProgress />
+  </Box>
+);
 
 export const router = createBrowserRouter([
   {
     path: '/login',
-    element: <LoginPage />,
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <LoginPage />
+      </Suspense>
+    ),
   },
   {
-    // This path will now be the parent for all admin routes
-    path: '/', // Or you could use a more specific base like "/admin" if you prefer
+    path: '/',
     element: (
       <ProtectedRoute>
-        <AdminLayout /> {/* AdminLayout is now protected */}
+        <AdminLayout />
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: <Dashboard /> }, // For path: '/admin'
-      { path: 'categories', element: <CategoryManagementPage /> },
-      { path: 'posts', element: <PostManagementPage /> },
-      { path: 'users', element: <UserManagementPage /> },
-      { path: 'statistics', element: <StatisticsPage /> },
-      { path: 'reports', element: <ReportManagementPage /> },
-      { path: 'ai', element: <StatisticDashboardPage /> },
-      { path: 'profile', element: <ProfilePage /> },
-      { path: 'blogs', element: <BlogManagementPage /> },
+      {
+        index: true,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <Dashboard />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'categories',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <CategoryManagementPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'posts',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <PostManagementPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'users',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <UserManagementPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'statistics',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <StatisticsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'reports',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <ReportManagementPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'ai',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <StatisticDashboardPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'profile',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <ProfilePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'blogs',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <BlogManagementPage />
+          </Suspense>
+        ),
+      },
     ],
   },
   {
-    // Catch-all or redirect for paths not matching login or admin layout
-    // This can be a 404 page or redirect to dashboard if authenticated, login if not.
-    // For simplicity, if you want to always go to /dashboard if not /login:
     path: '*',
     element: <Navigate to="/" replace />,
   },

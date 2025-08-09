@@ -14,24 +14,31 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { headCells } from '../constants/postsTable.constants';
 import { usePostsData } from '../context/PostsDataContext';
 import { usePostsUI } from '../context/PostsUIContext';
 import { SortableFields } from '../types/table.types';
 import AdminPostTableRow from './PostTableRow';
 
-export const PostsTable: React.FC = () => {
+const PostsTable: React.FC = () => {
   const theme = useTheme();
 
   const { posts, totalPosts, isLoading, error, tableControls } = usePostsData();
   const { selected, handleSelectAllClick } = usePostsUI();
 
-  const postIdsOnPage = posts.map((p) => p.id);
-  const numSelectedOnPage = selected.filter((id) =>
-    postIdsOnPage.includes(id),
-  ).length;
+  const postIdsOnPage = useMemo(() => posts.map((p) => p.id), [posts]);
+  const numSelectedOnPage = useMemo(
+    () => selected.filter((id) => postIdsOnPage.includes(id)).length,
+    [selected, postIdsOnPage],
+  );
   const rowCountOnPage = posts.length;
+
+  // Memoize rows to prevent unnecessary re-renders when selection changes
+  const memoizedRows = useMemo(
+    () => posts.map((post) => <AdminPostTableRow key={post.id} post={post} />),
+    [posts],
+  );
 
   return (
     <>
@@ -161,9 +168,7 @@ export const PostsTable: React.FC = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              posts.map((post) => (
-                <AdminPostTableRow key={post.id} post={post} />
-              ))
+              memoizedRows
             )}
           </TableBody>
         </Table>
@@ -182,4 +187,6 @@ export const PostsTable: React.FC = () => {
   );
 };
 
-export default PostsTable;
+const MemoizedPostsTable = React.memo(PostsTable);
+MemoizedPostsTable.displayName = 'PostsTable';
+export default MemoizedPostsTable;

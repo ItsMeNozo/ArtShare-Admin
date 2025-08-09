@@ -8,8 +8,9 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { COLORS, COLORS_POSTS } from './constants';
 import {
@@ -21,7 +22,6 @@ import {
 import api from '../../api/baseApi';
 import {
   PopularCategories,
-  PopularCategory,
   PopularCategorySortBy,
 } from '../../types/analytics';
 import AiEngagementChart from './components/AiEngagementChart';
@@ -36,17 +36,10 @@ import TimeToActionStats from './components/TimeToActionStats';
 
 const StatisticsPage: React.FC = () => {
   const theme = useTheme();
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({});
-  const [popularCategoriesData, setPopularCategoriesData] = useState<
-    PopularCategory[]
-  >([]);
   const [popularCategoriesLimit, setPopularCategoriesLimit] =
     useState<number>(5);
   const [popularCategoriesSortBy, setPopularCategoriesSortBy] =
     useState<PopularCategorySortBy>('postCount');
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [loadingPopular, setLoadingPopular] = useState<boolean>(false);
   const [timeSeriesDays, setTimeSeriesDays] = useState<number>(30);
 
   const fetchData = async <T,>(endpoint: string): Promise<T> => {
@@ -63,69 +56,73 @@ const StatisticsPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchAllData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [
-          userStats,
-          postStats,
-          postsByCategoryData,
-          platformWideStatsData,
-          usersOverTimeData,
-          postsOverTimeData,
-        ] = await Promise.all([
-          fetchData<AnalyticsData['userStats']>('overall-user-stats'),
-          fetchData<AnalyticsData['postStats']>('overall-post-stats'),
-          fetchData<AnalyticsData['postsByCategory']>('posts-by-category'),
-          fetchData<AnalyticsData['platformWideStats']>('platform-wide-stats'),
-          fetchData<AnalyticsData['usersOverTime']>(
-            `users-over-time?days=${timeSeriesDays}`,
-          ),
-          fetchData<AnalyticsData['postsOverTime']>(
-            `posts-over-time?days=${timeSeriesDays}`,
-          ),
-        ]);
-        setAnalyticsData({
-          userStats,
-          postStats,
-          postsByCategory: postsByCategoryData,
-          platformWideStats: platformWideStatsData,
-          usersOverTime: usersOverTimeData,
-          postsOverTime: postsOverTimeData,
-        });
-      } catch (err: any) {
-        setError(
-          err.message ||
-            'An unknown error occurred while fetching initial data',
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAllData();
-  }, [timeSeriesDays]);
+  // Main analytics data query
+  const {
+    data: analyticsData,
+    isLoading,
+    error: analyticsError,
+  } = useQuery<AnalyticsData>({
+    queryKey: ['analytics', 'main', timeSeriesDays],
+    queryFn: async () => {
+      const [
+        userStats,
+        postStats,
+        postsByCategoryData,
+        platformWideStatsData,
+        usersOverTimeData,
+        postsOverTimeData,
+      ] = await Promise.all([
+        fetchData<AnalyticsData['userStats']>('overall-user-stats'),
+        fetchData<AnalyticsData['postStats']>('overall-post-stats'),
+        fetchData<AnalyticsData['postsByCategory']>('posts-by-category'),
+        fetchData<AnalyticsData['platformWideStats']>('platform-wide-stats'),
+        fetchData<AnalyticsData['usersOverTime']>(
+          `users-over-time?days=${timeSeriesDays}`,
+        ),
+        fetchData<AnalyticsData['postsOverTime']>(
+          `posts-over-time?days=${timeSeriesDays}`,
+        ),
+      ]);
+      return {
+        userStats,
+        postStats,
+        postsByCategory: postsByCategoryData,
+        platformWideStats: platformWideStatsData,
+        usersOverTime: usersOverTimeData,
+        postsOverTime: postsOverTimeData,
+      };
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+  });
 
-  useEffect(() => {
-    const fetchPopularCategories = async () => {
-      setLoadingPopular(true);
-      try {
-        const data = await fetchData<PopularCategories>(
-          `popular-categories?limit=${popularCategoriesLimit}&sortBy=${popularCategoriesSortBy}`,
-        );
-        setPopularCategoriesData(data.data);
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch popular categories');
-        setPopularCategoriesData([]);
-      } finally {
-        setLoadingPopular(false);
-      }
-    };
-    fetchPopularCategories();
-  }, [popularCategoriesLimit, popularCategoriesSortBy]);
+  // Popular categories query
+  const {
+    data: popularCategoriesData = [],
+    isLoading: loadingPopular,
+    error: popularError,
+  } = useQuery({
+    queryKey: [
+      'analytics',
+      'popular-categories',
+      popularCategoriesLimit,
+      popularCategoriesSortBy,
+    ],
+    queryFn: () =>
+      fetchData<PopularCategories>(
+        `popular-categories?limit=${popularCategoriesLimit}&sortBy=${popularCategoriesSortBy}`,
+      ).then((data) => data.data),
+    staleTime: 3 * 60 * 1000, // Cache for 3 minutes
+    gcTime: 8 * 60 * 1000, // Keep in cache for 8 minutes
+    refetchOnWindowFocus: false,
+  });
+
+  const error = analyticsError?.message || popularError?.message || null;
+  const hasInitialData = Boolean(analyticsData?.userStats);
 
   const combinedGrowthChartData = useMemo((): CombinedTimePoint[] => {
+    if (!analyticsData) return [];
     const usersMap = new Map<string, number>();
     analyticsData.usersOverTime?.data.forEach((p) =>
       usersMap.set(p.date, p.count),
@@ -146,10 +143,10 @@ const StatisticsPage: React.FC = () => {
       users: usersMap.get(date),
       posts: postsMap.get(date),
     }));
-  }, [analyticsData.usersOverTime, analyticsData.postsOverTime]);
+  }, [analyticsData?.usersOverTime, analyticsData?.postsOverTime]);
 
   const overallUserChartData = useMemo((): PieChartDataItem[] => {
-    if (!analyticsData.userStats) return [];
+    if (!analyticsData?.userStats) return [];
     return [
       { name: 'Onboarded', value: analyticsData.userStats.onboardedUsers },
       {
@@ -159,10 +156,10 @@ const StatisticsPage: React.FC = () => {
           analyticsData.userStats.onboardedUsers,
       },
     ].filter((item) => item.value > 0);
-  }, [analyticsData.userStats]);
+  }, [analyticsData?.userStats]);
 
   const overallPostChartData = useMemo(() => {
-    if (!analyticsData.postStats)
+    if (!analyticsData?.postStats)
       return { publishedVsDraft: [], aiVsHuman: [] };
     return {
       publishedVsDraft: [
@@ -179,15 +176,15 @@ const StatisticsPage: React.FC = () => {
         },
       ].filter((item) => item.value > 0),
     };
-  }, [analyticsData.postStats]);
+  }, [analyticsData?.postStats]);
 
   const postsByCategoryChartData = useMemo(() => {
     return (
-      analyticsData.postsByCategory?.data
+      analyticsData?.postsByCategory?.data
         .slice(0, 10)
         .map((cat) => ({ name: cat.categoryName, posts: cat.postCount })) || []
     );
-  }, [analyticsData.postsByCategory]);
+  }, [analyticsData?.postsByCategory]);
 
   const popularCategoriesPieChartData = useMemo((): PieChartDataItem[] => {
     const data = popularCategoriesData.map((cat) => ({
@@ -203,17 +200,17 @@ const StatisticsPage: React.FC = () => {
   }, [popularCategoriesData, popularCategoriesSortBy]);
 
   const contentFunnelChartData = useMemo(() => {
-    if (!analyticsData.platformWideStats?.contentFunnel) return [];
+    if (!analyticsData?.platformWideStats?.contentFunnel) return [];
     const funnel = analyticsData.platformWideStats.contentFunnel;
     return [
       { name: 'Posted', value: funnel.usersWhoPostedCount },
       { name: 'Viewed', value: funnel.postsWithViewsCount },
       { name: 'Engaged', value: funnel.postsWithEngagementCount },
     ].filter((item) => item.value > 0);
-  }, [analyticsData.platformWideStats?.contentFunnel]);
+  }, [analyticsData?.platformWideStats?.contentFunnel]);
 
   const aiEngagementChartData = useMemo(() => {
-    if (!analyticsData.platformWideStats?.aiContentEngagement) return [];
+    if (!analyticsData?.platformWideStats?.aiContentEngagement) return [];
     const ai = analyticsData.platformWideStats.aiContentEngagement;
     return [
       {
@@ -227,10 +224,11 @@ const StatisticsPage: React.FC = () => {
         humanValue: ai.averageCommentsNonAiPosts,
       },
     ].filter((item) => item.aiValue > 0 || item.humanValue > 0);
-  }, [analyticsData.platformWideStats?.aiContentEngagement]);
+  }, [analyticsData?.platformWideStats?.aiContentEngagement]);
 
   const followerEngagementChartData = useMemo(() => {
-    if (!analyticsData.platformWideStats?.followerEngagementInsights) return [];
+    if (!analyticsData?.platformWideStats?.followerEngagementInsights)
+      return [];
     return analyticsData.platformWideStats.followerEngagementInsights.map(
       (tier) => ({
         name: tier.tierDescription,
@@ -238,27 +236,56 @@ const StatisticsPage: React.FC = () => {
         avgComments: tier.averageCommentsPerPost,
       }),
     );
-  }, [analyticsData.platformWideStats?.followerEngagementInsights]);
+  }, [analyticsData?.platformWideStats?.followerEngagementInsights]);
 
   const planContentChartData = useMemo(() => {
-    if (!analyticsData.platformWideStats?.planContentInsights) return [];
+    if (!analyticsData?.platformWideStats?.planContentInsights) return [];
     return analyticsData.platformWideStats.planContentInsights.map((plan) => ({
       name: plan.planName,
       avgPostsPerUser: plan.averagePostsPerUserOnPlan,
       avgLikes: plan.averageLikesPerPostByUsersOnPlan,
       avgComments: plan.averageCommentsPerPostByUsersOnPlan,
     }));
-  }, [analyticsData.platformWideStats?.planContentInsights]);
+  }, [analyticsData?.platformWideStats?.planContentInsights]);
 
-  if (loading) {
+  if (isLoading && !hasInitialData) {
     return (
-      <Box className="flex justify-center items-center h-screen">
-        <CircularProgress />
-      </Box>
+      <Container
+        maxWidth="xl"
+        sx={{ px: { xs: 1, md: 4 }, py: { xs: 2, md: 4 } }}
+      >
+        <Paper
+          sx={{
+            p: { xs: 1.5, sm: 2, md: 3 },
+            m: { xs: 0.5, sm: 1, md: 2 },
+            backgroundColor: theme.palette.background.paper,
+          }}
+        >
+          <Typography
+            variant="h5"
+            component="h1"
+            gutterBottom
+            className="mb-6 font-bold text-gray-800"
+          >
+            Analytics
+          </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: '400px',
+            }}
+          >
+            <CircularProgress />
+            <Typography sx={{ ml: 2 }}>Loading analytics data...</Typography>
+          </Box>
+        </Paper>
+      </Container>
     );
   }
 
-  if (error && !analyticsData.userStats) {
+  if (error && !hasInitialData) {
     return (
       <Container maxWidth="lg" className="py-8">
         <Alert severity="error" className="w-full">
@@ -289,9 +316,15 @@ const StatisticsPage: React.FC = () => {
           Analytics
         </Typography>
 
-        {error && analyticsData.userStats && (
+        {error && hasInitialData && (
           <Alert severity="warning" className="w-full mb-4">
             Error fetching some data: {error}. Some charts might be incomplete.
+          </Alert>
+        )}
+
+        {isLoading && hasInitialData && (
+          <Alert severity="info" className="w-full mb-4">
+            Refreshing data...
           </Alert>
         )}
 
@@ -310,7 +343,7 @@ const StatisticsPage: React.FC = () => {
                 data={combinedGrowthChartData}
                 timeSeriesDays={timeSeriesDays}
                 onTimeSeriesDaysChange={setTimeSeriesDays}
-                loading={loading}
+                loading={isLoading}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -364,7 +397,7 @@ const StatisticsPage: React.FC = () => {
         </Box>
 
         {/* Detailed Platform Insights Section */}
-        {analyticsData.platformWideStats && (
+        {analyticsData?.platformWideStats && (
           <Box>
             <Typography
               variant="h6"
@@ -384,11 +417,11 @@ const StatisticsPage: React.FC = () => {
               <Grid size={{ xs: 12, md: 6, lg: 3 }}>
                 <TimeToActionStats
                   avgHoursSignupToFirstPost={
-                    analyticsData.platformWideStats.timeToAction
+                    analyticsData?.platformWideStats?.timeToAction
                       .avgHoursSignupToFirstPost ?? undefined
                   }
                   avgHoursPostToFirstInteraction={
-                    analyticsData.platformWideStats.timeToAction
+                    analyticsData?.platformWideStats?.timeToAction
                       .avgHoursPostToFirstInteraction ?? undefined
                   }
                 />

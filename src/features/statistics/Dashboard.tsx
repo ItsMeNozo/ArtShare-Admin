@@ -30,9 +30,11 @@ import {
 } from '@mui/material';
 import { AxiosError } from 'axios';
 import { isAfter, parseISO, subDays } from 'date-fns';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import api from '../../api/baseApi';
+import { CACHE_DURATION_MS } from '../../constants/app-config';
 import { useAuth } from '../../contexts/AuthContext';
 import { StripeIncomeCard } from './components/StripeIncomeCard';
 import { TopAIPosts } from './components/TopAIPosts';
@@ -57,46 +59,52 @@ type StatisticsData = {
 };
 
 /* ---------- Re-usable tile ---------- */
-const SummaryTile = ({
-  icon,
-  label,
-  value,
-  to,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: number | string;
-  to?: string;
-}) => {
-  const navigate = useNavigate();
-  return (
-    <Card
-      onClick={to ? () => navigate(to) : undefined}
-      sx={{
-        p: 3,
-        textAlign: 'center',
-        height: '100%',
-        cursor: to ? 'pointer' : 'default',
-        '&:hover': to ? { boxShadow: 6 } : undefined,
-      }}
-    >
-      <Avatar sx={{ mb: 1, bgcolor: 'primary.main', mx: 'auto' }}>
-        {icon}
-      </Avatar>
-      <Typography variant="h5" fontWeight={700}>
-        {typeof value === 'number' ? value.toLocaleString() : value}
-      </Typography>
-      <Typography variant="caption" color="text.secondary">
-        {label}
-      </Typography>
-    </Card>
-  );
-};
+const SummaryTile = memo(
+  ({
+    icon,
+    label,
+    value,
+    to,
+  }: {
+    icon: React.ReactNode;
+    label: string;
+    value: number | string;
+    to?: string;
+  }) => {
+    const navigate = useNavigate();
+    const handleClick = useCallback(() => {
+      if (to) navigate(to);
+    }, [to, navigate]);
+
+    return (
+      <Card
+        onClick={handleClick}
+        sx={{
+          p: 3,
+          textAlign: 'center',
+          height: '100%',
+          cursor: to ? 'pointer' : 'default',
+          '&:hover': to ? { boxShadow: 6 } : undefined,
+        }}
+      >
+        <Avatar sx={{ mb: 1, bgcolor: 'primary.main', mx: 'auto' }}>
+          {icon}
+        </Avatar>
+        <Typography variant="h5" fontWeight={700}>
+          {typeof value === 'number' ? value.toLocaleString() : value}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {label}
+        </Typography>
+      </Card>
+    );
+  },
+);
 
 /* ============================================================= */
 /*                       MAIN COMPONENT                          */
 /* ============================================================= */
-export default function StatisticDashboardPage() {
+const StatisticDashboardPage = memo(() => {
   /* ---------- Color-mode state ---------- */
 
   /* ---------- MUI theme ---------- */
@@ -110,6 +118,8 @@ export default function StatisticDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stripeData, setStripeData] = useState<StripeData | null>(null);
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0);
+  const [lastFilter, setLastFilter] = useState<'all' | 'last7'>('all');
   const { user } = useAuth();
 
   const stripeDashboardUrl =
@@ -119,6 +129,18 @@ export default function StatisticDashboardPage() {
   /* ---------- Fetch ---------- */
   useEffect(() => {
     const fetchAll = async () => {
+      const now = Date.now();
+      const shouldSkipFetch =
+        statisticsData &&
+        stripeData &&
+        statsFilter === lastFilter &&
+        now - lastFetchTime < CACHE_DURATION_MS;
+
+      if (shouldSkipFetch) {
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError(null);
       const daysQuery = statsFilter === 'last7' ? '?days=7' : '';
@@ -129,6 +151,8 @@ export default function StatisticDashboardPage() {
         ]);
         setStatisticsData(statsRes.data);
         setStripeData(stripeRes.data);
+        setLastFetchTime(now);
+        setLastFilter(statsFilter);
       } catch (err) {
         const axiosError = err as AxiosError;
         setError(
@@ -141,7 +165,7 @@ export default function StatisticDashboardPage() {
       }
     };
     fetchAll();
-  }, [statsFilter]);
+  }, [statsFilter, statisticsData, stripeData, lastFilter, lastFetchTime]);
 
   /* ---------- Derived ---------- */
   const processed = useMemo(() => {
@@ -221,213 +245,237 @@ export default function StatisticDashboardPage() {
       />
     </ThemeProvider>
   );
-}
+});
+
+export default StatisticDashboardPage;
 
 /* ---------- Separate child so we can use useTheme easily ---------- */
-function DashboardContent({
-  processed,
-  statsFilter,
-  setStatsFilter,
-  topPostsFiltered,
-  stripeData,
-  stripeDashboardUrl,
-  userName,
-}: any) {
-  const navigate = useNavigate();
-  return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 6 }}>
-      <Container maxWidth="xl">
-        {/* Header & filter */}
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 1,
-          }}
-        >
-          <Typography variant="h4" fontWeight={700} mb={3} color="text.primary">
-            Dashboard
+const DashboardContent = memo(
+  ({
+    processed,
+    statsFilter,
+    setStatsFilter,
+    topPostsFiltered,
+    stripeData,
+    stripeDashboardUrl,
+    userName,
+  }: any) => {
+    const navigate = useNavigate();
+
+    const handleFilterChange = useCallback(
+      (_: any, value: any) => {
+        if (value) setStatsFilter(value);
+      },
+      [setStatsFilter],
+    );
+
+    const handleReportClick = useCallback(
+      (reportId: string) => {
+        navigate('/reports', {
+          state: { report_id: reportId },
+        });
+      },
+      [navigate],
+    );
+
+    const handleSeeAllReports = useCallback(() => {
+      navigate('/reports');
+    }, [navigate]);
+
+    return (
+      <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 6 }}>
+        <Container maxWidth="xl">
+          {/* Header & filter */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 1,
+            }}
+          >
+            <Typography
+              variant="h4"
+              fontWeight={700}
+              mb={3}
+              color="text.primary"
+            >
+              Dashboard
+            </Typography>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <ToggleButtonGroup
+                size="small"
+                value={statsFilter}
+                exclusive
+                onChange={handleFilterChange}
+              >
+                <ToggleButton value="all">All-time</ToggleButton>
+                <ToggleButton value="last7">Last 7 Days</ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          </Box>
+
+          {/* Greeting */}
+          <Typography
+            variant="h6"
+            mb={3}
+            color="text.primary" // ✅ add this prop
+          >
+            Welcome back, {userName || 'Admin'}
           </Typography>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <ToggleButtonGroup
-              size="small"
-              value={statsFilter}
-              exclusive
-              onChange={(_, v) => v && setStatsFilter(v)}
-            >
-              <ToggleButton value="all">All-time</ToggleButton>
-              <ToggleButton value="last7">Last 7 Days</ToggleButton>
-            </ToggleButtonGroup>
-          </Box>
-        </Box>
-
-        {/* Greeting */}
-        <Typography
-          variant="h6"
-          mb={3}
-          color="text.primary" // ✅ add this prop
-        >
-          Welcome back, {userName || 'Admin'}
-        </Typography>
-
-        {/* Summary tiles */}
-        <Grid container spacing={3} mb={4}>
-          <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <SummaryTile
-              icon={<AutoAwesomeIcon />}
-              label="Total Posts"
-              value={processed.postsCount}
-              to="/posts"
-            />
-          </Grid>
-          <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <SummaryTile
-              icon={<ArticleIcon />}
-              label="Total Blogs"
-              value={processed.blogsCount}
-              to="/blogs"
-            />
-          </Grid>
-          <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <SummaryTile
-              icon={<AddPhotoAlternateIcon />}
-              label="AI Images"
-              value={processed.imagesCount}
-              to="/posts?ai_created=true"
-            />
-          </Grid>
-          <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <SummaryTile
-              icon={<TimelineIcon />}
-              label="Tokens Used"
-              value={processed.tokensCount}
-              to="/ai"
-            />
-          </Grid>
-
-          {/* Stripe income card sits in the grid so it re-flows nicely */}
-          {stripeData && (
-            <Grid size={{ xs: 12, md: 4 }}>
-              <StripeIncomeCard
-                totalIncome={stripeData.totalIncome}
-                period={stripeData.period}
-                currency={stripeData.currency}
-                dailyData={stripeData.dailyBreakdown}
-                stripeDashboardUrl={stripeDashboardUrl}
+          {/* Summary tiles */}
+          <Grid container spacing={3} mb={4}>
+            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+              <SummaryTile
+                icon={<AutoAwesomeIcon />}
+                label="Total Posts"
+                value={processed.postsCount}
+                to="/posts"
               />
             </Grid>
-          )}
-        </Grid>
-
-        {/* Reports & Top posts */}
-        <Grid container spacing={3}>
-          {/* Recent reports */}
-          <Grid size={{ xs: 12, md: 4 }} sx={{ height: 'fit-content' }}>
-            <Card sx={{ height: '100%' }}>
-              <CardHeader
-                title={
-                  <Typography fontWeight={600}>
-                    Recent reports to action
-                  </Typography>
-                }
+            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+              <SummaryTile
+                icon={<ArticleIcon />}
+                label="Total Blogs"
+                value={processed.blogsCount}
+                to="/blogs"
               />
-              <CardContent>
-                {processed.recentReports.length ? (
-                  <List disablePadding>
-                    {processed.recentReports.map((r: any) => (
-                      <ListItem
-                        key={r.id}
-                        sx={{
-                          px: 1.5,
-                          py: 1,
-                          borderRadius: 2,
-                          '&:hover': {
-                            bgcolor: 'action.hover',
-                            cursor: 'pointer',
-                          },
-                        }}
-                        onClick={() => {
-                          navigate('/reports', {
-                            state: {
-                              report_id: r.id,
+            </Grid>
+            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+              <SummaryTile
+                icon={<AddPhotoAlternateIcon />}
+                label="AI Images"
+                value={processed.imagesCount}
+                to="/posts?ai_created=true"
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+              <SummaryTile
+                icon={<TimelineIcon />}
+                label="Tokens Used"
+                value={processed.tokensCount}
+                to="/ai"
+              />
+            </Grid>
+
+            {/* Stripe income card sits in the grid so it re-flows nicely */}
+            {stripeData && (
+              <Grid size={{ xs: 12, md: 4 }}>
+                <StripeIncomeCard
+                  totalIncome={stripeData.totalIncome}
+                  period={stripeData.period}
+                  currency={stripeData.currency}
+                  dailyData={stripeData.dailyBreakdown}
+                  stripeDashboardUrl={stripeDashboardUrl}
+                />
+              </Grid>
+            )}
+          </Grid>
+
+          {/* Reports & Top posts */}
+          <Grid container spacing={3}>
+            {/* Recent reports */}
+            <Grid size={{ xs: 12, md: 4 }} sx={{ height: 'fit-content' }}>
+              <Card sx={{ height: '100%' }}>
+                <CardHeader
+                  title={
+                    <Typography fontWeight={600}>
+                      Recent reports to action
+                    </Typography>
+                  }
+                />
+                <CardContent>
+                  {processed.recentReports.length ? (
+                    <List disablePadding>
+                      {processed.recentReports.map((r: any) => (
+                        <ListItem
+                          key={r.id}
+                          sx={{
+                            px: 1.5,
+                            py: 1,
+                            borderRadius: 2,
+                            '&:hover': {
+                              bgcolor: 'action.hover',
+                              cursor: 'pointer',
                             },
-                          });
-                        }}
-                      >
-                        {/*  reporter avatar  */}
-                        <ListItemAvatar>
-                          <Avatar sx={{ bgcolor: 'primary.light' }}>
-                            <PersonIcon fontSize="small" />
-                          </Avatar>
-                        </ListItemAvatar>
+                          }}
+                          onClick={() => handleReportClick(r.id)}
+                        >
+                          {/*  reporter avatar  */}
+                          <ListItemAvatar>
+                            <Avatar sx={{ bgcolor: 'primary.light' }}>
+                              <PersonIcon fontSize="small" />
+                            </Avatar>
+                          </ListItemAvatar>
 
-                        {/*  id and reason  */}
-                        <ListItemText
-                          primary={
-                            <Typography variant="body2" fontWeight={600} noWrap>
-                              {r?.username || r?.reporter_id || 'No username'}
-                            </Typography>
-                          }
-                          secondary={
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                              sx={{
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                lineHeight: 1.2,
-                              }}
-                            >
-                              {r.reason}
-                            </Typography>
-                          }
-                          sx={{ mr: 1, flex: 1 }}
-                        />
+                          {/*  id and reason  */}
+                          <ListItemText
+                            primary={
+                              <Typography
+                                variant="body2"
+                                fontWeight={600}
+                                noWrap
+                              >
+                                {r?.username || r?.reporter_id || 'No username'}
+                              </Typography>
+                            }
+                            secondary={
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  lineHeight: 1.2,
+                                }}
+                              >
+                                {r.reason}
+                              </Typography>
+                            }
+                            sx={{ mr: 1, flex: 1 }}
+                          />
 
-                        {/*  status chip  */}
-                        <Chip
-                          label={r.status}
-                          size="small"
-                          color={r.status === 'PENDING' ? 'warning' : 'success'}
-                          variant="outlined"
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                ) : (
-                  <Typography variant="body2" color="text.secondary">
-                    No reports
-                  </Typography>
-                )}
+                          {/*  status chip  */}
+                          <Chip
+                            label={r.status}
+                            size="small"
+                            color={
+                              r.status === 'PENDING' ? 'warning' : 'success'
+                            }
+                            variant="outlined"
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No reports
+                    </Typography>
+                  )}
 
-                <Box mt={2} textAlign="right">
-                  <Button
-                    onClick={() => {
-                      navigate('/reports');
-                    }}
-                  >
-                    See all
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
+                  <Box mt={2} textAlign="right">
+                    <Button onClick={handleSeeAllReports}>See all</Button>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Top posts */}
+            <Grid size={{ xs: 12, md: 8 }}>
+              <TopAIPosts
+                posts={topPostsFiltered}
+                filter={statsFilter}
+                showSeeAllButton={true}
+              />
+            </Grid>
           </Grid>
-
-          {/* Top posts */}
-          <Grid size={{ xs: 12, md: 8 }}>
-            <TopAIPosts
-              posts={topPostsFiltered}
-              filter={statsFilter}
-              showSeeAllButton={true}
-            />
-          </Grid>
-        </Grid>
-      </Container>
-    </Box>
-  );
-}
+        </Container>
+      </Box>
+    );
+  },
+);

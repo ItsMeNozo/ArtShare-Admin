@@ -46,6 +46,18 @@ export const adminUpdatePost = async (
   postId: number,
   updateData: FormData,
 ): Promise<PostDetailsResponseDto> => {
+  const { data } = await api.patch(`/posts/admin/${postId}`, updateData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return data;
+};
+
+export const adminUpdatePostPartial = async (
+  postId: number,
+  updateData: Record<string, any>,
+): Promise<PostDetailsResponseDto> => {
   const { data } = await api.patch(`/posts/admin/${postId}`, updateData);
   return data;
 };
