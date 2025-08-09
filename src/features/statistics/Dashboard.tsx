@@ -32,7 +32,9 @@ import { AxiosError } from 'axios';
 import { isAfter, parseISO, subDays } from 'date-fns';
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import api from '../../api/baseApi';
+import { CACHE_DURATION_MS } from '../../constants/app-config';
 import { useAuth } from '../../contexts/AuthContext';
 import { StripeIncomeCard } from './components/StripeIncomeCard';
 import { TopAIPosts } from './components/TopAIPosts';
@@ -120,8 +122,6 @@ const StatisticDashboardPage = memo(() => {
   const [lastFilter, setLastFilter] = useState<'all' | 'last7'>('all');
   const { user } = useAuth();
 
-  const CACHE_DURATION = 5 * 60 * 1000;
-
   const stripeDashboardUrl =
     import.meta.env.VITE_STRIPE_DASHBOARD_URL ||
     'https://dashboard.stripe.com/test/dashboard';
@@ -134,7 +134,7 @@ const StatisticDashboardPage = memo(() => {
         statisticsData &&
         stripeData &&
         statsFilter === lastFilter &&
-        now - lastFetchTime < CACHE_DURATION;
+        now - lastFetchTime < CACHE_DURATION_MS;
 
       if (shouldSkipFetch) {
         setLoading(false);
@@ -165,14 +165,7 @@ const StatisticDashboardPage = memo(() => {
       }
     };
     fetchAll();
-  }, [
-    statsFilter,
-    statisticsData,
-    stripeData,
-    lastFilter,
-    lastFetchTime,
-    CACHE_DURATION,
-  ]);
+  }, [statsFilter, statisticsData, stripeData, lastFilter, lastFetchTime]);
 
   /* ---------- Derived ---------- */
   const processed = useMemo(() => {

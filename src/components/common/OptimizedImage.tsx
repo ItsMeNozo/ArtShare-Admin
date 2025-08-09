@@ -1,6 +1,8 @@
 import { Avatar, Skeleton } from '@mui/material';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import { INTERSECTION_OBSERVER_THRESHOLD } from '../../constants/app-config';
+
 interface OptimizedImageProps {
   src?: string;
   alt: string;
@@ -36,7 +38,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = React.memo(
             observer.disconnect();
           }
         },
-        { threshold: 0.1 },
+        { threshold: INTERSECTION_OBSERVER_THRESHOLD },
       );
 
       if (imgRef.current) {
@@ -48,7 +50,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = React.memo(
 
     // Generate optimized image URL based on size
     const getOptimizedSrc = (originalSrc: string) => {
-      if (!originalSrc) return fallback;
+      if (!originalSrc) return fallback ?? '';
 
       // Add loading="lazy" optimization for images in tables
       // If using a CDN like Cloudinary, you can add transformation parameters
