@@ -41,7 +41,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import ReportIcon from '@mui/icons-material/Report'; // For Report Management
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 
-import { Person } from '@mui/icons-material';
+import { Person, PhotoLibrary } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCustomTheme } from '../../contexts/ThemeContext';
 import AdminNotificationUI from '../../features/notifications/AdminNotificationUI';
@@ -175,7 +175,7 @@ const AdminLayout = memo(() => {
       },
       {
         text: 'Post Management',
-        icon: <ArticleIcon />,
+        icon: <PhotoLibrary />,
         path: '/posts',
         section: 'MANAGEMENT',
         badge: undefined,

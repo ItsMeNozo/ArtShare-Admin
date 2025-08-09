@@ -1,6 +1,5 @@
 import { MoreVert as MoreVertIcon } from '@mui/icons-material';
 import {
-  Avatar,
   Box,
   Checkbox,
   Chip,
@@ -12,6 +11,8 @@ import {
 } from '@mui/material';
 import { format } from 'date-fns';
 import React from 'react';
+
+import { OptimizedImage } from '../../../components/common/OptimizedImage';
 
 import { usePostsUI } from '../context/PostsUIContext';
 import { PostListItemDto } from '../types/post-api.types';
@@ -69,12 +70,16 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
 
       <TableCell>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Avatar
-            src={post.thumbnailUrl}
-            alt={post.title}
-            variant="rounded"
-            sx={{ width: 48, height: 48 }}
-          />
+          <Box
+            sx={{ width: 48, height: 48, borderRadius: 1, overflow: 'hidden' }}
+          >
+            <OptimizedImage
+              src={post.thumbnailUrl}
+              alt={post.title}
+              size={48}
+              lazy={true}
+            />
+          </Box>
           <Tooltip title={post.title}>
             <Typography
               variant="body2"
@@ -89,12 +94,12 @@ const PostTableRow: React.FC<PostTableRowProps> = React.memo(({ post }) => {
 
       <TableCell>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {post.user.profilePictureUrl && (
-            <Avatar
-              src={post.user.profilePictureUrl}
-              sx={{ width: 24, height: 24 }}
-            />
-          )}
+          <OptimizedImage
+            src={post.user.profilePictureUrl || undefined}
+            alt={post.user.username}
+            size={24}
+            lazy={true}
+          />
           <Tooltip title={post.user.username}>
             <Typography variant="body2" noWrap>
               {post.user.username}
