@@ -8,6 +8,7 @@ import {
 import {
   adminDeletePost,
   adminUpdatePost,
+  adminUpdatePostPartial,
   bulkDeleteAdminPosts,
   fetchAdminPostDetails,
   fetchAdminPosts,
@@ -48,21 +49,41 @@ export const useGetAdminPostById = (
     queryKey: postKeys.detail(postId),
     queryFn: () => fetchAdminPostDetails(postId),
     enabled: !!postId,
+    staleTime: 0, // Always consider data stale for edit modal to get fresh data
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 };
 
 export const useUpdateAdminPost = (): UseMutationResult<
   PostDetailsResponseDto,
   Error,
-  { id: number; data: FormData },
+  { id: number; data: FormData | Record<string, any> },
   unknown
 > => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: FormData }) =>
-      adminUpdatePost(id, data),
-    onSuccess: (_data, { id }) => {
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: FormData | Record<string, any>;
+    }) => {
+      // Use appropriate API based on data type
+      if (data instanceof FormData) {
+        return adminUpdatePost(id, data);
+      } else {
+        return adminUpdatePostPartial(id, data);
+      }
+    },
+    onSuccess: (updatedPost, { id }) => {
+      // Update the specific post detail cache with fresh data
+      queryClient.setQueryData(postKeys.detail(id), updatedPost);
+
+      // Invalidate and refetch the lists to ensure consistency
       queryClient.invalidateQueries({ queryKey: postKeys.lists() });
+
+      // Also invalidate the specific detail query to ensure next fetch is fresh
       queryClient.invalidateQueries({ queryKey: postKeys.detail(id) });
     },
   });
