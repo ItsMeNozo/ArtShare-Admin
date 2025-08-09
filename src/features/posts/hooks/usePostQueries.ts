@@ -49,7 +49,7 @@ export const useGetAdminPostById = (
     queryKey: postKeys.detail(postId),
     queryFn: () => fetchAdminPostDetails(postId),
     enabled: !!postId,
-    staleTime: 0, // Always consider data stale for edit modal to get fresh data
+    staleTime: 2 * 60 * 1000, // Cache for 2 minutes to improve performance
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 };
