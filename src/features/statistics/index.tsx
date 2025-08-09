@@ -47,6 +47,7 @@ const StatisticsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [loadingPopular, setLoadingPopular] = useState<boolean>(false);
+  const [hasInitialData, setHasInitialData] = useState<boolean>(false);
   const [timeSeriesDays, setTimeSeriesDays] = useState<number>(30);
 
   const fetchData = async <T,>(endpoint: string): Promise<T> => {
@@ -95,6 +96,7 @@ const StatisticsPage: React.FC = () => {
           usersOverTime: usersOverTimeData,
           postsOverTime: postsOverTimeData,
         });
+        setHasInitialData(true);
       } catch (err: any) {
         setError(
           err.message ||
@@ -250,15 +252,44 @@ const StatisticsPage: React.FC = () => {
     }));
   }, [analyticsData.platformWideStats?.planContentInsights]);
 
-  if (loading) {
+  if (loading && !hasInitialData) {
     return (
-      <Box className="flex justify-center items-center h-screen">
-        <CircularProgress />
-      </Box>
+      <Container
+        maxWidth="xl"
+        sx={{ px: { xs: 1, md: 4 }, py: { xs: 2, md: 4 } }}
+      >
+        <Paper
+          sx={{
+            p: { xs: 1.5, sm: 2, md: 3 },
+            m: { xs: 0.5, sm: 1, md: 2 },
+            backgroundColor: theme.palette.background.paper,
+          }}
+        >
+          <Typography
+            variant="h5"
+            component="h1"
+            gutterBottom
+            className="mb-6 font-bold text-gray-800"
+          >
+            Analytics
+          </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: '400px',
+            }}
+          >
+            <CircularProgress />
+            <Typography sx={{ ml: 2 }}>Loading analytics data...</Typography>
+          </Box>
+        </Paper>
+      </Container>
     );
   }
 
-  if (error && !analyticsData.userStats) {
+  if (error && !hasInitialData) {
     return (
       <Container maxWidth="lg" className="py-8">
         <Alert severity="error" className="w-full">
@@ -289,9 +320,15 @@ const StatisticsPage: React.FC = () => {
           Analytics
         </Typography>
 
-        {error && analyticsData.userStats && (
+        {error && hasInitialData && (
           <Alert severity="warning" className="w-full mb-4">
             Error fetching some data: {error}. Some charts might be incomplete.
+          </Alert>
+        )}
+
+        {loading && hasInitialData && (
+          <Alert severity="info" className="w-full mb-4">
+            Refreshing data...
           </Alert>
         )}
 
