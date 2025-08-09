@@ -332,8 +332,12 @@ const AdminLayout = memo(() => {
               <ListItemIcon
                 sx={{
                   minWidth: 0,
-                  mr: open ? 2 : 'auto',
+                  mr: open ? 2 : 0,
+                  ml: open ? 0 : 'auto',
                   justifyContent: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: open ? 'auto' : '100%',
                   color: isSelected
                     ? theme.palette.primary.main
                     : theme.palette.action.disabled,
