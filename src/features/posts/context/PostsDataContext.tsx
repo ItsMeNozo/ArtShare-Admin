@@ -6,7 +6,6 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { useDebounce } from '../../../common/hooks/useDebounce';
 import { Order } from '../../users/types';
 import { useGetAdminPosts } from '../hooks/usePostQueries';
@@ -53,22 +52,6 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [aiCreated, setAiCreated] = useState<boolean | null>(null);
-
-  const [params] = useSearchParams();
-
-  useEffect(() => {
-    const aiCreatedParam = params.get('ai_created');
-
-    if (aiCreatedParam === 'true') {
-      setAiCreated(true);
-      setPage(0);
-    } else if (aiCreatedParam === 'false') {
-      setAiCreated(false);
-      setPage(0);
-    } else {
-      setAiCreated(null);
-    }
-  }, [params]);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
