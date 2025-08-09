@@ -80,25 +80,77 @@ const PlatformGrowthChart: React.FC<PlatformGrowthChartProps> = ({
                 dataKey="date"
                 tickFormatter={(tick) => format(parseISO(tick), 'MMM d')}
               />
-              <YAxis yAxisId="left" allowDecimals={false} />
+              <YAxis
+                yAxisId="left"
+                allowDecimals={false}
+                label={{
+                  value: 'Total Users',
+                  angle: -90,
+                  position: 'insideLeft',
+                  style: {
+                    textAnchor: 'middle',
+                    fill: '#794e7b',
+                    fontWeight: 500,
+                  },
+                }}
+                tick={{ fill: '#794e7b' }}
+              />
               <YAxis
                 yAxisId="right"
                 orientation="right"
                 allowDecimals={false}
+                label={{
+                  value: 'Total Posts',
+                  angle: 90,
+                  position: 'insideRight',
+                  style: {
+                    textAnchor: 'middle',
+                    fill: '#0477a0',
+                    fontWeight: 500,
+                  },
+                }}
+                tick={{ fill: '#0477a0' }}
               />
               <Tooltip
                 labelFormatter={(label) =>
                   format(parseISO(label), 'MMM d, yyyy')
                 }
+                contentStyle={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                }}
+                formatter={(value: number, name: string) => [
+                  value.toLocaleString(),
+                  name,
+                ]}
               />
-              <Legend />
+              <Legend
+                wrapperStyle={{
+                  paddingTop: '20px',
+                }}
+                iconType="line"
+              />
               <Line
                 yAxisId="left"
                 type="monotone"
                 dataKey="users"
                 name="Total Users"
                 stroke="#794e7b"
-                activeDot={{ r: 8 }}
+                strokeWidth={3}
+                activeDot={{
+                  r: 6,
+                  fill: '#794e7b',
+                  stroke: '#fff',
+                  strokeWidth: 2,
+                }}
+                dot={{
+                  fill: '#794e7b',
+                  r: 4,
+                  stroke: '#fff',
+                  strokeWidth: 1,
+                }}
               />
               <Line
                 yAxisId="right"
@@ -106,7 +158,19 @@ const PlatformGrowthChart: React.FC<PlatformGrowthChartProps> = ({
                 dataKey="posts"
                 name="Total Posts"
                 stroke="#0477a0"
-                activeDot={{ r: 8 }}
+                strokeWidth={3}
+                activeDot={{
+                  r: 6,
+                  fill: '#0477a0',
+                  stroke: '#fff',
+                  strokeWidth: 2,
+                }}
+                dot={{
+                  fill: '#0477a0',
+                  r: 4,
+                  stroke: '#fff',
+                  strokeWidth: 1,
+                }}
               />
             </LineChart>
           </ResponsiveContainer>
