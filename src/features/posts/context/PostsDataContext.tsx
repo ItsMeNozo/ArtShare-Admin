@@ -1,5 +1,11 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useDebounce } from '../../../common/hooks/useDebounce';
 import { Order } from '../../users/types';
 import { useGetAdminPosts } from '../hooks/usePostQueries';
@@ -47,79 +53,90 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [aiCreated, setAiCreated] = useState<boolean | null>(null);
 
-  const [params] = useSearchParams();
-
-  useEffect(() => {
-    const aiCreatedParam = params.get('ai_created');
-
-    if (aiCreatedParam === 'true') {
-      setAiCreated(true);
-      setPage(0);
-    } else if (aiCreatedParam === 'false') {
-      setAiCreated(false);
-      setPage(0);
-    } else {
-      setAiCreated(null);
-    }
-  }, [params]);
-
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const queryParams: GetAllPostsAdminParams = {
-    page: page + 1,
-    limit: pageSize,
-    sortBy: sortBy,
-    sortOrder: sortOrder,
-    search: debouncedSearchTerm,
-    filter: {
-      categoryId: categoryId,
-      aiCreated: aiCreated,
-    },
-  };
+  // Reset page only when debounced search term changes (not on every keystroke)
+  useEffect(() => {
+    if (debouncedSearchTerm !== '' || searchTerm === '') {
+      setPage(0);
+    }
+  }, [debouncedSearchTerm]);
 
-  const { data, isLoading, isPlaceholderData, error } =
-    useGetAdminPosts(queryParams);
+  const queryParams: GetAllPostsAdminParams = useMemo(
+    () => ({
+      page: page + 1,
+      limit: pageSize,
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+      search: debouncedSearchTerm,
+      filter: {
+        categoryId: categoryId,
+        aiCreated: aiCreated,
+      },
+    }),
+    [
+      page,
+      pageSize,
+      sortBy,
+      sortOrder,
+      debouncedSearchTerm,
+      categoryId,
+      aiCreated,
+    ],
+  );
 
-  const handleChangePage = (_event: unknown, newPage: number) => {
+  const {
+    data,
+    isLoading: queryLoading,
+    isPlaceholderData,
+    error,
+  } = useGetAdminPosts(queryParams);
+
+  const handleChangePage = useCallback((_event: unknown, newPage: number) => {
     setPage(newPage);
-  };
+  }, []);
 
-  const handleChangePageSize = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPageSize(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  const handleChangePageSize = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const newPageSize = parseInt(event.target.value, 10);
+      setPageSize(newPageSize);
+      setPage(0);
+    },
+    [],
+  );
 
-  const handleRequestSort = (
-    _event: React.MouseEvent<unknown>,
-    property: string,
-  ) => {
-    const isAsc = sortBy === property && sortOrder === 'asc';
-    setSortOrder(isAsc ? 'desc' : 'asc');
-    setSortBy(property);
-  };
+  const handleRequestSort = useCallback(
+    (_event: React.MouseEvent<unknown>, property: string) => {
+      const isAsc = sortBy === property && sortOrder === 'asc';
+      setSortOrder(isAsc ? 'desc' : 'asc');
+      setSortBy(property);
+    },
+    [sortBy, sortOrder],
+  );
 
-  const handleSetCategoryId = (id: number | null) => {
+  const handleSetCategoryId = useCallback((id: number | null) => {
     setCategoryId(id);
     setPage(0);
-  };
+  }, []);
 
-  const handleSetAiCreated = (value: boolean | null) => {
+  const handleSetAiCreated = useCallback((value: boolean | null) => {
     setAiCreated(value);
     setPage(0);
-  };
+  }, []);
 
-  const value = {
-    posts: data?.data || [],
-    totalPosts: data?.total || 0,
-    isLoading: isLoading || isPlaceholderData,
-    error: error ? error.message : null,
-    tableControls: {
+  const handleSetSearchTerm = useCallback((term: string) => {
+    setSearchTerm(term);
+    // Page reset is handled by the useEffect for debouncedSearchTerm
+  }, []);
+
+  const tableControls = useMemo(
+    () => ({
       page,
       pageSize,
       sortBy,
       sortOrder,
       searchTerm,
-      setSearchTerm,
+      setSearchTerm: handleSetSearchTerm,
       categoryId,
       setCategoryId: handleSetCategoryId,
       aiCreated,
@@ -127,8 +144,42 @@ export const PostsDataProvider: React.FC<{ children: React.ReactNode }> = ({
       handleChangePage,
       handleChangePageSize,
       handleRequestSort,
-    },
-  };
+    }),
+    [
+      page,
+      pageSize,
+      sortBy,
+      sortOrder,
+      searchTerm,
+      categoryId,
+      aiCreated,
+      handleSetSearchTerm,
+      handleSetCategoryId,
+      handleSetAiCreated,
+      handleChangePage,
+      handleChangePageSize,
+      handleRequestSort,
+    ],
+  );
+
+  const posts = useMemo(() => data?.data || [], [data?.data]);
+  const totalPosts = useMemo(() => data?.total || 0, [data?.total]);
+  const isLoading = useMemo(
+    () => queryLoading || isPlaceholderData,
+    [queryLoading, isPlaceholderData],
+  );
+  const errorMessage = useMemo(() => (error ? error.message : null), [error]);
+
+  const value = useMemo(
+    () => ({
+      posts,
+      totalPosts,
+      isLoading,
+      error: errorMessage,
+      tableControls,
+    }),
+    [posts, totalPosts, isLoading, errorMessage, tableControls],
+  );
 
   return (
     <PostsDataContext.Provider value={value}>

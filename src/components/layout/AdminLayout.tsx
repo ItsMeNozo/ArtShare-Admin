@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 
 import {
   Avatar,
@@ -41,7 +41,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import ReportIcon from '@mui/icons-material/Report'; // For Report Management
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 
-import { Person } from '@mui/icons-material';
+import { Person, PhotoLibrary } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCustomTheme } from '../../contexts/ThemeContext';
 import AdminNotificationUI from '../../features/notifications/AdminNotificationUI';
@@ -109,7 +109,7 @@ const StyledDrawer = styled(MuiDrawer, {
   }),
 }));
 
-const AdminLayout: React.FC = () => {
+const AdminLayout = memo(() => {
   const { mode: currentThemeMode, toggleColorMode } = useCustomTheme();
   const { user, logout } = useAuth();
   const muiTheme = useMuiTheme();
@@ -121,108 +121,119 @@ const AdminLayout: React.FC = () => {
   const [userMenuAnchorEl, setUserMenuAnchorEl] =
     React.useState<null | HTMLElement>(null);
 
-  const handleDrawerOpen = () => setOpen(true);
-  const handleDrawerClose = () => setOpen(false);
+  const handleDrawerOpen = useCallback(() => setOpen(true), []);
+  const handleDrawerClose = useCallback(() => setOpen(false), []);
 
-  const handleListItemClick = (path: string) => {
-    setSelectedItem(path);
-    navigate(path);
-  };
+  const handleListItemClick = useCallback(
+    (path: string) => {
+      setSelectedItem(path);
+      navigate(path);
+    },
+    [navigate],
+  );
 
-  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setUserMenuAnchorEl(event.currentTarget);
-  };
+  const handleUserMenuOpen = useCallback(
+    (event: React.MouseEvent<HTMLElement>) => {
+      setUserMenuAnchorEl(event.currentTarget);
+    },
+    [],
+  );
 
-  const handleUserMenuClose = () => {
+  const handleUserMenuClose = useCallback(() => {
     setUserMenuAnchorEl(null);
-  };
+  }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await logout();
       navigate('/login', { replace: true });
     } catch (error) {
       console.error('Logout failed:', error);
-      // Even if logout fails, redirect to login for security
       navigate('/login', { replace: true });
     }
     handleUserMenuClose();
-  };
+  }, [logout, navigate, handleUserMenuClose]);
 
   // Get admin name from user context or fallback
   const adminName = user?.username || user?.fullName || 'Admin User';
 
-  const sidebarItemsConfig = [
-    {
-      text: 'Dashboard',
-      icon: <DashboardIcon />,
-      path: '/',
-      section: 'MAIN',
-      badge: undefined,
-    },
-    {
-      text: 'User Management',
-      icon: <GroupIcon />,
-      path: '/users',
-      section: 'MANAGEMENT',
-      badge: undefined,
-    },
-    {
-      text: 'Post Management',
-      icon: <ArticleIcon />,
-      path: '/posts',
-      section: 'MANAGEMENT',
-      badge: undefined,
-    },
-    {
-      text: 'Blog Management',
-      icon: <ArticleIcon />,
-      path: '/blogs',
-      section: 'MANAGEMENT',
-      badge: undefined,
-    },
-    {
-      text: 'Report Management',
-      icon: <ReportIcon />,
-      path: '/reports',
-      section: 'MANAGEMENT',
-      badge: undefined,
-    },
-    {
-      text: 'Category Management',
-      icon: <CategoryIcon />,
-      path: '/categories',
-      section: 'MANAGEMENT',
-      badge: undefined,
-    },
-    {
-      text: 'AI Statistics',
-      icon: <BarChartIcon />,
-      path: '/ai',
-      section: 'MANAGEMENT',
-      badge: undefined,
-    },
-    // {
-    //   text: 'Statistics',
-    //   icon: <ShowChartIcon />,
-    //   path: '/statistics',
-    //   section: 'MANAGEMENT',
-    //   badge: undefined,
-    // },
-    {
-      text: 'Analytics',
-      icon: <ShowChartIcon />,
-      path: '/statistics',
-      section: 'MANAGEMENT',
-      badge: undefined,
-    },
-  ];
-
-  const mainMenuItems = sidebarItemsConfig.filter(
-    (item) => item.section === 'MAIN',
+  const sidebarItemsConfig = React.useMemo(
+    () => [
+      {
+        text: 'Dashboard',
+        icon: <DashboardIcon />,
+        path: '/',
+        section: 'MAIN',
+        badge: undefined,
+      },
+      {
+        text: 'User Management',
+        icon: <GroupIcon />,
+        path: '/users',
+        section: 'MANAGEMENT',
+        badge: undefined,
+      },
+      {
+        text: 'Post Management',
+        icon: <PhotoLibrary />,
+        path: '/posts',
+        section: 'MANAGEMENT',
+        badge: undefined,
+      },
+      {
+        text: 'Blog Management',
+        icon: <ArticleIcon />,
+        path: '/blogs',
+        section: 'MANAGEMENT',
+        badge: undefined,
+      },
+      {
+        text: 'Report Management',
+        icon: <ReportIcon />,
+        path: '/reports',
+        section: 'MANAGEMENT',
+        badge: undefined,
+      },
+      {
+        text: 'Category Management',
+        icon: <CategoryIcon />,
+        path: '/categories',
+        section: 'MANAGEMENT',
+        badge: undefined,
+      },
+      {
+        text: 'AI Statistics',
+        icon: <BarChartIcon />,
+        path: '/ai',
+        section: 'MANAGEMENT',
+        badge: undefined,
+      },
+      // {
+      //   text: 'Statistics',
+      //   icon: <ShowChartIcon />,
+      //   path: '/statistics',
+      //   section: 'MANAGEMENT',
+      //   badge: undefined,
+      // },
+      {
+        text: 'Analytics',
+        icon: <ShowChartIcon />,
+        path: '/statistics',
+        section: 'MANAGEMENT',
+        badge: undefined,
+      },
+    ],
+    [],
   );
-  const managementItems = sidebarItemsConfig.filter(
-    (item) => item.section === 'MANAGEMENT',
+
+  const mainMenuItems = React.useMemo(
+    () => sidebarItemsConfig.filter((item) => item.section === 'MAIN'),
+    [sidebarItemsConfig],
+  );
+
+  const managementItems = React.useMemo(
+    () => sidebarItemsConfig.filter((item) => item.section === 'MANAGEMENT'),
+    [sidebarItemsConfig],
   );
 
   React.useEffect(() => {
@@ -321,8 +332,12 @@ const AdminLayout: React.FC = () => {
               <ListItemIcon
                 sx={{
                   minWidth: 0,
-                  mr: open ? 2 : 'auto',
+                  mr: open ? 2 : 0,
+                  ml: open ? 0 : 'auto',
                   justifyContent: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: open ? 'auto' : '100%',
                   color: isSelected
                     ? theme.palette.primary.main
                     : theme.palette.action.disabled,
@@ -622,6 +637,6 @@ const AdminLayout: React.FC = () => {
       </Box>
     </Box>
   );
-};
+});
 
 export default AdminLayout;

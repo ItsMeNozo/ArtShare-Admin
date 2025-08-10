@@ -94,16 +94,24 @@ const SummaryTile = ({
   icon,
   label,
   value,
+  isLoading = false,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number;
+  isLoading?: boolean;
 }) => (
   <Card sx={{ p: 3, textAlign: 'center' }}>
     <Avatar sx={{ mb: 1, bgcolor: 'primary.main', mx: 'auto' }}>{icon}</Avatar>
-    <Typography variant="h5" fontWeight={700}>
-      {value?.toLocaleString()}
-    </Typography>
+    {isLoading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
+        <CircularProgress size={24} />
+      </Box>
+    ) : (
+      <Typography variant="h5" fontWeight={700}>
+        {value?.toLocaleString()}
+      </Typography>
+    )}
     <Typography variant="caption" color="text.secondary">
       {label}
     </Typography>
@@ -114,41 +122,56 @@ const PieCard = ({
   title,
   data,
   colorOffset = 0,
+  isLoading = false,
 }: {
   title: string;
   data: { name: string; count: number }[];
   colorOffset?: number;
+  isLoading?: boolean;
 }) => (
   <Card sx={{ height: '100%' }}>
     <CardHeader title={<Typography variant="subtitle1">{title}</Typography>} />
     <CardContent>
       <Box sx={{ height: 260 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <RechartsTooltip
-              formatter={(_, __, p) => [
-                `${p.payload.count} items`,
-                p.payload.name,
-              ]}
-            />
-            <Pie
-              innerRadius={60}
-              outerRadius={100}
-              data={data}
-              dataKey="count"
-              nameKey="name"
-              label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
-              paddingAngle={3}
-            >
-              {data.map((e, i) => (
-                <Cell
-                  key={e.name}
-                  fill={CHART_COLORS[(i + colorOffset) % CHART_COLORS.length]}
-                />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
+        {isLoading ? (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '100%',
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <RechartsTooltip
+                formatter={(_, __, p) => [
+                  `${p.payload.count} items`,
+                  p.payload.name,
+                ]}
+              />
+              <Pie
+                innerRadius={60}
+                outerRadius={100}
+                data={data}
+                dataKey="count"
+                nameKey="name"
+                label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
+                paddingAngle={3}
+              >
+                {data.map((e, i) => (
+                  <Cell
+                    key={e.name}
+                    fill={CHART_COLORS[(i + colorOffset) % CHART_COLORS.length]}
+                  />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        )}
       </Box>
     </CardContent>
   </Card>
@@ -171,6 +194,13 @@ type AnalyticsData = {
   trendingPrompts?: string[];
 };
 
+type LoadingState = {
+  summary: boolean;
+  styles: boolean;
+  ratios: boolean;
+  topPosts: boolean;
+};
+
 /* ============================================================= */
 /*                         MAIN COMPONENT                        */
 /* ============================================================= */
@@ -181,13 +211,23 @@ export default function StatisticDashboardPage() {
 
   /* ----- analytics state ----- */
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<LoadingState>({
+    summary: true,
+    styles: true,
+    ratios: true,
+    topPosts: true,
+  });
   const [filter, setFilter] = useState<'all' | 'last7'>('all');
 
   /* ----- fetch whenever filter changes ----- */
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
+      setLoading({
+        summary: true,
+        styles: true,
+        ratios: true,
+        topPosts: true,
+      });
       try {
         const daysQuery = filter === 'last7' ? '?days=7' : '';
         const { data } = await api.get(`/statistics${daysQuery}`);
@@ -195,7 +235,12 @@ export default function StatisticDashboardPage() {
       } catch (e) {
         console.error(e);
       } finally {
-        setLoading(false);
+        setLoading({
+          summary: false,
+          styles: false,
+          ratios: false,
+          topPosts: false,
+        });
       }
     };
     fetchData();
@@ -225,8 +270,12 @@ export default function StatisticDashboardPage() {
     .sort((a, b) => b.likeCount - a.likeCount)
     .slice(0, 5);
 
+  const isInitialLoading = Object.values(loading).every(
+    (isLoading) => isLoading,
+  );
+
   /* ----- loading ----- */
-  if (loading) {
+  if (isInitialLoading && !analytics) {
     return (
       <Box
         sx={{
@@ -250,6 +299,7 @@ export default function StatisticDashboardPage() {
         filter={filter}
         setFilter={setFilter}
         topPostsFiltered={topPostsFiltered}
+        loading={loading}
       />
     </ThemeProvider>
   );
@@ -261,11 +311,13 @@ function PageContent({
   filter,
   setFilter,
   topPostsFiltered,
+  loading,
 }: {
   processed: any;
   filter: 'all' | 'last7';
   setFilter: (v: 'all' | 'last7') => void;
   topPostsFiltered: any[];
+  loading: LoadingState;
 }) {
   const theme = useTheme();
   const { toggleColorMode } = useContext(ColorModeContext);
@@ -308,6 +360,7 @@ function PageContent({
               icon={<AutoAwesomeIcon />}
               label="AI Posts"
               value={processed.postsCount}
+              isLoading={loading.summary}
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
@@ -315,6 +368,7 @@ function PageContent({
               icon={<AddPhotoAlternateIcon />}
               label="AI Images"
               value={processed.imagesCount}
+              isLoading={loading.summary}
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
@@ -322,6 +376,7 @@ function PageContent({
               icon={<TimelineIcon />}
               label="Tokens"
               value={processed.tokensCount}
+              isLoading={loading.summary}
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
@@ -334,6 +389,7 @@ function PageContent({
                   0,
                 ) || 0
               }
+              isLoading={loading.summary}
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
@@ -341,6 +397,7 @@ function PageContent({
               icon={<PaletteIcon />}
               label="Styles"
               value={(processed.styles ?? []).length}
+              isLoading={loading.summary}
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
@@ -348,6 +405,7 @@ function PageContent({
               icon={<AspectRatioIcon />}
               label="Ratios"
               value={(processed.ratios ?? []).length}
+              isLoading={loading.summary}
             />
           </Grid>
         </Grid>
@@ -355,11 +413,18 @@ function PageContent({
         <Grid container spacing={3}>
           {/* Left side */}
           <Grid size={{ xs: 12, md: 8 }}>
-            <TopAIPosts
-              posts={topPostsFiltered}
-              filter={filter}
-              showSeeAllButton={false}
-            />
+            {loading.topPosts ? (
+              <Card sx={{ p: 4, textAlign: 'center' }}>
+                <CircularProgress />
+                <Typography sx={{ mt: 2 }}>Loading top posts...</Typography>
+              </Card>
+            ) : (
+              <TopAIPosts
+                posts={topPostsFiltered}
+                filter={filter}
+                showSeeAllButton={false}
+              />
+            )}
           </Grid>
 
           {/* Right side */}
@@ -370,13 +435,18 @@ function PageContent({
             direction="column"
           >
             <Grid size={{ xs: 12 }}>
-              <PieCard title="Usage by Style" data={processed.styles ?? []} />
+              <PieCard
+                title="Usage by Style"
+                data={processed.styles ?? []}
+                isLoading={loading.styles}
+              />
             </Grid>
             <Grid size={{ xs: 12 }}>
               <PieCard
                 title="Usage by Aspect Ratio"
                 data={processed.ratios ?? []}
                 colorOffset={3}
+                isLoading={loading.ratios}
               />
             </Grid>
           </Grid>
